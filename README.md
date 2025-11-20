@@ -1,36 +1,36 @@
 # Ve_Xe_Nhanh - Online Bus Ticket Booking System
 
-**Te_QuickRide** is a comprehensive web-based platform for booking bus tickets online, connecting passengers with bus operators across Vietnam.
+**Ve_Xe_Nhanh** là một nền tảng trực tuyến toàn diện để đặt vé xe buýt, kết nối hành khách với các nhà điều hành xe buýt trên khắp Việt Nam.
 
 ## 📋 Table of Contents
 
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Running the Application](#-running-the-application)
-- [API Documentation](#-api-documentation)
-- [Database Schema](#-database-schema)
-- [Development Roadmap](#-development-roadmap)
-- [Contributing](#-contributing)
+- [Tính năng](#-Tính-năng)
+- [Công nghệ sử dụng](#-tech-stack)
+- [Cấu trúc dự án](#-project-structure)
+- [Yêu cầu trước khi cài đặt](#-prerequisites)
+- [Hướng dẫn cài đặt](#-installation)
+- [Chạy ứng dụng](#-running-the-application)
+- [Tài liệu API](#-api-documentation)
+- [Sơ đồ cơ sở dữ liệu](#-database-schema)
+- [Lộ trình phát triển](#-development-roadmap)
+- [Đóng góp](#-contributing)
 - [License](#-license)
 
 ---
 
-## ✨ Features
+## ✨ Tính năng
 
-### For Customers
-- 🔍 Search bus trips by route and date
-- 💺 Real-time seat selection with visual seat map
-- 💳 Multiple payment methods (VNPay, MoMo, ZaloPay, Bank Transfer)
-- 📱 E-tickets with QR codes
-- 📧 Email/SMS notifications
-- ⭐ Rate and review trips
-- 🎁 Loyalty points program
-- 📜 Booking history management
+### Dành cho khách hàng
+- 🔍 Tìm kiếm chuyến xe theo tuyến và ngày
+- 💺 Chọn ghế theo thời gian thực với sơ đồ ghế trực quan
+- 💳 Hỗ trợ nhiều phương thức thanh toán (VNPay, MoMo, ZaloPay, Chuyển khoản ngân hàng)
+- 📱 Vé điện tử kèm mã QR
+- 📧 Thông báo qua Email/SMS
+- ⭐ Đánh giá và nhận xét chuyến đi
+- 🎁 Chương trình tích điểm thành viên
+- 📜 Quản lý lịch sử đặt vé
 
-### For Bus Operators
+### Dành cho Nhà xe
 - 🚍 Manage routes and schedules
 - 🚌 Vehicle and seat layout configuration
 - 💰 Pricing and promotion management
