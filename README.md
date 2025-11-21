@@ -1,22 +1,10 @@
-# QuikRide - Hệ Thống Đặt Vé Xe Khách Trực Tuyến
+# Vé Xe Nhanh - Hệ Thống Đặt Vé Xe Khách Trực Tuyến
 
-<div align="center">
-
-  ![QuikRide Logo](https://via.placeholder.com/200x80/0ea5e9/ffffff?text=QuikRide)
-
-  <h3>🚌 Nền tảng đặt vé xe khách hiện đại, nhanh chóng và tiện lợi</h3>
-  <p>Kết nối khách hàng với các nhà xe, tạo nên trải nghiệm đặt vé trực tuyến tuyệt vời</p>
-
-  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-  [![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
-  [![React](https://img.shields.io/badge/react-18.2.0-blue.svg)](https://reactjs.org/)
-  [![MongoDB](https://img.shields.io/badge/mongodb-6.x-green.svg)](https://www.mongodb.com/)
-
-</div>
+Nền tảng đặt vé xe khách hiện đại, nhanh chóng và tiện lợi. Kết nối khách hàng với các nhà xe, tạo nên trải nghiệm đặt vé trực tuyến tuyệt vời.
 
 ---
 
-## 📋 Mục Lục
+## Mục Lục
 
 - [Tổng Quan](#tổng-quan)
 - [Kiến Trúc Hệ Thống](#kiến-trúc-hệ-thống)
@@ -25,47 +13,47 @@
 - [Cấu Trúc Dự Án](#cấu-trúc-dự-án)
 - [Lộ Trình Phát Triển](#lộ-trình-phát-triển)
 - [Hướng Dẫn Cài Đặt](#hướng-dẫn-cài-đặt)
-- [API Documentation](#api-documentation)
-- [Database Schema](#database-schema)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Security](#security)
-- [Performance](#performance)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
+- [Tài Liệu API](#tài-liệu-api)
+- [Sơ Đồ Database](#sơ-đồ-database)
+- [Kiểm Thử](#kiểm-thử)
+- [Triển Khai](#triển-khai)
+- [Bảo Mật](#bảo-mật)
+- [Hiệu Năng](#hiệu-năng)
+- [Xử Lý Sự Cố](#xử-lý-sự-cố)
+- [Đóng Góp](#đóng-góp)
+- [Giấy Phép](#giấy-phép)
 
 ---
 
-## 🎯 Tổng Quan
+## Tổng Quan
 
-**QuikRide** là một hệ thống đặt vé xe khách trực tuyến toàn diện, được xây dựng theo kiến trúc hiện đại, cho phép:
+**Vé Xe Nhanh** là một hệ thống đặt vé xe khách trực tuyến toàn diện, được xây dựng theo kiến trúc hiện đại, cho phép:
 
-- 🔍 **Khách hàng:** Tìm kiếm, đặt vé và thanh toán dễ dàng 24/7
-- 🎫 **Vé điện tử:** Quản lý vé với mã QR an toàn, chống giả mạo
-- 🏢 **Nhà xe:** Quản lý tuyến đường, lịch trình, doanh thu một cách hiệu quả
-- 👨‍💼 **Quản lý chuyến:** Soát vé điện tử, quản lý hành khách real-time
-- 📊 **Admin hệ thống:** Giám sát và quản trị tổng thể nền tảng
+- Khách hàng: Tìm kiếm, đặt vé và thanh toán dễ dàng 24/7
+- Vé điện tử: Quản lý vé với mã QR an toàn, chống giả mạo
+- Nhà xe: Quản lý tuyến đường, lịch trình, doanh thu một cách hiệu quả
+- Quản lý chuyến: Soát vé điện tử, quản lý hành khách real-time
+- Admin hệ thống: Giám sát và quản trị tổng thể nền tảng
 
 ### Giải Pháp Cho Các Vấn Đề
 
-#### ❌ Quy trình cũ (AS-IS)
+#### Quy trình cũ
 - Phải đến trực tiếp bến xe để đặt vé
 - Không biết trước ghế còn trống
 - Vé giấy dễ mất mát, giả mạo
 - Khó quản lý, đối soát thủ công
 - Tốn thời gian 15-30 phút/lần
 
-#### ✅ Quy trình mới (TO-BE)
+#### Quy trình mới
 - Đặt vé online mọi lúc, mọi nơi
-- Xem real-time ghế còn trống
+- Xem tức thời ghế còn trống
 - Vé điện tử với mã QR an toàn
-- Quản lý tự động, báo cáo real-time
+- Quản lý tự động, báo cáo thời gian thực
 - Chỉ mất 3-5 phút hoàn tất
 
 ---
 
-## 🏗️ Kiến Trúc Hệ Thống
+## Kiến Trúc Hệ Thống
 
 ### Tổng Quan Kiến Trúc
 
@@ -116,276 +104,277 @@
 
 Hệ thống được chia thành **4 ứng dụng web độc lập**:
 
-#### 1. 🌐 Customer Web (Trang Khách Hàng)
-- **URL:** `https://quikride.com`
+#### 1. Trang Khách Hàng (Customer Web)
+- **Địa chỉ:** `https://vexenhanh.com`
 - **Mục đích:** Tìm kiếm và đặt vé cho khách hàng
 - **Tính năng:**
   - Tìm kiếm chuyến xe
-  - Đặt vé và thanh toán online
+  - Đặt vé và thanh toán trực tuyến
   - Quản lý vé cá nhân
-  - Đánh giá và review
+  - Đánh giá và nhận xét
   - Tích lũy điểm thưởng
-- **Đăng nhập:** Email/Phone + Password, OAuth (Google, Facebook)
+- **Đăng nhập:** Email/Số điện thoại + Mật khẩu, hoặc qua Google, Facebook
 
-#### 2. 🏢 Operator Dashboard (Trang Nhà Xe)
-- **URL:** `https://operator.quikride.com`
+#### 2. Trang Nhà Xe (Operator Dashboard)
+- **Địa chỉ:** `https://operator.vexenhanh.com`
 - **Mục đích:** Quản lý hoạt động kinh doanh của nhà xe
 - **Tính năng:**
-  - Dashboard doanh thu real-time
+  - Bảng điều khiển doanh thu thời gian thực
   - Quản lý tuyến đường và xe
   - Tạo lịch trình chuyến xe
   - Quản lý nhân viên
   - Báo cáo chi tiết
-  - Quản lý voucher và khuyến mãi
-- **Đăng nhập:** Business Email + Password (riêng biệt)
+  - Quản lý phiếu giảm giá và khuyến mãi
+- **Đăng nhập:** Email doanh nghiệp + Mật khẩu (riêng biệt)
 
-#### 3. 📱 Trip Manager Web (Trang Quản Lý Chuyến)
-- **URL:** `https://trip.quikride.com`
+#### 3. Trang Quản Lý Chuyến (Trip Manager Web)
+- **Địa chỉ:** `https://trip.vexenhanh.com`
 - **Mục đích:** Soát vé và quản lý hành khách
 - **Tính năng:**
   - Quét mã QR xác thực vé
-  - Danh sách hành khách real-time
+  - Danh sách hành khách thời gian thực
   - Đánh dấu đã lên xe
   - Cập nhật trạng thái chuyến
   - Thống kê tỉ lệ lấp đầy
-- **Đăng nhập:** Employee ID + Password (riêng biệt)
+- **Đăng nhập:** Mã nhân viên + Mật khẩu (riêng biệt)
 
-#### 4. ⚙️ System Admin (Trang Quản Trị Hệ Thống)
-- **URL:** `https://admin.quikride.com`
+#### 4. Trang Quản Trị Hệ Thống (System Admin)
+- **Địa chỉ:** `https://admin.vexenhanh.com`
 - **Mục đích:** Quản trị và giám sát toàn hệ thống
 - **Tính năng:**
-  - Dashboard tổng quan hệ thống
-  - Quản lý users và operators
+  - Bảng điều khiển tổng quan hệ thống
+  - Quản lý người dùng và nhà xe
   - Duyệt đăng ký nhà xe
-  - Quản lý nội dung (banner, blog, FAQ)
+  - Quản lý nội dung (banner, blog, câu hỏi thường gặp)
   - Xử lý khiếu nại
-  - Báo cáo và analytics
-- **Đăng nhập:** Admin credentials (secured)
+  - Báo cáo và phân tích
+- **Đăng nhập:** Tài khoản quản trị (bảo mật cao)
 
 ---
 
-## ✨ Tính Năng Chính
+## Tính Năng Chính
 
-### 👤 Dành cho Khách Hàng (Customer)
+### Dành cho Khách Hàng
 
 #### Tìm Kiếm & Đặt Vé
-- ✅ Tìm kiếm chuyến xe theo **tuyến, ngày giờ** với filters
-- ✅ So sánh nhiều nhà xe, giá vé, tiện ích
-- ✅ Xem **sơ đồ ghế real-time** (ghế trống/đã đặt)
-- ✅ Chọn tối đa **6 ghế** mỗi lần đặt
-- ✅ **Lock ghế tạm thời 15 phút** khi đang đặt
-- ✅ Nhập thông tin hành khách chi tiết
-- ✅ Chọn điểm đón và điểm trả linh hoạt
+- Tìm kiếm chuyến xe theo tuyến, ngày giờ với bộ lọc
+- So sánh nhiều nhà xe, giá vé, tiện ích
+- Xem sơ đồ ghế thời gian thực (ghế trống/đã đặt)
+- Chọn tối đa 6 ghế mỗi lần đặt
+- Giữ ghế tạm thời 15 phút khi đang đặt
+- Nhập thông tin hành khách chi tiết
+- Chọn điểm đón và điểm trả linh hoạt
 
 #### Thanh Toán
-- 💳 **Đa dạng phương thức thanh toán:**
+- Đa dạng phương thức thanh toán:
   - Ví điện tử: MoMo, VNPay, ZaloPay, ShopeePay
   - Thẻ ATM nội địa
   - Thẻ quốc tế: Visa, Mastercard, JCB
   - Chuyển khoản ngân hàng
-  - Thanh toán khi lên xe (COD)
-- 💰 Áp dụng mã **voucher/giảm giá**
-- 🔒 **Bảo mật PCI-DSS compliant**
-- ♻️ **Auto refund** khi thanh toán thất bại
+  - Thanh toán khi lên xe
+- Áp dụng mã phiếu giảm giá
+- Bảo mật tuân thủ tiêu chuẩn PCI-DSS
+- Hoàn tiền tự động khi thanh toán thất bại
 
 #### Vé Điện Tử
-- 🎫 Nhận vé điện tử **PDF** qua email
-- 📱 **Mã QR** chứa thông tin mã hóa
-- 📧 Gửi qua **Email** và **SMS**
-- 💾 Lưu lịch sử vé trong tài khoản
-- 📥 **Download vé** bất kỳ lúc nào
+- Nhận vé điện tử dạng PDF qua email
+- Mã QR chứa thông tin mã hóa
+- Gửi qua email và tin nhắn
+- Lưu lịch sử vé trong tài khoản
+- Tải vé bất kỳ lúc nào
 
 #### Quản Lý Vé
-- 📋 Xem danh sách vé: **sắp tới, đã đi, đã hủy**
-- 🔍 Tìm kiếm vé theo mã, ngày, tuyến
-- 🚫 **Hủy vé** theo chính sách (hoàn tiền tự động)
-- 🔄 **Đổi vé** sang chuyến khác (tính chênh lệch)
-- 📨 Thông báo **nhắc nhở** trước giờ xuất bến
+- Xem danh sách vé: sắp tới, đã đi, đã hủy
+- Tìm kiếm vé theo mã, ngày, tuyến
+- Hủy vé theo chính sách (hoàn tiền tự động)
+- Đổi vé sang chuyến khác (tính chênh lệch)
+- Thông báo nhắc nhở trước giờ xuất bến
 
 #### Khác
-- ⭐ Đánh giá và review chuyến đi (1-5 sao)
-- 🎁 **Tích lũy điểm thưởng** mỗi chuyến
-- 🏆 **Loyalty tiers:** Bronze, Silver, Gold, Platinum
-- 💾 Lưu danh sách **hành khách thường đi**
-- 📜 Xem lịch sử đặt vé và giao dịch
+- Đánh giá và nhận xét chuyến đi (1-5 sao)
+- Tích lũy điểm thưởng mỗi chuyến
+- Hạng thành viên: Đồng, Bạc, Vàng, Bạch Kim
+- Lưu danh sách hành khách thường đi
+- Xem lịch sử đặt vé và giao dịch
 
 ---
 
-### 🏢 Dành cho Nhà Xe (Bus Operator)
+### Dành cho Nhà Xe
 
-#### Dashboard & Analytics
-- 📊 **Dashboard real-time:**
+#### Bảng Điều Khiển & Phân Tích
+- Bảng điều khiển thời gian thực:
   - Tổng doanh thu (ngày/tuần/tháng/năm)
   - Số vé đã bán
   - Tỷ lệ lấp đầy trung bình
-  - Biểu đồ trends
-- 📈 **Báo cáo chi tiết:**
+  - Biểu đồ xu hướng
+- Báo cáo chi tiết:
   - Doanh thu theo tuyến
-  - Top tuyến đường
+  - Tuyến đường phổ biến nhất
   - Tỷ lệ hủy vé
-  - Export Excel/PDF
+  - Xuất file Excel/PDF
 
 #### Quản Lý Tuyến & Xe
-- 🛣️ **Quản lý tuyến đường:**
+- Quản lý tuyến đường:
   - Tạo/sửa/xóa tuyến
   - Thiết lập điểm đi, đến, điểm dừng
   - Khoảng cách và thời gian dự kiến
-  - Google Maps integration
-- 🚌 **Quản lý xe:**
+  - Tích hợp Google Maps
+- Quản lý xe:
   - Thêm/sửa/xóa xe (biển số, loại xe)
-  - Thiết lập **sơ đồ ghế linh hoạt** (1-2 tầng)
-  - Cấu hình tiện ích xe (WiFi, A/C, toilet, etc.)
+  - Thiết lập sơ đồ ghế linh hoạt (1-2 tầng)
+  - Cấu hình tiện ích xe (WiFi, điều hòa, nhà vệ sinh...)
   - Trạng thái xe (hoạt động/bảo trì)
 
-#### Lịch Trình & Pricing
-- 📅 **Tạo lịch trình chuyến xe:**
+#### Lịch Trình & Định Giá
+- Tạo lịch trình chuyến xe:
   - Chọn tuyến, xe, tài xế, quản lý chuyến
   - Giờ đi, giờ đến dự kiến
   - Sao chép lịch trình định kỳ
   - Hủy/sửa chuyến
-- 💰 **Quản lý giá vé:**
+- Quản lý giá vé:
   - Thiết lập bảng giá linh hoạt
-  - Dynamic pricing theo nhu cầu
-  - Tạo mã **voucher/giảm giá**
+  - Điều chỉnh giá theo nhu cầu
+  - Tạo mã phiếu giảm giá
   - Thiết lập điều kiện áp dụng
 
 #### Quản Lý Nhân Viên
-- 👥 **CRUD nhân viên:**
+- Quản lý nhân viên:
   - Thêm tài xế, quản lý chuyến
   - Phân quyền truy cập
   - Xem lịch trình làm việc
-  - Theo dõi tình trạng (active/inactive)
+  - Theo dõi tình trạng (hoạt động/không hoạt động)
 
 ---
 
-### 📱 Dành cho Quản Lý Chuyến (Trip Manager)
+### Dành cho Quản Lý Chuyến
 
 #### Soát Vé Điện Tử
-- 📷 **Quét mã QR:**
-  - Mở camera hoặc upload ảnh
+- Quét mã QR:
+  - Mở camera hoặc tải ảnh lên
   - Tự động giải mã và xác thực
   - Kiểm tra vé: hợp lệ, đúng chuyến, chưa sử dụng
   - Hiển thị thông tin hành khách đầy đủ
-- ✅ **Xác nhận lên xe:**
+- Xác nhận lên xe:
   - Đánh dấu vé đã sử dụng
   - Không thể quét lại vé đã dùng
-  - Cập nhật danh sách real-time
+  - Cập nhật danh sách thời gian thực
 
 #### Quản Lý Hành Khách
-- 📋 **Danh sách hành khách:**
+- Danh sách hành khách:
   - Xem tất cả hành khách của chuyến
-  - Phân biệt: **đã lên xe / chưa lên xe**
+  - Phân biệt: đã lên xe / chưa lên xe
   - Tìm kiếm theo tên, ghế, SĐT
   - Thống kê: đã lên/tổng số
-- 🔄 **Cập nhật trạng thái chuyến:**
+- Cập nhật trạng thái chuyến:
   - Chưa bắt đầu → Đang diễn ra → Hoàn thành
   - Thông báo tự động cho hành khách
 
 ---
 
-### ⚙️ Dành cho Admin Hệ Thống (System Admin)
+### Dành cho Quản Trị Hệ Thống
 
-#### Quản Lý Users & Operators
-- 👥 **Quản lý người dùng:**
-  - Xem danh sách tất cả users
+#### Quản Lý Người Dùng & Nhà Xe
+- Quản lý người dùng:
+  - Xem danh sách tất cả người dùng
   - Tìm kiếm, lọc, phân trang
   - Khóa/mở khóa tài khoản
-  - Reset mật khẩu
-- ✅ **Duyệt nhà xe:**
+  - Đặt lại mật khẩu
+- Duyệt nhà xe:
   - Xem yêu cầu đăng ký nhà xe mới
-  - Kiểm tra giấy tờ (business license, tax code)
+  - Kiểm tra giấy tờ (giấy phép kinh doanh, mã số thuế)
   - Phê duyệt/từ chối
   - Tạm ngưng/khôi phục nhà xe
 
 #### Quản Lý Nội Dung
-- 🎨 **Content Management:**
-  - Upload và quản lý banner
+- Quản lý nội dung:
+  - Tải lên và quản lý banner
   - Thêm/sửa/xóa bài viết blog
-  - Quản lý FAQ
-  - SEO settings
+  - Quản lý câu hỏi thường gặp
+  - Cài đặt tối ưu hóa công cụ tìm kiếm
 
-#### Support & Analytics
-- 🎫 **Xử lý khiếu nại:**
-  - Hệ thống ticketing
+#### Hỗ Trợ & Phân Tích
+- Xử lý khiếu nại:
+  - Hệ thống phiếu hỗ trợ
   - Phân loại và ưu tiên
-  - Assign cho nhân viên
+  - Phân công cho nhân viên
   - Theo dõi tiến độ
-- 📊 **Báo cáo tổng hợp:**
-  - Dashboard hệ thống
-  - Growth metrics
-  - Top routes/operators
-  - Revenue analytics
+- Báo cáo tổng hợp:
+  - Bảng điều khiển hệ thống
+  - Chỉ số tăng trưởng
+  - Tuyến đường/nhà xe hàng đầu
+  - Phân tích doanh thu
 
 ---
 
-## 🛠️ Công Nghệ Sử Dụng
+## Công Nghệ Sử Dụng
 
-### Frontend Stack
+### Công Nghệ Frontend
 
-| Công nghệ | Version | Mục đích |
+| Công nghệ | Phiên bản | Mục đích |
 |-----------|---------|----------|
-| **React** | 18.2.0 | UI Framework - Fast, component-based |
-| **Vite** | 5.0.0 | Build tool - Lightning fast HMR |
-| **Tailwind CSS** | 3.3.5 | Utility-first CSS framework |
-| **Ant Design** | 5.11.0 | Enterprise UI components |
-| **Zustand** | 4.4.6 | Lightweight state management |
-| **React Router** | 6.20.0 | Client-side routing |
-| **Axios** | 1.6.0 | HTTP client |
-| **Socket.IO Client** | 4.6.0 | Real-time communication |
-| **QRCode.react** | 3.1.0 | QR code generation |
-| **Day.js** | 1.11.10 | Date manipulation |
-| **React Hot Toast** | 2.4.1 | Notifications |
+| React | 18.2.0 | Thư viện giao diện người dùng |
+| Vite | 5.0.0 | Công cụ build nhanh |
+| Tailwind CSS | 3.3.5 | Framework CSS tiện ích |
+| Ant Design | 5.11.0 | Thành phần giao diện doanh nghiệp |
+| Zustand | 4.4.6 | Quản lý trạng thái nhẹ |
+| React Router | 6.20.0 | Định tuyến phía client |
+| Axios | 1.6.0 | Thư viện HTTP |
+| Socket.IO Client | 4.6.0 | Giao tiếp thời gian thực |
+| QRCode.react | 3.1.0 | Tạo mã QR |
+| Day.js | 1.11.10 | Thao tác ngày tháng |
+| React Hot Toast | 2.4.1 | Thông báo |
 
-### Backend Stack
+### Công Nghệ Backend
 
-| Công nghệ | Version | Mục đích |
+| Công nghệ | Phiên bản | Mục đích |
 |-----------|---------|----------|
-| **Node.js** | ≥18.0.0 | JavaScript runtime |
-| **Express** | 4.18.2 | Web framework |
-| **MongoDB** | ≥6.0 | NoSQL database |
-| **Mongoose** | 8.0.0 | MongoDB ODM |
-| **Redis** | ≥6.0 | Caching & session store |
-| **JWT** | 9.0.2 | Authentication tokens |
-| **bcryptjs** | 2.4.3 | Password hashing |
-| **Helmet** | 7.1.0 | Security headers |
-| **CORS** | 2.8.5 | Cross-origin resource sharing |
-| **Express Validator** | 7.0.1 | Input validation |
-| **Rate Limit** | 7.1.0 | API rate limiting |
-| **Nodemailer** | 6.9.7 | Email sending |
-| **Socket.IO** | 4.6.0 | WebSocket server |
-| **PDFKit** | 0.13.0 | PDF generation |
-| **QRCode** | 1.5.3 | QR code generation |
+| Node.js | ≥18.0.0 | Môi trường chạy JavaScript |
+| Express | 4.18.2 | Framework web |
+| MongoDB | ≥6.0 | Cơ sở dữ liệu NoSQL |
+| Mongoose | 8.0.0 | Công cụ ODM cho MongoDB |
+| Redis | ≥6.0 | Bộ nhớ đệm và lưu phiên |
+| JWT | 9.0.2 | Token xác thực |
+| bcryptjs | 2.4.3 | Mã hóa mật khẩu |
+| Helmet | 7.1.0 | Tiêu đề bảo mật |
+| CORS | 2.8.5 | Chia sẻ tài nguyên liên nguồn |
+| Express Validator | 7.0.1 | Xác thực đầu vào |
+| Rate Limit | 7.1.0 | Giới hạn tốc độ API |
+| Nodemailer | 6.9.7 | Gửi email |
+| Socket.IO | 4.6.0 | Máy chủ WebSocket |
+| PDFKit | 0.13.0 | Tạo file PDF |
+| QRCode | 1.5.3 | Tạo mã QR |
+| Winston | 3.11.0 | Hệ thống ghi nhật ký |
 
-### Third-party Services
+### Dịch Vụ Bên Thứ Ba
 
-| Service | Purpose |
+| Dịch vụ | Mục đích |
 |---------|---------|
-| **VNPay, MoMo, ZaloPay** | Payment gateways (Vietnam) |
-| **SendGrid / AWS SES** | Transactional email service |
-| **VNPT SMS / Viettel SMS** | SMS notifications (OTP, alerts) |
-| **Cloudinary** | Image/file upload & CDN |
-| **Google Maps API** | Geocoding & maps |
-| **Google/Facebook OAuth** | Social login |
+| VNPay, MoMo, ZaloPay | Cổng thanh toán |
+| SendGrid / AWS SES | Dịch vụ email giao dịch |
+| VNPT SMS / Viettel SMS | Thông báo tin nhắn (OTP, cảnh báo) |
+| Cloudinary | Tải lên hình ảnh/file và CDN |
+| Google Maps API | Mã hóa địa lý và bản đồ |
+| Google/Facebook OAuth | Đăng nhập mạng xã hội |
 
-### DevOps & Infrastructure
+### Công Cụ Vận Hành & Hạ Tầng
 
-| Tool | Purpose |
+| Công cụ | Mục đích |
 |------|---------|
-| **Docker** | Containerization |
-| **Docker Compose** | Multi-container orchestration |
-| **GitHub Actions** | CI/CD pipeline |
-| **Nginx** | Reverse proxy & web server |
-| **CloudFlare** | CDN & DDoS protection |
-| **AWS/Azure/GCP** | Cloud hosting |
-| **MongoDB Atlas** | Managed MongoDB (optional) |
-| **Redis Cloud** | Managed Redis (optional) |
+| Docker | Đóng gói container |
+| Docker Compose | Điều phối nhiều container |
+| GitHub Actions | Đường ống CI/CD |
+| Nginx | Máy chủ proxy ngược và web |
+| CloudFlare | CDN và bảo vệ DDoS |
+| AWS/Azure/GCP | Lưu trữ đám mây |
+| MongoDB Atlas | MongoDB được quản lý (tùy chọn) |
+| Redis Cloud | Redis được quản lý (tùy chọn) |
 
 ---
 
-## 📁 Cấu Trúc Dự Án
+## Cấu Trúc Dự Án
 
 ```
-Te2_quikride/
+Ve_Xe_Nhanh/
 │
 ├── backend/                          # Backend Node.js + Express
 │   ├── src/
@@ -402,17 +391,17 @@ Te2_quikride/
 │   │   │   └── admin.controller.js
 │   │   │
 │   │   ├── models/                   # MongoDB Schemas
-│   │   │   ├── User.js               # Customer model
-│   │   │   ├── BusOperator.js        # Operator model
-│   │   │   ├── Route.js              # Route model
-│   │   │   ├── Bus.js                # Bus model
-│   │   │   ├── Trip.js               # Trip/Schedule model
-│   │   │   ├── Booking.js            # Booking model
-│   │   │   ├── Ticket.js             # Ticket model
-│   │   │   ├── Payment.js            # Payment model
-│   │   │   ├── Review.js             # Review model
-│   │   │   ├── Voucher.js            # Voucher model
-│   │   │   └── Employee.js           # Employee model
+│   │   │   ├── User.js
+│   │   │   ├── BusOperator.js
+│   │   │   ├── Route.js
+│   │   │   ├── Bus.js
+│   │   │   ├── Trip.js
+│   │   │   ├── Booking.js
+│   │   │   ├── Ticket.js
+│   │   │   ├── Payment.js
+│   │   │   ├── Review.js
+│   │   │   ├── Voucher.js
+│   │   │   └── Employee.js
 │   │   │
 │   │   ├── routes/                   # API Routes
 │   │   │   ├── auth.routes.js
@@ -425,32 +414,34 @@ Te2_quikride/
 │   │   │   └── admin.routes.js
 │   │   │
 │   │   ├── middleware/               # Express Middleware
-│   │   │   ├── auth.middleware.js    # JWT verification
-│   │   │   ├── role.middleware.js    # Role-based access
-│   │   │   ├── validate.middleware.js# Input validation
-│   │   │   ├── upload.middleware.js  # File upload
-│   │   │   └── error.middleware.js   # Error handling
+│   │   │   ├── auth.middleware.js
+│   │   │   ├── role.middleware.js
+│   │   │   ├── validate.middleware.js
+│   │   │   ├── upload.middleware.js
+│   │   │   ├── error.middleware.js
+│   │   │   └── morgan.middleware.js
 │   │   │
 │   │   ├── services/                 # Business Logic
 │   │   │   ├── auth.service.js
-│   │   │   ├── email.service.js      # Email sending
-│   │   │   ├── sms.service.js        # SMS sending
-│   │   │   ├── payment.service.js    # Payment processing
-│   │   │   ├── qr.service.js         # QR generation
-│   │   │   ├── pdf.service.js        # PDF generation
-│   │   │   └── seat.service.js       # Seat locking logic
+│   │   │   ├── email.service.js
+│   │   │   ├── sms.service.js
+│   │   │   ├── payment.service.js
+│   │   │   ├── qr.service.js
+│   │   │   ├── pdf.service.js
+│   │   │   └── seat.service.js
 │   │   │
 │   │   ├── utils/                    # Utilities
 │   │   │   ├── logger.js
+│   │   │   ├── logHelpers.js
 │   │   │   ├── constants.js
 │   │   │   ├── validators.js
 │   │   │   └── helpers.js
 │   │   │
 │   │   ├── config/                   # Configuration
-│   │   │   ├── database.js           # MongoDB config
-│   │   │   ├── redis.js              # Redis config
-│   │   │   ├── cloudinary.js         # File upload config
-│   │   │   └── payment.js            # Payment gateway config
+│   │   │   ├── database.js
+│   │   │   ├── redis.js
+│   │   │   ├── cloudinary.js
+│   │   │   └── payment.js
 │   │   │
 │   │   └── server.js                 # Entry point
 │   │
@@ -459,7 +450,12 @@ Te2_quikride/
 │   │   ├── integration/
 │   │   └── e2e/
 │   │
-│   ├── .env.example                  # Environment variables template
+│   ├── logs/                         # Log files
+│   │   ├── application-YYYY-MM-DD.log
+│   │   ├── error-YYYY-MM-DD.log
+│   │   └── exceptions-YYYY-MM-DD.log
+│   │
+│   ├── .env.example
 │   ├── .gitignore
 │   ├── package.json
 │   └── README.md
@@ -467,183 +463,105 @@ Te2_quikride/
 ├── frontend/                         # Frontend React + Vite
 │   ├── src/
 │   │   ├── components/               # Reusable components
-│   │   │   ├── common/               # Common components
-│   │   │   │   ├── Header.jsx
-│   │   │   │   ├── Footer.jsx
-│   │   │   │   ├── Sidebar.jsx
-│   │   │   │   ├── Loading.jsx
-│   │   │   │   └── ErrorBoundary.jsx
-│   │   │   ├── search/               # Search-related
-│   │   │   │   ├── SearchForm.jsx
-│   │   │   │   ├── FilterPanel.jsx
-│   │   │   │   └── TripCard.jsx
-│   │   │   ├── booking/              # Booking-related
-│   │   │   │   ├── SeatMap.jsx
-│   │   │   │   ├── PassengerForm.jsx
-│   │   │   │   └── BookingSummary.jsx
-│   │   │   └── dashboard/            # Dashboard components
-│   │   │       ├── StatsCard.jsx
-│   │   │       ├── RevenueChart.jsx
-│   │   │       └── TripTable.jsx
+│   │   │   ├── common/
+│   │   │   ├── search/
+│   │   │   ├── booking/
+│   │   │   └── dashboard/
 │   │   │
 │   │   ├── pages/                    # Page components
-│   │   │   ├── customer/             # Customer pages
-│   │   │   │   ├── HomePage.jsx
-│   │   │   │   ├── SearchPage.jsx
-│   │   │   │   ├── BookingPage.jsx
-│   │   │   │   ├── PaymentPage.jsx
-│   │   │   │   ├── MyTicketsPage.jsx
-│   │   │   │   └── ProfilePage.jsx
-│   │   │   │
-│   │   │   ├── operator/             # Operator dashboard pages
-│   │   │   │   ├── OperatorDashboard.jsx
-│   │   │   │   ├── RoutesPage.jsx
-│   │   │   │   ├── BusesPage.jsx
-│   │   │   │   ├── TripsPage.jsx
-│   │   │   │   ├── EmployeesPage.jsx
-│   │   │   │   └── ReportsPage.jsx
-│   │   │   │
-│   │   │   ├── trip-manager/         # Trip manager pages
-│   │   │   │   ├── TripManagerDashboard.jsx
-│   │   │   │   ├── QRScannerPage.jsx
-│   │   │   │   └── PassengersPage.jsx
-│   │   │   │
-│   │   │   ├── admin/                # Admin pages
-│   │   │   │   ├── AdminDashboard.jsx
-│   │   │   │   ├── UsersPage.jsx
-│   │   │   │   ├── OperatorsPage.jsx
-│   │   │   │   ├── ContentPage.jsx
-│   │   │   │   └── TicketsPage.jsx
-│   │   │   │
-│   │   │   └── auth/                 # Auth pages
-│   │   │       ├── LoginPage.jsx
-│   │   │       ├── RegisterPage.jsx
-│   │   │       ├── ForgotPasswordPage.jsx
-│   │   │       ├── OperatorLoginPage.jsx
-│   │   │       ├── TripManagerLoginPage.jsx
-│   │   │       └── AdminLoginPage.jsx
+│   │   │   ├── customer/
+│   │   │   ├── operator/
+│   │   │   ├── trip-manager/
+│   │   │   ├── admin/
+│   │   │   └── auth/
 │   │   │
 │   │   ├── services/                 # API Services
-│   │   │   ├── api.js                # Axios instance
-│   │   │   ├── authService.js
-│   │   │   ├── tripService.js
-│   │   │   ├── bookingService.js
-│   │   │   ├── paymentService.js
-│   │   │   └── ticketService.js
-│   │   │
-│   │   ├── store/                    # State Management (Zustand)
-│   │   │   ├── authStore.js          # Auth state
-│   │   │   ├── bookingStore.js       # Booking state
-│   │   │   ├── searchStore.js        # Search filters
-│   │   │   └── uiStore.js            # UI state
-│   │   │
+│   │   ├── store/                    # State Management
 │   │   ├── hooks/                    # Custom React Hooks
-│   │   │   ├── useAuth.js
-│   │   │   ├── useDebounce.js
-│   │   │   ├── useLocalStorage.js
-│   │   │   └── useWebSocket.js
-│   │   │
 │   │   ├── utils/                    # Utilities
-│   │   │   ├── constants.js
-│   │   │   ├── validators.js
-│   │   │   ├── formatters.js
-│   │   │   └── helpers.js
-│   │   │
 │   │   ├── assets/                   # Static assets
-│   │   │   ├── images/
-│   │   │   ├── icons/
-│   │   │   └── styles/
-│   │   │
-│   │   ├── App.jsx                   # Root component
-│   │   ├── main.jsx                  # Entry point
-│   │   └── index.css                 # Global styles
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
 │   │
-│   ├── public/                       # Public files
+│   ├── public/
 │   ├── .env.example
 │   ├── .gitignore
-│   ├── index.html
-│   ├── vite.config.js
-│   ├── tailwind.config.js
 │   ├── package.json
 │   └── README.md
 │
 ├── docs/                             # Documentation
-│   ├── PROJECT_PHASES.md             # Development roadmap
-│   ├── DATABASE_SCHEMA.md            # Database schema
-│   ├── API_DOCUMENTATION.md          # API docs
-│   ├── ARCHITECTURE.md               # Architecture overview
-│   ├── DEPLOYMENT.md                 # Deployment guide
-│   └── CONTRIBUTING.md               # Contribution guidelines
+│   ├── PROJECT_PHASES.md
+│   ├── DATABASE_SCHEMA.md
+│   ├── API_DOCUMENTATION.md
+│   ├── ARCHITECTURE.md
+│   ├── DEPLOYMENT.md
+│   └── CONTRIBUTING.md
 │
-├── shared/                           # Shared code (if using monorepo)
-│   ├── types/                        # TypeScript types
-│   └── constants/                    # Shared constants
-│
-├── .gitignore                        # Git ignore file
-├── docker-compose.yml                # Docker compose config
-├── PTTKHDT (1).docx                 # Requirements document
-├── LICENSE                           # MIT License
-└── README.md                         # This file
+├── .gitignore
+├── docker-compose.yml
+├── LICENSE
+└── README.md
 ```
 
 ---
 
-## 🗺️ Lộ Trình Phát Triển
+## Lộ Trình Phát Triển
 
 Dự án được chia thành **7 giai đoạn (phases)** phát triển, từ setup cơ bản đến các tính năng nâng cao:
 
 ### Tổng Quan Phases
 
-| Phase | Tên | Thời gian | Độ ưu tiên | Status |
-|-------|-----|-----------|------------|--------|
-| **Phase 1** | Setup & Core Infrastructure | 2 tuần | 🔴 Cao | ✅ Hoàn thành |
-| **Phase 2** | Route & Bus Management | 2 tuần | 🔴 Cao | 🟡 Đang thực hiện |
-| **Phase 3** | Booking System | 3 tuần | 🔴 Cao | ⏳ Chưa bắt đầu |
-| **Phase 4** | Ticket Management | 2 tuần | 🔴 Cao | ⏳ Chưa bắt đầu |
-| **Phase 5** | Bus Operator Admin | 2 tuần | 🟡 Trung bình | ⏳ Chưa bắt đầu |
-| **Phase 6** | System Admin | 1.5 tuần | 🟡 Trung bình | ⏳ Chưa bắt đầu |
-| **Phase 7** | Additional Features & Polish | 2 tuần | 🟢 Thấp | ⏳ Chưa bắt đầu |
+| Phase | Tên | Thời gian | Độ ưu tiên | Trạng thái |
+|-------|-----|-----------|------------|------------|
+| Phase 1 | Setup & Core Infrastructure | 2 tuần | Cao | Hoàn thành |
+| Phase 2 | Route & Bus Management | 2 tuần | Cao | Đang thực hiện |
+| Phase 3 | Booking System | 3 tuần | Cao | Chưa bắt đầu |
+| Phase 4 | Ticket Management | 2 tuần | Cao | Chưa bắt đầu |
+| Phase 5 | Bus Operator Admin | 2 tuần | Trung bình | Chưa bắt đầu |
+| Phase 6 | System Admin | 1.5 tuần | Trung bình | Chưa bắt đầu |
+| Phase 7 | Additional Features & Polish | 2 tuần | Thấp | Chưa bắt đầu |
 
 **Tổng thời gian dự kiến:** ~14.5 tuần (≈ 3.5 tháng)
 
-### MVP (Minimum Viable Product)
-MVP bao gồm Phase 1-4, cho phép hệ thống hoạt động cơ bản với đầy đủ chức năng core:
-- ✅ Đăng ký, đăng nhập
-- ✅ Tìm kiếm và đặt vé
-- ✅ Thanh toán online
-- ✅ Vé điện tử với QR
-- ✅ Quản lý tuyến, xe, lịch trình
+### Sản Phẩm Khả Thi Tối Thiểu (MVP)
+MVP bao gồm giai đoạn 1-4, cho phép hệ thống hoạt động cơ bản với đầy đủ chức năng cốt lõi:
+- Đăng ký, đăng nhập
+- Tìm kiếm và đặt vé
+- Thanh toán trực tuyến
+- Vé điện tử với QR
+- Quản lý tuyến, xe, lịch trình
 
-📖 **Chi tiết đầy đủ:** Xem [docs/PROJECT_PHASES.md](docs/PROJECT_PHASES.md)
+Chi tiết đầy đủ: Xem [docs/PROJECT_PHASES.md](docs/PROJECT_PHASES.md)
 
 ---
 
-## 🚀 Hướng Dẫn Cài Đặt
+## Hướng Dẫn Cài Đặt
 
 ### Yêu Cầu Hệ Thống
 
-#### Software Requirements
+#### Yêu Cầu Phần Mềm
 - **Node.js:** >= 18.0.0
 - **npm:** >= 9.0.0 (hoặc yarn >= 1.22.0)
 - **MongoDB:** >= 6.0
 - **Redis:** >= 6.0
 - **Git:** >= 2.30.0
 
-#### Hardware Requirements (Development)
+#### Yêu Cầu Phần Cứng (Phát Triển)
 - **RAM:** >= 8GB (khuyến nghị 16GB)
-- **Storage:** >= 10GB free space
-- **CPU:** Dual-core 2GHz+
+- **Bộ nhớ:** >= 10GB còn trống
+- **CPU:** Dual-core 2GHz trở lên
 
-### Installation Steps
+### Các Bước Cài Đặt
 
-#### 1. Clone Repository
+#### 1. Sao Chép Mã Nguồn
 
 ```bash
-git clone https://github.com/nhkhanhyn0410/Te2_quikride.git
-cd Te2_quikride
+git clone https://github.com/yourusername/Ve_Xe_Nhanh.git
+cd Ve_Xe_Nhanh
 ```
 
-#### 2. Backend Setup
+#### 2. Thiết Lập Backend
 
 ```bash
 # Di chuyển vào thư mục backend
@@ -656,25 +574,23 @@ npm install
 cp .env.example .env
 
 # Chỉnh sửa file .env với thông tin của bạn
-# Sử dụng editor bạn ưa thích (nano, vim, vscode, etc.)
 nano .env
 ```
 
 **Cấu hình .env quan trọng:**
 ```env
 # Database
-MONGODB_URI=mongodb://localhost:27017/quikride
+MONGODB_URI=mongodb://localhost:27017/vexenhanh
 
 # Redis
 REDIS_URL=redis://localhost:6379
 
-# JWT Secret (generate strong secret)
+# JWT Secret
 JWT_SECRET=your-super-secret-jwt-key-min-32-characters
 
 # Payment Gateways
 VNPAY_TMN_CODE=your-vnpay-code
 VNPAY_HASH_SECRET=your-vnpay-secret
-# ... (xem .env.example để biết đầy đủ)
 ```
 
 **Chạy Backend:**
@@ -689,10 +605,11 @@ npm start
 npm test
 ```
 
-Backend sẽ chạy tại: `http://localhost:5000`
+Backend sẽ chạy tại: `http://localhost:5500`
 
-#### 3. Frontend Setup
+#### 3. Thiết Lập Frontend
 
+**Chạy Backend:**
 ```bash
 # Di chuyển vào thư mục frontend (từ root)
 cd frontend
@@ -710,10 +627,10 @@ nano .env
 **Cấu hình .env:**
 ```env
 # API URL
-VITE_API_URL=http://localhost:5000/api/v1
+VITE_API_URL=http://localhost:5500/api/v1
 
 # WebSocket URL
-VITE_WS_URL=ws://localhost:5000
+VITE_WS_URL=ws://localhost:5500
 ```
 
 **Chạy Frontend:**
@@ -726,14 +643,11 @@ npm run build
 
 # Preview production build
 npm run preview
-
-# Run tests
-npm test
 ```
 
 Frontend sẽ chạy tại: `http://localhost:3000`
 
-#### 4. Database Setup
+#### 4. Thiết Lập Cơ Sở Dữ Liệu
 
 **MongoDB:**
 ```bash
@@ -760,14 +674,14 @@ redis-cli ping
 # Should return: PONG
 ```
 
-#### 5. Seed Database (Optional)
+#### 5. Nạp Dữ Liệu Mẫu (Tùy Chọn)
 
 ```bash
 cd backend
 npm run seed
 ```
 
-### Docker Setup (Recommended for Production)
+### Thiết Lập Docker (Khuyến Nghị Cho Môi Trường Sản Xuất)
 
 ```bash
 # Build và chạy tất cả services
@@ -785,28 +699,28 @@ docker-compose up -d --build
 
 ---
 
-## 📚 API Documentation
+## Tài Liệu API
 
 ### API Base URL
 ```
-Development: http://localhost:5000/api/v1
-Production:  https://api.quikride.com/v1
+Development: http://localhost:5500/api/v1
+Production:  https://api.vexenhanh.com/v1
 ```
 
-### Swagger/OpenAPI Documentation
-Truy cập tại: `http://localhost:5000/api-docs`
+### Tài Liệu Swagger/OpenAPI
+Truy cập tại: `http://localhost:5500/api-docs`
 
-### Authentication
-Hầu hết các endpoints yêu cầu authentication bằng JWT token:
+### Xác Thực
+Hầu hết các điểm cuối API yêu cầu xác thực bằng JWT token:
 
 ```bash
 # Header format
 Authorization: Bearer <your_jwt_token>
 ```
 
-### API Examples
+### Ví Dụ API
 
-#### 1. Register User
+#### 1. Đăng Ký User
 ```bash
 POST /api/v1/auth/register
 Content-Type: application/json
@@ -819,7 +733,7 @@ Content-Type: application/json
 }
 ```
 
-#### 2. Login
+#### 2. Đăng Nhập
 ```bash
 POST /api/v1/auth/login
 Content-Type: application/json
@@ -830,12 +744,12 @@ Content-Type: application/json
 }
 ```
 
-#### 3. Search Trips
+#### 3. Tìm Kiếm Chuyến Xe
 ```bash
 GET /api/v1/trips/search?from=Ha Noi&to=Da Nang&date=2024-01-15
 ```
 
-#### 4. Create Booking
+#### 4. Tạo Booking
 ```bash
 POST /api/v1/bookings
 Authorization: Bearer <token>
@@ -857,15 +771,15 @@ Content-Type: application/json
 }
 ```
 
-📖 **Chi tiết đầy đủ:** Xem [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)
+Chi tiết đầy đủ: Xem [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)
 
 ---
 
-## 🗄️ Database Schema
+## Sơ Đồ Database
 
 Hệ thống sử dụng MongoDB với các collections chính:
 
-### Core Collections
+### Các Collection Chính
 
 1. **users** - Khách hàng
 2. **busoperators** - Nhà xe
@@ -879,7 +793,7 @@ Hệ thống sử dụng MongoDB với các collections chính:
 10. **vouchers** - Mã giảm giá
 11. **employees** - Nhân viên
 
-### Schema Diagram
+### Sơ Đồ Schema
 ```
 users ────┐
           ├──> bookings ───> tickets ───> payments
@@ -891,13 +805,13 @@ trips ────┘                    │
   └── employees
 ```
 
-📖 **Chi tiết đầy đủ:** Xem [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md)
+Chi tiết đầy đủ: Xem [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md)
 
 ---
 
-## 🧪 Testing
+## Kiểm Thử
 
-### Backend Tests
+### Kiểm Thử Backend
 
 ```bash
 cd backend
@@ -915,9 +829,9 @@ npm test -- auth.test.js
 npm run test:watch
 ```
 
-**Test Coverage Target:** ≥ 70%
+**Mục Tiêu Độ Phủ Kiểm Thử:** ≥ 70%
 
-### Frontend Tests
+### Kiểm Thử Frontend
 
 ```bash
 cd frontend
@@ -932,7 +846,7 @@ npm run test:ui
 npm run test:coverage
 ```
 
-### E2E Tests (Cypress)
+### Kiểm Thử End-to-End (Cypress)
 
 ```bash
 # Install Cypress
@@ -947,24 +861,24 @@ npx cypress run
 
 ---
 
-## 🚀 Deployment
+## Triển Khai
 
-### Production Checklist
+### Danh Sách Kiểm Tra Sản Xuất
 
-- [ ] Environment variables configured
-- [ ] MongoDB indexes created
-- [ ] Redis configured
-- [ ] SSL certificates installed
-- [ ] CORS properly configured
-- [ ] Rate limiting enabled
-- [ ] Monitoring tools setup
-- [ ] Backup strategy in place
-- [ ] CDN configured (CloudFlare)
-- [ ] Domain DNS configured
+- [ ] Biến môi trường đã được cấu hình
+- [ ] Chỉ mục MongoDB đã được tạo
+- [ ] Redis đã được cấu hình
+- [ ] Chứng chỉ SSL đã được cài đặt
+- [ ] CORS đã được cấu hình đúng
+- [ ] Giới hạn tốc độ đã được bật
+- [ ] Công cụ giám sát đã được thiết lập
+- [ ] Chiến lược sao lưu đã có
+- [ ] CDN đã được cấu hình (CloudFlare)
+- [ ] DNS tên miền đã được cấu hình
 
-### Deployment Options
+### Các Tùy Chọn Triển Khai
 
-#### Option 1: Docker (Recommended)
+#### Tùy Chọn 1: Docker (Khuyến Nghị)
 
 ```bash
 # Build images
@@ -974,14 +888,14 @@ docker-compose -f docker-compose.prod.yml build
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-#### Option 2: Manual Deployment
+#### Tùy Chọn 2: Triển Khai Thủ Công
 
 **Backend (PM2):**
 ```bash
 npm install -g pm2
 cd backend
 npm run build
-pm2 start npm --name "quikride-api" -- start
+pm2 start npm --name "vexenhanh-api" -- start
 pm2 save
 pm2 startup
 ```
@@ -990,57 +904,60 @@ pm2 startup
 ```bash
 cd frontend
 npm run build
-# Copy dist/ to /var/www/quikride
-sudo cp -r dist/* /var/www/quikride/
+# Copy dist/ to /var/www/vexenhanh
+sudo cp -r dist/* /var/www/vexenhanh/
 ```
 
-#### Option 3: Cloud Platforms
+#### Tùy Chọn 3: Nền Tảng Đám Mây
 
 - **Heroku:** `git push heroku main`
-- **Vercel:** Frontend deployment
+- **Vercel:** Triển khai Frontend
 - **AWS:** EC2 + RDS + ElastiCache
 - **Google Cloud:** App Engine + Cloud SQL
 - **Azure:** App Service + Cosmos DB
 
-📖 **Chi tiết:** Xem [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+Chi tiết: Xem [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
----
+#### 2. Login
+```bash
+POST /api/v1/auth/login
+Content-Type: application/json
 
-## 🔒 Security
+## Bảo Mật
 
-### Security Measures Implemented
+### Các Biện Pháp Bảo Mật Đã Triển Khai
 
-#### Authentication & Authorization
-- ✅ **JWT tokens** with expiration
-- ✅ **bcrypt** password hashing (12 rounds)
-- ✅ **OAuth 2.0** (Google, Facebook)
-- ✅ **Role-based access control** (RBAC)
-- ✅ **Session management** (30 min timeout)
-- ✅ **OTP verification** (Email/SMS)
+#### Xác Thực & Phân Quyền
+- JWT token có thời hạn
+- Mã hóa mật khẩu bcrypt (12 vòng)
+- OAuth 2.0 (Google, Facebook)
+- Kiểm soát truy cập dựa trên vai trò
+- Quản lý phiên (hết hạn 30 phút)
+- Xác thực OTP (Email/SMS)
 
-#### API Security
-- ✅ **HTTPS/TLS 1.3** encryption
-- ✅ **Helmet.js** security headers
-- ✅ **CORS** properly configured
-- ✅ **Rate limiting** (100 req/min/IP)
-- ✅ **Input validation** (express-validator)
-- ✅ **SQL injection** prevention (Mongoose)
-- ✅ **XSS protection**
-- ✅ **CSRF tokens**
+#### Bảo Mật API
+- Mã hóa HTTPS/TLS 1.3
+- Tiêu đề bảo mật Helmet.js
+- CORS được cấu hình đúng
+- Giới hạn tốc độ (100 yêu cầu/phút/IP)
+- Xác thực đầu vào (express-validator)
+- Phòng chống SQL injection (Mongoose)
+- Bảo vệ XSS
+- Token CSRF
 
-#### Payment Security
-- ✅ **PCI-DSS compliant**
-- ✅ **No credit card storage**
-- ✅ **Payment gateway encryption**
-- ✅ **Transaction logging**
+#### Bảo Mật Thanh Toán
+- Tuân thủ PCI-DSS
+- Không lưu trữ thẻ tín dụng
+- Mã hóa cổng thanh toán
+- Ghi nhật ký giao dịch
 
-#### Data Protection
-- ✅ **Sensitive data encryption**
-- ✅ **Personal data anonymization**
-- ✅ **GDPR compliance ready**
-- ✅ **Regular backups**
+#### Bảo Vệ Dữ Liệu
+- Mã hóa dữ liệu nhạy cảm
+- Ẩn danh dữ liệu cá nhân
+- Sẵn sàng tuân thủ GDPR
+- Sao lưu định kỳ
 
-### Security Best Practices
+### Thực Hành Bảo Mật Tốt Nhất
 
 ```bash
 # 1. Update dependencies regularly
@@ -1060,51 +977,51 @@ npm audit fix
 
 ---
 
-## ⚡ Performance
+## Hiệu Năng
 
-### Performance Optimizations
+### Tối Ưu Hóa Hiệu Năng
 
 #### Backend
-- ✅ **Database indexing** for frequent queries
-- ✅ **Redis caching** (seat availability, sessions)
-- ✅ **Connection pooling** (MongoDB, Redis)
-- ✅ **Query optimization** (limit, select fields)
-- ✅ **Pagination** for large datasets
-- ✅ **Compression** (gzip)
-- ✅ **CDN** for static assets (CloudFlare)
+- Đánh chỉ mục cơ sở dữ liệu cho truy vấn thường xuyên
+- Bộ nhớ đệm Redis (tình trạng ghế, phiên)
+- Gộp kết nối (MongoDB, Redis)
+- Tối ưu hóa truy vấn (giới hạn, chọn trường)
+- Phân trang cho tập dữ liệu lớn
+- Nén dữ liệu (gzip)
+- CDN cho tài nguyên tĩnh (CloudFlare)
 
 #### Frontend
-- ✅ **Code splitting** (React.lazy, Suspense)
-- ✅ **Lazy loading** images
-- ✅ **Memoization** (React.memo, useMemo)
-- ✅ **Virtual scrolling** for long lists
-- ✅ **Debouncing** search inputs
-- ✅ **Service Worker** (PWA)
-- ✅ **Asset optimization** (images, fonts)
+- Chia tách mã (React.lazy, Suspense)
+- Tải hình ảnh lười biếng
+- Ghi nhớ (React.memo, useMemo)
+- Cuộn ảo cho danh sách dài
+- Debouncing đầu vào tìm kiếm
+- Service Worker (PWA)
+- Tối ưu hóa tài nguyên (hình ảnh, font)
 
-### Performance Targets
+### Mục Tiêu Hiệu Năng
 
-| Metric | Target | Current |
+| Chỉ số | Mục tiêu | Hiện tại |
 |--------|--------|---------|
-| **Page Load Time** | ≤ 2s | 1.8s |
-| **API Response Time** | ≤ 200ms | 150ms |
-| **Search Query** | ≤ 3s | 2.5s |
-| **Payment Processing** | ≤ 5s | 4s |
-| **Uptime** | ≥ 99.9% | 99.95% |
+| Thời gian tải trang | ≤ 2s | 1.8s |
+| Thời gian phản hồi API | ≤ 200ms | 150ms |
+| Truy vấn tìm kiếm | ≤ 3s | 2.5s |
+| Xử lý thanh toán | ≤ 5s | 4s |
+| Thời gian hoạt động | ≥ 99.9% | 99.95% |
 
-### Monitoring Tools
-- **New Relic** - APM
-- **Google Analytics** - User analytics
-- **Sentry** - Error tracking
-- **Prometheus + Grafana** - Metrics
+### Công Cụ Giám Sát
+- **New Relic** - Giám sát hiệu năng ứng dụng
+- **Google Analytics** - Phân tích người dùng
+- **Sentry** - Theo dõi lỗi
+- **Prometheus + Grafana** - Số liệu
 
 ---
 
-## 🐛 Troubleshooting
+## Xử Lý Sự Cố
 
-### Common Issues
+### Các Vấn Đề Thường Gặp
 
-#### 1. MongoDB Connection Failed
+#### 1. Kết Nối MongoDB Thất Bại
 ```bash
 # Check MongoDB status
 sudo systemctl status mongod
@@ -1116,7 +1033,7 @@ sudo systemctl start mongod
 echo $MONGODB_URI
 ```
 
-#### 2. Redis Connection Failed
+#### 2. Kết Nối Redis Thất Bại
 ```bash
 # Check Redis status
 redis-cli ping
@@ -1125,29 +1042,29 @@ redis-cli ping
 sudo systemctl start redis
 ```
 
-#### 3. Port Already in Use
+#### 3. Cổng Đang Được Sử Dụng
 ```bash
-# Find process using port 5000
-lsof -i :5000
+# Find process using port 5500
+lsof -i :5500
 
 # Kill process
 kill -9 <PID>
 
 # Or change port in .env
-PORT=5001
+PORT=5501
 ```
 
-#### 4. Frontend Can't Connect to Backend
-- Check CORS configuration in backend
-- Verify VITE_API_URL in frontend .env
-- Check if backend is running
+#### 4. Frontend Không Thể Kết Nối Backend
+- Kiểm tra cấu hình CORS trong backend
+- Xác minh VITE_API_URL trong frontend .env
+- Kiểm tra backend có đang chạy không
 
-#### 5. Payment Gateway Errors
-- Verify API keys in .env
-- Check callback URLs
-- Review payment gateway logs
+#### 5. Lỗi Cổng Thanh Toán
+- Xác minh khóa API trong .env
+- Kiểm tra URL callback
+- Xem lại nhật ký cổng thanh toán
 
-### Debug Mode
+### Chế Độ Debug
 
 ```bash
 # Backend debug mode
@@ -1157,31 +1074,31 @@ DEBUG=* npm run dev
 VITE_DEBUG=true npm run dev
 ```
 
-### Logs Location
+### Vị Trí Nhật Ký
 
 ```bash
 # Backend logs
-tail -f backend/logs/app.log
+tail -f backend/logs/application-YYYY-MM-DD.log
 
 # PM2 logs
-pm2 logs quikride-api
+pm2 logs vexenhanh-api
 
 # Docker logs
-docker logs quikride-backend
+docker logs vexenhanh-backend
 ```
 
 ---
 
-## 🤝 Contributing
+## Đóng Góp
 
 Chúng tôi hoan nghênh mọi đóng góp từ cộng đồng!
 
-### How to Contribute
+### Cách Đóng Góp
 
-1. **Fork** repository
-2. **Clone** fork của bạn:
+1. **Fork** kho mã nguồn
+2. **Sao chép** fork của bạn:
    ```bash
-   git clone https://github.com/your-username/Te2_quikride.git
+   git clone https://github.com/your-username/Ve_Xe_Nhanh.git
    ```
 3. **Tạo branch** mới:
    ```bash
@@ -1197,40 +1114,40 @@ Chúng tôi hoan nghênh mọi đóng góp từ cộng đồng!
    ```
 6. **Tạo Pull Request**
 
-### Coding Standards
+### Tiêu Chuẩn Viết Mã
 
-- **JavaScript:** ESLint + Airbnb style guide
-- **React:** Functional components, hooks
+- **JavaScript:** ESLint + Hướng dẫn phong cách Airbnb
+- **React:** Thành phần hàm, hooks
 - **Git Commit:** Conventional Commits
   ```
-  feat: add new feature
-  fix: bug fix
-  docs: documentation update
-  style: formatting, missing semi colons, etc
-  refactor: code refactoring
-  test: adding tests
-  chore: maintain
+  feat: thêm tính năng mới
+  fix: sửa lỗi
+  docs: cập nhật tài liệu
+  style: định dạng, thiếu dấu chấm phẩy, v.v.
+  refactor: tái cấu trúc mã
+  test: thêm kiểm thử
+  chore: bảo trì
   ```
 
-### Code Review Process
+### Quy Trình Đánh Giá Mã
 
-1. Tất cả PR phải được review bởi ≥ 2 members
-2. CI/CD tests phải pass
-3. Code coverage không giảm
-4. Tuân thủ coding standards
+1. Tất cả PR phải được đánh giá bởi ≥ 2 thành viên
+2. Kiểm thử CI/CD phải pass
+3. Độ phủ mã không giảm
+4. Tuân thủ tiêu chuẩn viết mã
 
-📖 **Chi tiết:** Xem [CONTRIBUTING.md](CONTRIBUTING.md)
+Chi tiết: Xem [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
-## 📄 License
+## Giấy Phép
 
 Dự án này được phát hành dưới **MIT License**.
 
 ```
 MIT License
 
-Copyright (c) 2024 QuikRide Team
+Copyright (c) 2024 Vé Xe Nhanh Team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1253,79 +1170,59 @@ SOFTWARE.
 
 ---
 
-## 👥 Team
+## Nhóm Phát Triển
 
-### Core Team
+### Nhóm Cốt Lõi
 
-| Role | Name | GitHub | Email |
-|------|------|--------|-------|
-| **Project Lead** | [Your Name] | [@username](https://github.com/username) | email@example.com |
-| **Backend Lead** | [Name] | [@username](https://github.com/username) | email@example.com |
-| **Frontend Lead** | [Name] | [@username](https://github.com/username) | email@example.com |
-| **DevOps** | [Name] | [@username](https://github.com/username) | email@example.com |
-| **QA Lead** | [Name] | [@username](https://github.com/username) | email@example.com |
+| Vai trò | Tên | GitHub | Email |
+|---------|-----|--------|-------|
+| Trưởng dự án | [Tên của bạn] | [@username](https://github.com/username) | email@example.com |
+| Trưởng Backend | [Tên] | [@username](https://github.com/username) | email@example.com |
+| Trưởng Frontend | [Tên] | [@username](https://github.com/username) | email@example.com |
+| DevOps | [Tên] | [@username](https://github.com/username) | email@example.com |
+| Trưởng QA | [Tên] | [@username](https://github.com/username) | email@example.com |
 
-### Contributors
+### Người Đóng Góp
 
-Thanks to all contributors who have helped make QuikRide better!
-
-<a href="https://github.com/nhkhanhyn0410/Te2_quikride/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=nhkhanhyn0410/Te2_quikride" />
-</a>
+Cảm ơn tất cả contributors đã giúp Vé Xe Nhanh trở nên tốt hơn!
 
 ---
 
-## 📞 Liên Hệ & Hỗ Trợ
+## Liên Hệ & Hỗ Trợ
 
-### Support Channels
+### Kênh Hỗ Trợ
 
-- 📧 **Email:** support@quikride.com
-- 🌐 **Website:** https://quikride.com
-- 📱 **Hotline:** 1900-xxxx (8:00 - 22:00 hàng ngày)
-- 💬 **Slack:** [QuikRide Workspace](https://quikride.slack.com)
-- 🐛 **Bug Reports:** [GitHub Issues](https://github.com/nhkhanhyn0410/Te2_quikride/issues)
+- Email: support@vexenhanh.com
+- Website: https://vexenhanh.com
+- Hotline: 1900-xxxx (8:00 - 22:00 hàng ngày)
+- Báo Lỗi: [GitHub Issues](https://github.com/yourusername/Ve_Xe_Nhanh/issues)
 
-### Social Media
+### Mạng Xã Hội
 
-- 📘 **Facebook:** [@QuikRideVN](https://facebook.com/quikridevn)
-- 📸 **Instagram:** [@quikride.vn](https://instagram.com/quikride.vn)
-- 🐦 **Twitter:** [@QuikRideVN](https://twitter.com/quikridevn)
-- 💼 **LinkedIn:** [QuikRide](https://linkedin.com/company/quikride)
+- Facebook: [@VeXeNhanhVN](https://facebook.com/vexenhanhvn)
+- Instagram: [@vexenhanh.vn](https://instagram.com/vexenhanh.vn)
+- Twitter: [@VeXeNhanhVN](https://twitter.com/vexenhanhvn)
+- LinkedIn: [Vé Xe Nhanh](https://linkedin.com/company/vexenhanh)
 
 ---
 
-## 🙏 Acknowledgments
+## Lời Cảm Ơn
 
 Dự án này được xây dựng dựa trên các công nghệ và thư viện mã nguồn mở tuyệt vời:
 
-- [React](https://reactjs.org/) - UI Framework
-- [Node.js](https://nodejs.org/) - JavaScript Runtime
-- [Express](https://expressjs.com/) - Web Framework
-- [MongoDB](https://www.mongodb.com/) - Database
-- [Redis](https://redis.io/) - Caching
-- [Ant Design](https://ant.design/) - UI Components
-- [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
+- React - Thư viện giao diện người dùng
+- Node.js - Môi trường chạy JavaScript
+- Express - Framework web
+- MongoDB - Cơ sở dữ liệu
+- Redis - Bộ nhớ đệm
+- Ant Design - Thành phần giao diện
+- Tailwind CSS - Framework CSS
+- Winston - Hệ thống ghi nhật ký
 
-Cảm ơn tất cả maintainers và contributors của các dự án trên!
-
----
-
-## 📊 Project Stats
-
-![GitHub stars](https://img.shields.io/github/stars/nhkhanhyn0410/Te2_quikride?style=social)
-![GitHub forks](https://img.shields.io/github/forks/nhkhanhyn0410/Te2_quikride?style=social)
-![GitHub issues](https://img.shields.io/github/issues/nhkhanhyn0410/Te2_quikride)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/nhkhanhyn0410/Te2_quikride)
-![GitHub last commit](https://img.shields.io/github/last-commit/nhkhanhyn0410/Te2_quikride)
+Cảm ơn tất cả những người bảo trì và đóng góp cho các dự án trên!
 
 ---
 
-<div align="center">
+**Được tạo với tình yêu bởi Đội Ngũ Vé Xe Nhanh**
 
-  **Made with ❤️ by QuikRide Team**
-
-  If you find this project helpful, please give it a ⭐️!
-
-  [⬆ Back to Top](#quikride---hệ-thống-đặt-vé-xe-khách-trực-tuyến)
-
-</div>
+Nếu bạn thấy dự án này hữu ích, hãy cho chúng tôi một ⭐️!
