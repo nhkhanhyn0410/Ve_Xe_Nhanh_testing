@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { logger } from '../utils/logger.js'
 
 const connectDB = async () => {
     try {
@@ -6,18 +7,18 @@ const connectDB = async () => {
 
         const conn = await mongoose.connect(MONGODB_URL);
 
-        console.log(`## MongoDB Đã kết nối: ${conn.connection.host}`);
+        logger.success(`MongoDB Đã kết nối: ${conn.connection.host}`);
 
         //Connection events
         mongoose.connection.on('error', (err) => {
-            console.error('*# Lỗi khi kết nối MongoDB:', err);
+            logger.error('Lỗi khi kết nối MongoDB:', err);
         });
 
         mongoose.connection.on('disconnected', () => {
-            console.log('!# MongoDB Đã ngắt kết nối')
+            logger.warn('MongoDB Đã ngắt kết nối')
         });
     } catch (error) {
-        console.error('*# Lỗi kết nối với MongoDb: ', error.message);
+        logger.error('Lỗi kết nối với MongoDb: ', error.message);
     }
 };
 

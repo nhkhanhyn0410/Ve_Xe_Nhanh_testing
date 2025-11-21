@@ -1,4 +1,5 @@
 import redis from 'redis';
+import { logger } from '../utils/logger.js'
 
 let redisClient;
 
@@ -17,27 +18,23 @@ const connectRedis = async () => {
     redisClient = redis.createClient(config);
 
     redisClient.on('error', (err) => {
-      console.error('*# Redis Client Error:', err);
+      logger.error('Redis Client Error:', err);
     });
 
     redisClient.on('connect' && 'ready', () => {
-      console.log('## Redis Đã kết nối và sẵn sàng');
+      logger.success('Redis Đã kết nối và sẵn sàng');
     });
 
     redisClient.on('reconnecting', () => {
-      console.log('&# Redis Đang kết nối lại...');
+      logger.info('Redis Đang kết nối lại...');
     });
 
     await redisClient.connect();
 
-    // Test connection
-    await redisClient.set('test', 'VeXeNhanh Redis Connection OK');
-    const testValue = await redisClient.get('test');
-    console.log('## Redis Test:', testValue);
 
     return redisClient;
   } catch (error) {
-    console.error(' Lỗi kết nối với Redis:', error.message);
+    logger.error('Lỗi kết nối với Redis:', error.message);
   }
 };
 

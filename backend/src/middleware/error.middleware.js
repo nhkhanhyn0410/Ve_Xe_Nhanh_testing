@@ -1,4 +1,5 @@
 import ApiError from '../utils/ApiError.js';
+import { logger } from '../utils/logger.js';
 
 // Error handling middleware
 const errorHandler = (err, req, res, next) => {
@@ -8,7 +9,7 @@ const errorHandler = (err, req, res, next) => {
 
     // Log error for development
     if (process.env.NODE_ENV === 'development') {
-        console.error('Error:', err);
+        logger.error('Error:', err);
     }
 
     // Mongoose bad ObjectId

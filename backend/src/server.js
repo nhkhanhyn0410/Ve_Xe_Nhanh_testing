@@ -14,6 +14,7 @@ import connectDB from './config/database.js';
 import routes from './routes/index.js';
 import { errorHandler, notFound } from './middleware/error.middleware.js';
 import connectRedis, { getRedisClient } from './config/redis.js';
+import { logger } from './utils/logger.js'
 
 // Load environment variables
 dotenv.config();
@@ -93,28 +94,28 @@ const server = http.createServer(app);
 
 // Start server
 server.listen(PORT, () => {
-    console.log(`## Server đang chạy ở chế độ ${process.env.NODE_ENV} trên port ${PORT}`);
-    console.log(`## Health check: http://localhost:${PORT}/health`);
-    console.log(`## API endpoint: http://localhost:${PORT}/api/${API_VERSION}`);
-    console.log(`## Máy chủ WebSocket sẵn sàng cập nhật theo thời gian thực`);
+    logger.success(`Server đang chạy ở chế độ ${process.env.NODE_ENV} trên port ${PORT}`);
+    logger.success(`Health check: http://localhost:${PORT}/health`);
+    logger.success(`API endpoint: http://localhost:${PORT}/api/${API_VERSION}`);
+    logger.success(`Máy chủ WebSocket sẵn sàng cập nhật theo thời gian thực`);
 });
 
 // Handle server errors
 server.on('error', (error) => {
     if (error.code === 'EADDRINUSE') {
-        console.error(`*# Port ${PORT} đang được sử dụng`);
-        console.error(`*# Vui lòng kill process hoặc đổi port khác`);
+        logger.error(`Port ${PORT} đang được sử dụng`);
+        logger.error(`Vui lòng kill process hoặc đổi port khác`);
         process.exit(1);
     } else {
-        console.error('*# Server error:', error);
+        logger.error(' Server error:', error);
         process.exit(1);
     }
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-    console.error('*# TỪ CHỐI KHÔNG ĐƯỢC XỬ LÝ! Tắt...');
-    console.error(err.name, err.message);
+    logger.error('TỪ CHỐI KHÔNG ĐƯỢC XỬ LÝ! Tắt...');
+    logger.error(err.name, err.message);
     server.close(() => {
         process.exit(1);
     });
@@ -122,18 +123,18 @@ process.on('unhandledRejection', (err) => {
 
 // Handle SIGINT
 process.on('SIGINT', () => {
-    console.log('\n!# SIGINT RECEIVED. Đang tắt gracefully...');
+    logger.info('SIGINT RECEIVED. Đang tắt gracefully...');
     server.close(() => {
-        console.log('*# HTTP server đã đóng');
+        logger.info(' HTTP server đã đóng');
         process.exit(0);
     });
 });
 
 // Handle SIGTERM (Process manager shutdowns)
 process.on('SIGTERM', () => {
-    console.log('!# SIGTERM RECEIVED. Đang tắt gracefully...');
+    logger.info('SIGTERM RECEIVED. Đang tắt gracefully...');
     server.close(() => {
-        console.log('*# Process terminated!');
+        logger.info(' Process terminated!');
         process.exit(0);
     });
 });
