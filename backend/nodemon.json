@@ -1,0 +1,15 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "ignore": ["src/**/*.test.js", "node_modules"],
+  "delay": "1500",
+  "signal": "SIGINT",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "verbose": false,
+  "events": {
+    "restart": "echo !# Server đang restart...",
+    "crash": "echo *# Server crashed - đang chờ file thay đổi..."
+  }
+}
