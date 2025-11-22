@@ -1,5 +1,6 @@
 import User from '../models/User.js';
 import { uploadImage, deleteImage } from '../config/cloudinary.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * User Service
@@ -52,6 +53,8 @@ class UserService {
 
     await user.save();
 
+    logger.success(`Profile updated successfully for user: ${userId}`);
+
     // Loại bỏ password khỏi response
     const updatedUser = user.toObject();
     delete updatedUser.password;
@@ -80,8 +83,9 @@ class UserService {
         const publicIdWithExtension = urlParts.slice(-2).join('/');
         const publicId = publicIdWithExtension.split('.')[0];
         await deleteImage(publicId);
+        logger.info(`Deleted old avatar for user: ${userId}`);
       } catch (error) {
-        console.error('Error deleting old avatar:', error);
+        logger.error(`Error deleting old avatar: ${error.message}`);
         // Continue even if delete fails
       }
     }
@@ -92,6 +96,8 @@ class UserService {
     // Cập nhật avatar URL trong database
     user.avatar = uploadResult.url;
     await user.save();
+
+    logger.success(`Avatar uploaded successfully for user: ${userId}`);
 
     // Loại bỏ password khỏi response
     const updatedUser = user.toObject();
@@ -122,13 +128,16 @@ class UserService {
       const publicIdWithExtension = urlParts.slice(-2).join('/');
       const publicId = publicIdWithExtension.split('.')[0];
       await deleteImage(publicId);
+      logger.info(`Deleted avatar from Cloudinary for user: ${userId}`);
     } catch (error) {
-      console.error('Error deleting avatar from Cloudinary:', error);
+      logger.error(`Error deleting avatar from Cloudinary: ${error.message}`);
     }
 
     // Xóa avatar URL khỏi database
     user.avatar = null;
     await user.save();
+
+    logger.success(`Avatar deleted successfully for user: ${userId}`);
 
     // Loại bỏ password khỏi response
     const updatedUser = user.toObject();
@@ -167,6 +176,8 @@ class UserService {
     user.password = newPassword; // Sẽ được hash tự động trong pre-save hook
     await user.save();
 
+    logger.success(`Password changed successfully for user: ${userId}`);
+
     return true;
   }
 
@@ -201,6 +212,8 @@ class UserService {
     user.savedPassengers.push(passengerData);
     await user.save();
 
+    logger.success(`Saved passenger added for user: ${userId} - Passenger: ${passengerData.fullName}`);
+
     // Loại bỏ password khỏi response
     const updatedUser = user.toObject();
     delete updatedUser.password;
@@ -232,6 +245,8 @@ class UserService {
 
     user.savedPassengers.splice(passengerIndex, 1);
     await user.save();
+
+    logger.success(`Saved passenger removed for user: ${userId} - Passenger ID: ${passengerId}`);
 
     // Loại bỏ password khỏi response
     const updatedUser = user.toObject();
