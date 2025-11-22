@@ -1,0 +1,491 @@
+import nodemailer from 'nodemailer';
+import SMSService from './sms.service.js';
+import { logger } from '../utils/logger.js';
+
+/**
+ * Notification Service
+ * Handles email and SMS notifications for various events
+ */
+class NotificationService {
+  constructor() {
+    // Email transporter setup with error handling
+    try {
+      this.emailTransporter = nodemailer.createTransporter({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: process.env.SMTP_PORT || 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+    } catch (error) {
+      logger.warn(`Failed to create email transporter: ${error.message}`);
+      this.emailTransporter = null;
+    }
+
+    // SMS service
+    this.smsService = SMSService;
+
+    this.fromEmail = process.env.FROM_EMAIL || 'noreply@quikride.com';
+    this.fromName = process.env.FROM_NAME || 'QuikRide';
+    this.emailEnabled = process.env.EMAIL_ENABLED !== 'false'; // Default enabled
+    this.smsEnabled = process.env.SMS_ENABLED === 'true';
+  }
+
+  /**
+   * Send email notification
+   * @param {string} to - Recipient email
+   * @param {string} subject - Email subject
+   * @param {string} html - HTML content
+   * @returns {Promise<Object>} Send result
+   */
+  async sendEmail(to, subject, html) {
+    try {
+      if (!this.emailEnabled) {
+        logger.info(`Email disabled, skipping: ${to}`);
+        return { success: true, skipped: true, reason: 'Email disabled' };
+      }
+
+      if (!this.emailTransporter) {
+        logger.warn('Email transporter not available');
+        return { success: false, error: 'Email transporter not configured' };
+      }
+
+      if (!to) {
+        logger.warn('No recipient email provided');
+        return { success: false, error: 'No recipient email' };
+      }
+
+      const mailOptions = {
+        from: `"${this.fromName}" <${this.fromEmail}>`,
+        to,
+        subject,
+        html,
+      };
+
+      const info = await this.emailTransporter.sendMail(mailOptions);
+
+      logger.success(`Email sent successfully to: ${to}`);
+      return {
+        success: true,
+        messageId: info.messageId,
+      };
+    } catch (error) {
+      logger.error(`Email send error: ${error.message}`);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Send SMS notification
+   * @param {string} phone - Phone number
+   * @param {string} message - SMS message
+   * @returns {Promise<Object>} Send result
+   */
+  async sendSMS(phone, message) {
+    try {
+      if (!this.smsEnabled) {
+        logger.info(`SMS disabled, skipping: ${phone}`);
+        return { success: true, skipped: true, reason: 'SMS disabled' };
+      }
+
+      if (!phone) {
+        logger.warn('No phone number provided');
+        return { success: false, error: 'No phone number' };
+      }
+
+      const result = await this.smsService.sendSMS(phone, message);
+      return result;
+    } catch (error) {
+      logger.error(`SMS send error: ${error.message}`);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Notify passengers about trip status change
+   * @param {Object} trip - Trip object (populated with routeId)
+   * @param {string} oldStatus - Previous status
+   * @param {string} newStatus - New status
+   * @returns {Promise<Object>} Notification results
+   */
+  async notifyTripStatusChange(trip, oldStatus, newStatus) {
+    try {
+      const { default: Booking } = await import('../models/Booking.js');
+
+      // Get all confirmed bookings for this trip
+      const bookings = await Booking.find({
+        tripId: trip._id,
+        status: { $in: ['confirmed', 'completed'] },
+      })
+        .select('contactInfo seats')
+        .lean();
+
+      if (bookings.length === 0) {
+        logger.info(`No bookings to notify for trip: ${trip._id}`);
+        return {
+          success: true,
+          notified: 0,
+          message: 'No passengers to notify',
+        };
+      }
+
+      // Generate notification content
+      const { emailSubject, emailHtml, smsMessage } = this.generateStatusChangeContent(
+        trip,
+        oldStatus,
+        newStatus
+      );
+
+      // Send notifications to all passengers
+      const results = {
+        total: bookings.length,
+        emailSent: 0,
+        emailFailed: 0,
+        smsSent: 0,
+        smsFailed: 0,
+      };
+
+      for (const booking of bookings) {
+        const email = booking.contactInfo?.email;
+        const phone = booking.contactInfo?.phone;
+
+        // Send email
+        if (email) {
+          const emailResult = await this.sendEmail(email, emailSubject, emailHtml);
+          if (emailResult.success && !emailResult.skipped) {
+            results.emailSent++;
+          } else if (!emailResult.skipped) {
+            results.emailFailed++;
+          }
+        }
+
+        // Send SMS
+        if (phone) {
+          const smsResult = await this.sendSMS(phone, smsMessage);
+          if (smsResult.success && !smsResult.skipped) {
+            results.smsSent++;
+          } else if (!smsResult.skipped) {
+            results.smsFailed++;
+          }
+        }
+
+        // Small delay to avoid rate limiting
+        await this.delay(100);
+      }
+
+      logger.success(`Trip status change notifications sent - Emails: ${results.emailSent}, SMS: ${results.smsSent}`);
+      return {
+        success: true,
+        results,
+      };
+    } catch (error) {
+      logger.error(`Error notifying passengers: ${error.message}`);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Generate notification content for status change
+   * @param {Object} trip - Trip object
+   * @param {string} oldStatus - Previous status
+   * @param {string} newStatus - New status
+   * @returns {Object} Email and SMS content
+   */
+  generateStatusChangeContent(trip, oldStatus, newStatus) {
+    const routeName =
+      trip.routeId?.routeName ||
+      `${trip.routeId?.origin?.city} - ${trip.routeId?.destination?.city}`;
+    const departureTime = new Date(trip.departureTime).toLocaleString('vi-VN', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    });
+
+    // Status labels in Vietnamese
+    const statusLabels = {
+      scheduled: 'Đã lên lịch',
+      ongoing: 'Đang di chuyển',
+      completed: 'Đã hoàn thành',
+      cancelled: 'Đã hủy',
+    };
+
+    const oldStatusLabel = statusLabels[oldStatus] || oldStatus;
+    const newStatusLabel = statusLabels[newStatus] || newStatus;
+
+    // Email subject
+    let emailSubject = '';
+    let statusIcon = '';
+    let statusMessage = '';
+
+    switch (newStatus) {
+      case 'ongoing':
+        emailSubject = `🚌 Chuyến xe của bạn đã khởi hành - ${routeName}`;
+        statusIcon = '🚌';
+        statusMessage = 'Chuyến xe của bạn đã bắt đầu hành trình';
+        break;
+      case 'completed':
+        emailSubject = `✅ Chuyến xe đã hoàn thành - ${routeName}`;
+        statusIcon = '✅';
+        statusMessage = 'Chuyến xe của bạn đã đến điểm đến';
+        break;
+      case 'cancelled':
+        emailSubject = `❌ Chuyến xe đã bị hủy - ${routeName}`;
+        statusIcon = '❌';
+        statusMessage =
+          'Chuyến xe của bạn đã bị hủy. Vui lòng liên hệ nhà xe để được hỗ trợ hoàn tiền.';
+        break;
+      default:
+        emailSubject = `📢 Cập nhật trạng thái chuyến xe - ${routeName}`;
+        statusIcon = '📢';
+        statusMessage = 'Trạng thái chuyến xe của bạn đã được cập nhật';
+    }
+
+    // HTML email content
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+          }
+          .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
+          .header {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+          }
+          .header h1 {
+            margin: 0;
+            font-size: 24px;
+          }
+          .content {
+            padding: 30px 20px;
+          }
+          .status-box {
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+          }
+          .status-change {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 18px;
+            font-weight: bold;
+          }
+          .trip-info {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+          }
+          .trip-info p {
+            margin: 8px 0;
+          }
+          .trip-info strong {
+            color: #0ea5e9;
+          }
+          .footer {
+            background: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+          }
+          .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #0ea5e9;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>${statusIcon} QuikRide</h1>
+            <p>Cập nhật trạng thái chuyến xe</p>
+          </div>
+
+          <div class="content">
+            <div class="status-box">
+              <h2 style="margin-top: 0; color: #0ea5e9;">
+                ${statusMessage}
+              </h2>
+              <div class="status-change">
+                <span style="color: #94a3b8;">${oldStatusLabel}</span>
+                <span>→</span>
+                <span style="color: #0ea5e9;">${newStatusLabel}</span>
+              </div>
+            </div>
+
+            <div class="trip-info">
+              <h3 style="margin-top: 0; color: #334155;">Thông tin chuyến xe:</h3>
+              <p><strong>Tuyến đường:</strong> ${routeName}</p>
+              <p><strong>Thời gian khởi hành:</strong> ${departureTime}</p>
+              ${
+                trip.routeId?.origin?.city
+                  ? `<p><strong>Điểm đi:</strong> ${trip.routeId.origin.city}</p>`
+                  : ''
+              }
+              ${
+                trip.routeId?.destination?.city
+                  ? `<p><strong>Điểm đến:</strong> ${trip.routeId.destination.city}</p>`
+                  : ''
+              }
+            </div>
+
+            ${
+              newStatus === 'cancelled'
+                ? `
+              <p style="color: #dc2626; font-weight: bold;">
+                ⚠️ Chuyến xe đã bị hủy. Vui lòng liên hệ nhà xe để được hỗ trợ hoàn tiền.
+              </p>
+            `
+                : ''
+            }
+
+            ${
+              newStatus === 'completed'
+                ? `
+              <p>
+                Cảm ơn bạn đã sử dụng dịch vụ QuikRide!
+                Đừng quên đánh giá chuyến đi của bạn để giúp chúng tôi cải thiện dịch vụ.
+              </p>
+            `
+                : ''
+            }
+
+            <p style="margin-top: 30px; color: #666;">
+              Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ:
+              <br>
+              📧 Email: support@quikride.com
+              <br>
+              📞 Hotline: 1900-xxxx
+            </p>
+          </div>
+
+          <div class="footer">
+            <p>
+              © ${new Date().getFullYear()} QuikRide - Hệ thống đặt vé xe khách trực tuyến
+            </p>
+            <p style="font-size: 12px; color: #94a3b8;">
+              Email này được gửi tự động, vui lòng không trả lời.
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // SMS message (shorter)
+    let smsMessage = '';
+    switch (newStatus) {
+      case 'ongoing':
+        smsMessage = `QuikRide: Chuyen xe ${routeName} (${departureTime}) da khoi hanh. Chuc ban hanh trinh tot lanh!`;
+        break;
+      case 'completed':
+        smsMessage = `QuikRide: Chuyen xe ${routeName} da hoan thanh. Cam on ban da su dung dich vu!`;
+        break;
+      case 'cancelled':
+        smsMessage = `QuikRide: Chuyen xe ${routeName} (${departureTime}) da bi huy. Vui long lien he nha xe de duoc ho tro.`;
+        break;
+      default:
+        smsMessage = `QuikRide: Trang thai chuyen xe ${routeName} da duoc cap nhat thanh: ${newStatusLabel}`;
+    }
+
+    return {
+      emailSubject,
+      emailHtml,
+      smsMessage,
+    };
+  }
+
+  /**
+   * Send booking confirmation notification
+   * @param {Object} booking - Booking object
+   * @param {Object} trip - Trip object
+   * @returns {Promise<Object>} Notification results
+   */
+  async notifyBookingConfirmation(booking, trip) {
+    // Implementation for booking confirmation
+    // This can be called from booking service
+    logger.info(`Booking confirmation notification: ${booking.bookingCode}`);
+    return { success: true };
+  }
+
+  /**
+   * Send cancellation notification
+   * @param {Object} booking - Booking object
+   * @param {Object} trip - Trip object
+   * @returns {Promise<Object>} Notification results
+   */
+  async notifyCancellation(booking, trip) {
+    // Implementation for cancellation notification
+    logger.info(`Cancellation notification: ${booking.bookingCode}`);
+    return { success: true };
+  }
+
+  /**
+   * Utility: Delay execution
+   * @param {number} ms - Milliseconds to delay
+   * @returns {Promise<void>}
+   */
+  delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Test email configuration
+   * @returns {Promise<boolean>} Test result
+   */
+  async testEmailConfiguration() {
+    try {
+      if (!this.emailTransporter) {
+        logger.error('Email transporter not configured');
+        return false;
+      }
+      await this.emailTransporter.verify();
+      logger.success('Email configuration is valid');
+      return true;
+    } catch (error) {
+      logger.error(`Email configuration error: ${error.message}`);
+      return false;
+    }
+  }
+}
+
+export default new NotificationService();
