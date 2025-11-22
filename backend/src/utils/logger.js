@@ -1,25 +1,27 @@
 import chalk from 'chalk'
 
-const getTimestamp = () => {
-  const now = new Date()
-  return now.toLocaleString('en-GB', {
-    hour12: false,
-  }) 
-}
+const timestamp = () =>
+  new Date().toLocaleString('en-GB', { hour12: false })
 
-const base = (label, colorFn, message) => {
+// Độ rộng tối đa cho label (SUCCESS = 7)
+const LABEL_WIDTH = 7
+
+const format = (label, labelColor, textColor, message) => {
+  const paddedLabel = label.padEnd(LABEL_WIDTH, ' ') // căn đều
   console.log(
-    `${chalk.gray(`[${getTimestamp()}]`)} ` +
-      colorFn.bold(` ${label} `) +
-      chalk.white(`→ ${message}`)
+    chalk.gray(`[${timestamp()}]`) +
+    '  ' +
+    labelColor(paddedLabel) +
+    '  ' +
+    textColor(message)
   )
 }
 
 export const logger = {
-  info: (msg) => base('INFO', chalk.blue, msg),
-  success: (msg) => base('SUCCESS', chalk.green, msg),
-  warn: (msg) => base('WARN', chalk.yellow, msg),
-  error: (msg) => base('ERROR', chalk.red, msg),
-  debug: (msg) => base('DEBUG', chalk.magenta, msg),
-  http: (msg) => base('HTTP', chalk.cyan, msg),
+  info: (msg) => format('INFO', chalk.blue, chalk.cyan, msg),
+  success: (msg) => format('SUCCESS', chalk.green, chalk.greenBright, msg),
+  warn: (msg) => format('WARN', chalk.yellow, chalk.yellowBright, msg),
+  error: (msg) => format('ERROR', chalk.red, chalk.redBright, msg),
+  debug: (msg) => format('DEBUG', chalk.magenta, chalk.magentaBright, msg),
+  start: (msg) => format("START", chalk.hex("#9d4edd"), chalk.hex("#9d4edd"), msg),
 }

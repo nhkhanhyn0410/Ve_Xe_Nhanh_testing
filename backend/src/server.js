@@ -4,17 +4,23 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'xss-clean';
-import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import connectDB from './config/database.js';
 import routes from './routes/index.js';
-import { errorHandler, notFound } from './middleware/error.middleware.js';
+import { errorHandler } from './middleware/error.middleware.js';
 import connectRedis, { getRedisClient } from './config/redis.js';
-import { logger } from './utils/logger.js'
+import { logger } from './utils/logger.js';
+import {
+    sanitizeData,
+    preventXSS,
+    preventHPP,
+    setSecurityHeaders,
+    detectAttackPatterns,
+    preventPrototypePollution,
+    validateContentType,
+} from './middleware/security.middleware.js';
 
 // Load environment variables
 dotenv.config();
@@ -22,20 +28,29 @@ dotenv.config();
 // Initialize express app
 const app = express();
 
-// Connect to database
-connectDB();
+// Connect to database and Redis with error handling
+const initializeConnections = async () => {
+    try {
+        await connectDB();
+        await connectRedis();
+        logger.info('Database và Redis kết nối được thiết lập');
+    } catch (error) {
+        logger.error('Không thể khởi tạo kết nối:', error);
+        process.exit(1);
+    }
+};
 
-// Connect to Redis
-connectRedis();
+initializeConnections();
 
-// Security middleware - Helmet
+// Security middleware - Helmet with custom headers
 app.use(helmet());
+app.use(setSecurityHeaders);
 
 // CORS configuration
 const corsOptions = {
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true,
-    optionsSuccessStatus: 200
+    optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
@@ -43,7 +58,7 @@ app.use(cors(corsOptions));
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100, // Limit each IP to 100 requests per windowMs
-    message: 'Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút'
+    message: 'Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút',
 });
 app.use('/api', limiter);
 
@@ -52,21 +67,13 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-// Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
-
-// Data sanitization against XSS
-app.use(xss());
-
-// Prevent parameter pollution
-app.use(hpp({
-    whitelist: [
-        'price',
-        'duration',
-        'departureTime',
-        'arrivalTime'
-    ]
-}));
+// Security middleware from security.middleware.js
+app.use(validateContentType);
+app.use(sanitizeData());
+app.use(preventXSS());
+app.use(preventHPP());
+app.use(detectAttackPatterns);
+app.use(preventPrototypePollution);
 
 // Compression middleware
 app.use(compression());
@@ -78,11 +85,8 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('combined'));
 }
 
-// Mount routes
+// Mount routes (includes 404 handler inside routes/index.js)
 app.use('/', routes);
-
-// 404 handler - must be after all other routes
-app.use(notFound);
 
 // Global error handler - must be last
 app.use(errorHandler);
@@ -94,6 +98,7 @@ const server = http.createServer(app);
 
 // Start server
 server.listen(PORT, () => {
+    logger.start(`=====================================================================`)
     logger.success(`Server đang chạy ở chế độ ${process.env.NODE_ENV} trên port ${PORT}`);
     logger.success(`Health check: http://localhost:${PORT}/health`);
     logger.success(`API endpoint: http://localhost:${PORT}/api/${API_VERSION}`);
@@ -112,31 +117,71 @@ server.on('error', (error) => {
     }
 });
 
+/**
+ * Graceful shutdown helper
+ * Đóng tất cả các kết nối trước khi tắt server
+ */
+const gracefulShutdown = async (signal) => {
+    logger.info(`${signal} RECEIVED. Đang tắt gracefully...`);
+
+    // Đóng HTTP server trước
+    server.close(async () => {
+        logger.info('HTTP server đã đóng');
+
+        try {
+            // Đóng kết nối Redis
+            const redisClient = getRedisClient();
+            if (redisClient && redisClient.isOpen) {
+                await redisClient.quit();
+                logger.info('Redis connection đã đóng');
+            }
+
+            // Đóng kết nối MongoDB
+            const mongoose = await import('mongoose');
+            if (mongoose.default.connection.readyState === 1) {
+                await mongoose.default.connection.close();
+                logger.info('MongoDB connection đã đóng');
+            }
+
+            logger.info('Tất cả kết nối đã đóng. Thoát chương trình.');
+            process.exit(0);
+        } catch (error) {
+            logger.error('Lỗi khi đóng kết nối:', error);
+            process.exit(1);
+        }
+    });
+
+    // Nếu server không đóng trong 10s, force shutdown
+    setTimeout(() => {
+        logger.error('Không thể đóng kết nối gracefully, forcing shutdown...');
+        process.exit(1);
+    }, 10000);
+};
+
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-    logger.error('TỪ CHỐI KHÔNG ĐƯỢC XỬ LÝ! Tắt...');
-    logger.error(err.name, err.message);
+    logger.error('UNHANDLED REJECTION! Shutting down...');
+    logger.error('Error name:', err.name);
+    logger.error('Error message:', err.message);
+    logger.error('Stack:', err.stack);
     server.close(() => {
         process.exit(1);
     });
 });
 
-// Handle SIGINT
-process.on('SIGINT', () => {
-    logger.info('SIGINT RECEIVED. Đang tắt gracefully...');
-    server.close(() => {
-        logger.info(' HTTP server đã đóng');
-        process.exit(0);
-    });
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+    logger.error('UNCAUGHT EXCEPTION! Shutting down...');
+    logger.error('Error name:', err.name);
+    logger.error('Error message:', err.message);
+    logger.error('Stack:', err.stack);
+    process.exit(1);
 });
 
+// Handle SIGINT (Ctrl+C)
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
 // Handle SIGTERM (Process manager shutdowns)
-process.on('SIGTERM', () => {
-    logger.info('SIGTERM RECEIVED. Đang tắt gracefully...');
-    server.close(() => {
-        logger.info(' Process terminated!');
-        process.exit(0);
-    });
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
 export default app;
