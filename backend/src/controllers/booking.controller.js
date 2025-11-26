@@ -1,13 +1,12 @@
 import { logger } from '../utils/logger.js';
-
-const BookingService = require('../services/booking.service');
+import BookingService from '../services/booking.service.js';
 
 /**
  * @route   POST /api/v1/bookings/hold-seats
  * @desc    Hold seats temporarily (15 minutes)
  * @access  Public
  */
-exports.holdSeats = async (req, res) => {
+export const holdSeats = async (req, res) => {
   try {
     const { tripId, seats, contactInfo, pickupPoint, dropoffPoint, voucherCode } = req.body;
 
@@ -72,7 +71,7 @@ exports.holdSeats = async (req, res) => {
  * @desc    Confirm booking after payment
  * @access  Public
  */
-exports.confirmBooking = async (req, res) => {
+export const confirmBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { sessionId } = req.body;
@@ -105,7 +104,7 @@ exports.confirmBooking = async (req, res) => {
  * @desc    Cancel booking
  * @access  Private (Customer or Operator)
  */
-exports.cancelBooking = async (req, res) => {
+export const cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { reason } = req.body;
@@ -148,7 +147,7 @@ exports.cancelBooking = async (req, res) => {
  * @desc    Cancel booking for guest users (no auth required)
  * @access  Public
  */
-exports.cancelBookingGuest = async (req, res) => {
+export const cancelBookingGuest = async (req, res) => {
   try {
     const { bookingId, email, phone, reason } = req.body;
 
@@ -204,7 +203,7 @@ exports.cancelBookingGuest = async (req, res) => {
  * @desc    Extend seat hold duration
  * @access  Public
  */
-exports.extendHold = async (req, res) => {
+export const extendHold = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { sessionId, minutes } = req.body;
@@ -241,7 +240,7 @@ exports.extendHold = async (req, res) => {
  * @desc    Release seat hold manually
  * @access  Public
  */
-exports.releaseHold = async (req, res) => {
+export const releaseHold = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { sessionId } = req.body;
@@ -274,7 +273,7 @@ exports.releaseHold = async (req, res) => {
  * @desc    Get booking details
  * @access  Public (with authorization)
  */
-exports.getBookingById = async (req, res) => {
+export const getBookingById = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const customerId = req.user ? req.user._id : null;
@@ -299,7 +298,7 @@ exports.getBookingById = async (req, res) => {
  * @desc    Get booking by code (for guests)
  * @access  Public
  */
-exports.getBookingByCode = async (req, res) => {
+export const getBookingByCode = async (req, res) => {
   try {
     const { bookingCode } = req.params;
     const { phone } = req.query;
@@ -331,7 +330,7 @@ exports.getBookingByCode = async (req, res) => {
  * @desc    Get available seats for a trip
  * @access  Public
  */
-exports.getAvailableSeats = async (req, res) => {
+export const getAvailableSeats = async (req, res) => {
   try {
     const { tripId } = req.params;
 
@@ -355,7 +354,7 @@ exports.getAvailableSeats = async (req, res) => {
  * @desc    Get customer's bookings
  * @access  Private (Customer)
  */
-exports.getMyBookings = async (req, res) => {
+export const getMyBookings = async (req, res) => {
   try {
     const customerId = req.user._id;
     const { status, fromDate, toDate } = req.query;
@@ -387,7 +386,7 @@ exports.getMyBookings = async (req, res) => {
  * @desc    Get operator's bookings
  * @access  Private (Operator)
  */
-exports.getOperatorBookings = async (req, res) => {
+export const getOperatorBookings = async (req, res) => {
   try {
     const operatorId = req.user._id;
     const { status, paymentStatus, fromDate, toDate } = req.query;
@@ -420,7 +419,7 @@ exports.getOperatorBookings = async (req, res) => {
  * @desc    Get booking statistics for operator
  * @access  Private (Operator)
  */
-exports.getStatistics = async (req, res) => {
+export const getStatistics = async (req, res) => {
   try {
     const operatorId = req.user._id;
     const { fromDate, toDate } = req.query;
@@ -448,7 +447,7 @@ exports.getStatistics = async (req, res) => {
  * @desc    Update booking payment status
  * @access  Private (Operator)
  */
-exports.updatePayment = async (req, res) => {
+export const updatePayment = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { paymentId, paymentMethod, paymentStatus } = req.body;
