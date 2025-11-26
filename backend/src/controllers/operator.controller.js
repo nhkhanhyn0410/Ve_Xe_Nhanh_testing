@@ -1,5 +1,6 @@
 import OperatorService from '../services/operator.service.js';
 import DashboardService from '../services/dashboard.service.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Operator Controller
@@ -27,7 +28,7 @@ export const getDashboardStats = async (req, res, next) => {
       data: stats,
     });
   } catch (error) {
-    console.error('Get dashboard stats error:', error);
+    logger.error('Get dashboard stats error:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Không thể tải thống kê dashboard',
@@ -87,7 +88,7 @@ export const register = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Operator register error:', error);
+    logger.error('Operator register error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Đăng ký nhà xe thất bại',
@@ -125,7 +126,7 @@ export const login = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Operator login error:', error);
+    logger.error('Operator login error:', error);
     res.status(401).json({
       status: 'error',
       message: error.message || 'Đăng nhập thất bại',
@@ -151,7 +152,7 @@ export const getMe = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Get operator error:', error);
+    logger.error('Get operator error:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy nhà xe',
@@ -179,7 +180,7 @@ export const updateMe = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Update operator error:', error);
+    logger.error('Update operator error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Cập nhật thông tin thất bại',
@@ -205,7 +206,7 @@ export const getById = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Get operator error:', error);
+    logger.error('Get operator error:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy nhà xe',
@@ -255,7 +256,7 @@ export const getAll = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Get operators error:', error);
+    logger.error('Get operators error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách nhà xe thất bại',

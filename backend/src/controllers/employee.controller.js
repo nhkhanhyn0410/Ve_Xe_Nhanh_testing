@@ -1,6 +1,7 @@
 import EmployeeService from '../services/employee.service.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { logger } from '../utils/logger.js';
 
 /**
  * Employee Controller
@@ -80,7 +81,7 @@ export const login = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Employee login error:', error);
+    logger.error('Employee login error:', error);
     res.status(500).json({
       status: 'error',
       message: error.message || 'Đăng nhập thất bại',
@@ -109,7 +110,7 @@ export const getMyTrips = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Get my trips error:', error);
+    logger.error('Get my trips error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể lấy danh sách chuyến xe',
@@ -156,7 +157,7 @@ export const create = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Create employee error:', error);
+    logger.error('Create employee error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tạo nhân viên thất bại',
@@ -202,7 +203,7 @@ export const getMyEmployees = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Get employees error:', error);
+    logger.error('Get employees error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách nhân viên thất bại',
@@ -229,7 +230,7 @@ export const getById = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Get employee error:', error);
+    logger.error('Get employee error:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy nhân viên',
@@ -262,7 +263,7 @@ export const update = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Update employee error:', error);
+    logger.error('Update employee error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Cập nhật nhân viên thất bại',
@@ -275,7 +276,7 @@ export const update = async (req, res, next) => {
  * @desc    Xóa employee (soft delete - terminate)
  * @access  Private (Operator)
  */
-// Đổi tên từ 'delete' thành 'deleteEmployee' vì 'delete' là từ khóa trong JS
+// NOTE: Đổi tên hàm từ 'delete' sang 'deleteEmployee' vì delete là từ khóa
 export const deleteEmployee = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -288,7 +289,7 @@ export const deleteEmployee = async (req, res, next) => {
       message: 'Xóa nhân viên thành công',
     });
   } catch (error) {
-    console.error('Delete employee error:', error);
+    logger.error('Delete employee error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xóa nhân viên thất bại',
@@ -328,7 +329,7 @@ export const changeStatus = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Change employee status error:', error);
+    logger.error('Change employee status error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Thay đổi trạng thái nhân viên thất bại',
@@ -354,7 +355,7 @@ export const getStatistics = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Get employee statistics error:', error);
+    logger.error('Get employee statistics error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy thống kê nhân viên thất bại',
@@ -385,7 +386,7 @@ export const getAvailableForTrips = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.error('Get available employees error:', error);
+    logger.error('Get available employees error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách nhân viên thất bại',
@@ -425,7 +426,7 @@ export const resetPassword = async (req, res, next) => {
       message: 'Reset mật khẩu thành công',
     });
   } catch (error) {
-    console.error('Reset password error:', error);
+    logger.error('Reset password error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Reset mật khẩu thất bại',
@@ -468,7 +469,7 @@ export const changePassword = async (req, res, next) => {
       message: 'Đổi mật khẩu thành công',
     });
   } catch (error) {
-    console.error('Change password error:', error);
+    logger.error('Change password error:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Đổi mật khẩu thất bại',
