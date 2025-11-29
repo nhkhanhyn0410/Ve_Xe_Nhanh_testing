@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+const mongoose = require('mongoose');
 
 /**
  * Payment Schema
@@ -180,7 +179,7 @@ const PaymentSchema = new mongoose.Schema(
 );
 
 /**
- * Indexes
+ * Indexes (compound indexes only - single field indexes are defined in schema)
  */
 // Query payments by booking
 PaymentSchema.index({ bookingId: 1, status: 1 });
@@ -190,9 +189,6 @@ PaymentSchema.index({ customerId: 1, createdAt: -1 });
 
 // Query payments by operator and status
 PaymentSchema.index({ operatorId: 1, status: 1, createdAt: -1 });
-
-// Query by transaction ID
-PaymentSchema.index({ transactionId: 1 });
 
 // Query by payment method and status
 PaymentSchema.index({ paymentMethod: 1, status: 1 });
@@ -237,7 +233,6 @@ PaymentSchema.virtual('remainingAmount').get(function () {
 PaymentSchema.methods.markAsProcessing = function () {
   this.status = 'processing';
   this.processedAt = new Date();
-  logger.info(`Payment ${this.paymentCode} marked as processing`);
 };
 
 /**
@@ -250,7 +245,6 @@ PaymentSchema.methods.markAsCompleted = function (transactionId, gatewayResponse
   this.completedAt = new Date();
   this.callbackReceived = true;
   this.callbackReceivedAt = new Date();
-  logger.success(`Payment ${this.paymentCode} completed successfully - Transaction ID: ${transactionId}`);
 };
 
 /**
@@ -264,7 +258,6 @@ PaymentSchema.methods.markAsFailed = function (reason, code, gatewayResponse = {
   this.failedAt = new Date();
   this.callbackReceived = true;
   this.callbackReceivedAt = new Date();
-  logger.error(`Payment ${this.paymentCode} failed - Reason: ${reason}, Code: ${code}`);
 };
 
 /**
@@ -274,15 +267,12 @@ PaymentSchema.methods.cancel = function (reason) {
   this.status = 'cancelled';
   this.failureReason = reason;
   this.failedAt = new Date();
-  logger.warn(`Payment ${this.paymentCode} cancelled - Reason: ${reason}`);
 };
 
 /**
  * Process refund
  */
 PaymentSchema.methods.processRefund = function (amount, reason, refundTransactionId) {
-  const refundType = amount >= this.amount ? 'full' : 'partial';
-
   if (amount >= this.amount) {
     this.status = 'refunded';
   } else {
@@ -293,8 +283,6 @@ PaymentSchema.methods.processRefund = function (amount, reason, refundTransactio
   this.refundReason = reason;
   this.refundTransactionId = refundTransactionId;
   this.refundedAt = new Date();
-
-  logger.warn(`Payment ${this.paymentCode} ${refundType} refund processed - Amount: ${amount} VND - Reason: ${reason}`);
 };
 
 /**
@@ -303,7 +291,6 @@ PaymentSchema.methods.processRefund = function (amount, reason, refundTransactio
 PaymentSchema.methods.setPaymentUrl = function (url, expiryMinutes = 15) {
   this.paymentUrl = url;
   this.expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
-  logger.info(`Payment URL set for ${this.paymentCode} - Expires in ${expiryMinutes} minutes`);
 };
 
 /**
@@ -326,7 +313,6 @@ PaymentSchema.statics.generatePaymentCode = async function () {
     exists = await this.exists({ paymentCode: code });
   }
 
-  logger.debug(`Generated payment code: ${code}`);
   return code;
 };
 
@@ -481,4 +467,4 @@ PaymentSchema.statics.getStatistics = async function (operatorId = null, filters
 
 const Payment = mongoose.model('Payment', PaymentSchema);
 
-export default Payment;
+module.exports = Payment;

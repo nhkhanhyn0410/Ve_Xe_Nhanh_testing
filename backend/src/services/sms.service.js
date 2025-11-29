@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { logger } from '../utils/logger.js';
+const axios = require('axios');
+const logger = require('../utils/logger');
 
 /**
  * SMS Service
@@ -10,7 +10,7 @@ class SMSService {
     this.provider = process.env.SMS_PROVIDER || 'vnpt'; // 'vnpt' or 'viettel'
     this.apiKey = process.env.SMS_API_KEY;
     this.apiSecret = process.env.SMS_API_SECRET;
-    this.brandName = process.env.SMS_BRAND_NAME || 'QuikRide';
+    this.brandName = process.env.SMS_BRAND_NAME || 'Vé xe nhanh';
     this.enabled = process.env.SMS_ENABLED === 'true';
   }
 
@@ -43,14 +43,14 @@ class SMSService {
       );
 
       if (response.data && response.data.CodeResult === '100') {
-        logger.success(`VNPT SMS sent successfully to: ${phone}`);
+        logger.success('VNPT SMS đã gửi thành công đến: ' + phone);
         return {
           success: true,
           messageId: response.data.SMSID,
           provider: 'vnpt',
         };
       } else {
-        logger.error(`VNPT SMS failed for ${phone}: ${response.data?.Message}`);
+        logger.error(' VNPT SMS thất bại: ' + JSON.stringify(response.data));
         return {
           success: false,
           error: response.data?.Message || 'SMS sending failed',
@@ -58,7 +58,7 @@ class SMSService {
         };
       }
     } catch (error) {
-      logger.error(`VNPT SMS error for ${phone}: ${error.message}`);
+      logger.error(' VNPT SMS lỗi: ' + error.message);
       return {
         success: false,
         error: error.message,
@@ -95,14 +95,14 @@ class SMSService {
       );
 
       if (response.data && response.data.status === 'success') {
-        logger.success(`Viettel SMS sent successfully to: ${phone}`);
+        logger.success('Viettel SMS đã gửi thành công đến: ' + phone);
         return {
           success: true,
           messageId: response.data.messageId,
           provider: 'viettel',
         };
       } else {
-        logger.error(`Viettel SMS failed for ${phone}: ${response.data?.message}`);
+        logger.error(' Viettel SMS thất bại: ' + JSON.stringify(response.data));
         return {
           success: false,
           error: response.data?.message || 'SMS sending failed',
@@ -110,7 +110,7 @@ class SMSService {
         };
       }
     } catch (error) {
-      logger.error(`Viettel SMS error for ${phone}: ${error.message}`);
+      logger.error(' Viettel SMS lỗi: ' + error.message);
       return {
         success: false,
         error: error.message,
@@ -127,7 +127,7 @@ class SMSService {
    */
   async sendSMS(phone, message) {
     if (!this.enabled) {
-      logger.warn('SMS service is disabled');
+      logger.warn('SMS dịch vụ bị vô hiệu hóa');
       return {
         success: false,
         error: 'SMS service is disabled',
@@ -173,7 +173,7 @@ class SMSService {
   async sendTicketSMS(ticketData) {
     const { phone, bookingCode, ticketCode, routeName, departureTime, seatNumbers, ticketUrl } = ticketData;
 
-    const message = `QuikRide: Ve cua ban da san sang!
+    const message = `Ve xe nhanh: Ve cua ban da san sang!
 Ma ve: ${ticketCode}
 Ma dat cho: ${bookingCode}
 Tuyen: ${routeName}
@@ -192,7 +192,7 @@ Lien he: 1900-xxxx`;
    * @returns {Promise<Object>} SMS send result
    */
   async sendOTP(phone, otp) {
-    const message = `QuikRide: Ma xac thuc OTP cua ban la: ${otp}. Ma co hieu luc trong 5 phut. KHONG chia se ma nay voi bat ky ai.`;
+    const message = `Ve xe nhanh: Ma xac thuc OTP cua ban la: ${otp}. Ma co hieu luc trong 5 phut. KHONG chia se ma nay voi bat ky ai.`;
 
     return await this.sendSMS(phone, message);
   }
@@ -205,7 +205,7 @@ Lien he: 1900-xxxx`;
   async sendTripReminder(reminderData) {
     const { phone, routeName, departureTime, pickupPoint, seatNumbers } = reminderData;
 
-    const message = `QuikRide: Nhac nho chuyen di!
+    const message = `Ve xe nhanh: Nhac nho chuyen di!
 Tuyen: ${routeName}
 Gio di: ${departureTime}
 Diem don: ${pickupPoint}
@@ -223,9 +223,8 @@ Vui long co mat truoc 15 phut!`;
   async sendCancellationSMS(cancellationData) {
     const { phone, bookingCode, routeName, refundAmount } = cancellationData;
 
-    const message = `QuikRide: Ve ${bookingCode} (${routeName}) da duoc huy.${
-      refundAmount > 0 ? ` Tien hoan: ${refundAmount.toLocaleString('vi-VN')} VND.` : ''
-    } Lien he: 1900-xxxx`;
+    const message = `Ve xe nhanh: Ve ${bookingCode} (${routeName}) da duoc huy.${refundAmount > 0 ? ` Tien hoan: ${refundAmount.toLocaleString('vi-VN')} VND.` : ''
+      } Lien he: 1900-xxxx`;
 
     return await this.sendSMS(phone, message);
   }
@@ -237,7 +236,10 @@ Vui long co mat truoc 15 phut!`;
    * @returns {Promise<Object>} Mock result
    */
   async mockSend(phone, message) {
-    logger.debug(`[MOCK SMS] To: ${phone} - Message: ${message}`);
+    logger.info('📱 [MOCK SMS]');
+    logger.info(`Đến: ${phtrêne}`);
+    logger.info(`Message: ${message}`);
+    logger.info('---');
 
     return {
       success: true,
@@ -248,4 +250,4 @@ Vui long co mat truoc 15 phut!`;
 }
 
 // Export singleton instance
-export default new SMSService();
+module.exports = new SMSService();

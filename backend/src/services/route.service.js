@@ -1,5 +1,5 @@
-import Route from '../models/Route.js';
-import BusOperator from '../models/BusOperator.js';
+const Route = require('../models/Route');
+const BusOperator = require('../models/BusOperator');
 
 /**
  * Route Service
@@ -364,4 +364,4 @@ class RouteService {
   }
 }
 
-export default RouteService;
+module.exports = RouteService;

@@ -1,12 +1,12 @@
-import VoucherService from '../services/voucher.service.js';
-import { logger } from '../utils/logger.js';
+const VoucherService = require('../services/voucher.service');
+const logger = require('../utils/logger');
 
 /**
  * @route   POST /api/v1/vouchers/validate
  * @desc    Validate voucher for booking
  * @access  Public
  */
-export const validateVoucher = async (req, res) => {
+exports.validateVoucher = async (req, res) => {
   try {
     const { code, tripId, totalAmount } = req.body;
 
@@ -31,7 +31,7 @@ export const validateVoucher = async (req, res) => {
       message: 'Voucher hợp lệ',
     });
   } catch (error) {
-    logger.error('Validate voucher error:', error);
+    logger.error('Lỗi xác thực voucher:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Voucher không hợp lệ',
@@ -44,7 +44,7 @@ export const validateVoucher = async (req, res) => {
  * @desc    Get public vouchers for customers
  * @access  Public
  */
-export const getPublicVouchers = async (req, res) => {
+exports.getPublicVouchers = async (req, res) => {
   try {
     const { operatorId, routeId } = req.query;
 
@@ -61,7 +61,7 @@ export const getPublicVouchers = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get public vouchers error:', error);
+    logger.error('Lỗi lấy voucher công khai:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể lấy danh sách voucher',
@@ -74,7 +74,7 @@ export const getPublicVouchers = async (req, res) => {
  * @desc    Create new voucher
  * @access  Private (Operator)
  */
-export const createVoucher = async (req, res) => {
+exports.createVoucher = async (req, res) => {
   try {
     const operatorId = req.user._id;
     const voucherData = { ...req.body, operatorId };
@@ -87,7 +87,7 @@ export const createVoucher = async (req, res) => {
       message: 'Tạo voucher thành công',
     });
   } catch (error) {
-    logger.error('Create voucher error:', error);
+    logger.error('Lỗi tạo voucher:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể tạo voucher',
@@ -100,7 +100,7 @@ export const createVoucher = async (req, res) => {
  * @desc    Get operator's vouchers
  * @access  Private (Operator)
  */
-export const getOperatorVouchers = async (req, res) => {
+exports.getOperatorVouchers = async (req, res) => {
   try {
     const operatorId = req.user._id;
 
@@ -114,7 +114,7 @@ export const getOperatorVouchers = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get operator vouchers error:', error);
+    logger.error('Lỗi lấy voucher nhà điều hành:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể lấy danh sách voucher',
@@ -127,7 +127,7 @@ export const getOperatorVouchers = async (req, res) => {
  * @desc    Get voucher details
  * @access  Private (Operator)
  */
-export const getVoucherById = async (req, res) => {
+exports.getVoucherById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -146,7 +146,7 @@ export const getVoucherById = async (req, res) => {
       data: { voucher },
     });
   } catch (error) {
-    logger.error('Get voucher error:', error);
+    logger.error('Lỗi lấy voucher:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy voucher',
@@ -159,7 +159,7 @@ export const getVoucherById = async (req, res) => {
  * @desc    Update voucher
  * @access  Private (Operator)
  */
-export const updateVoucher = async (req, res) => {
+exports.updateVoucher = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -180,7 +180,7 @@ export const updateVoucher = async (req, res) => {
       message: 'Cập nhật voucher thành công',
     });
   } catch (error) {
-    logger.error('Update voucher error:', error);
+    logger.error('Lỗi cập nhật voucher:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể cập nhật voucher',
@@ -193,7 +193,7 @@ export const updateVoucher = async (req, res) => {
  * @desc    Delete voucher
  * @access  Private (Operator)
  */
-export const deleteVoucher = async (req, res) => {
+exports.deleteVoucher = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -213,7 +213,7 @@ export const deleteVoucher = async (req, res) => {
       message: 'Xóa voucher thành công',
     });
   } catch (error) {
-    logger.error('Delete voucher error:', error);
+    logger.error('Lỗi xóa voucher:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể xóa voucher',
@@ -226,7 +226,7 @@ export const deleteVoucher = async (req, res) => {
  * @desc    Deactivate voucher
  * @access  Private (Operator)
  */
-export const deactivateVoucher = async (req, res) => {
+exports.deactivateVoucher = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -247,7 +247,7 @@ export const deactivateVoucher = async (req, res) => {
       message: 'Vô hiệu hóa voucher thành công',
     });
   } catch (error) {
-    logger.error('Deactivate voucher error:', error);
+    logger.error('Lỗi vô hiệu hóa voucher:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể vô hiệu hóa voucher',
@@ -260,7 +260,7 @@ export const deactivateVoucher = async (req, res) => {
  * @desc    Activate voucher
  * @access  Private (Operator)
  */
-export const activateVoucher = async (req, res) => {
+exports.activateVoucher = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -281,7 +281,7 @@ export const activateVoucher = async (req, res) => {
       message: 'Kích hoạt voucher thành công',
     });
   } catch (error) {
-    logger.error('Activate voucher error:', error);
+    logger.error('Lỗi kích hoạt voucher:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể kích hoạt voucher',
@@ -294,7 +294,7 @@ export const activateVoucher = async (req, res) => {
  * @desc    Get voucher statistics
  * @access  Private (Operator)
  */
-export const getVoucherStatistics = async (req, res) => {
+exports.getVoucherStatistics = async (req, res) => {
   try {
     const operatorId = req.user._id;
 
@@ -305,7 +305,7 @@ export const getVoucherStatistics = async (req, res) => {
       data: stats,
     });
   } catch (error) {
-    logger.error('Get voucher statistics error:', error);
+    logger.error('Lỗi lấy thống kê voucher:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể lấy thống kê',
@@ -318,7 +318,7 @@ export const getVoucherStatistics = async (req, res) => {
  * @desc    Get detailed voucher usage report
  * @access  Private (Operator)
  */
-export const getVoucherUsageReport = async (req, res) => {
+exports.getVoucherUsageReport = async (req, res) => {
   try {
     const { id } = req.params;
     const { startDate, endDate, page = 1, limit = 20 } = req.query;
@@ -344,7 +344,7 @@ export const getVoucherUsageReport = async (req, res) => {
       data: report,
     });
   } catch (error) {
-    logger.error('Get voucher usage report error:', error);
+    logger.error('Lỗi lấy báo cáo sử dụng voucher:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể lấy báo cáo sử dụng voucher',

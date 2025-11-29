@@ -1,17 +1,16 @@
-import Payment from '../models/Payment.js';
-import Booking from '../models/Booking.js';
-import Trip from '../models/Trip.js';
-import vnpayService from './vnpay.service.js';
-import SeatLockService from './seatLock.service.js';
-import moment from 'moment';
-import { logger } from '../utils/logger.js';
+const Payment = require('../models/Payment');
+const Booking = require('../models/Booking');
+const Trip = require('../models/Trip');
+const vnpayService = require('./vnpay.service');
+const SeatLockService = require('./seatLock.service');
+const moment = require('moment');
+const logger = require('../utils/logger');
 
 // Lazy-load TicketService to avoid circular dependency
 let TicketService = null;
-const getTicketService = async () => {
+const getTicketService = () => {
   if (!TicketService) {
-    const module = await import('./ticket.service.js');
-    TicketService = module.default;
+    TicketService = require('./ticket.service');
   }
   return TicketService;
 };
@@ -122,27 +121,63 @@ class PaymentService {
       };
       await payment.save();
 
+      // Get trip and update booked seats
+      const trip = await Trip.findById(booking.tripId);
+      if (!trip) {
+        throw new Error('Không tìm thấy chuyến xe');
+      }
+
+      // Add seats to trip's booked seats
+      const seatNumbers = booking.seats.map((s) => s.seatNumber);
+      for (const seat of booking.seats) {
+        trip.bookedSeats.push({
+          seatNumber: seat.seatNumber,
+          bookingId: booking._id,
+          passengerName: seat.passengerName,
+        });
+      }
+      trip.availableSeats -= seatNumbers.length;
+      await trip.save();
+
+      // Apply voucher if present
+      if (booking.voucherId) {
+        try {
+          const VoucherService = require('./voucher.service');
+          await VoucherService.applyToBooking(booking.voucherId);
+        } catch (error) {
+          logger.error('Không thể áp dụng voucher:', error.message);
+        }
+      }
+
       // Confirm booking immediately for cash payment
       booking.paymentStatus = 'pending'; // Will be marked as 'paid' when driver confirms cash received
       booking.paymentMethod = 'cash';
       booking.paymentId = payment._id;
-      booking.confirm(); // Confirm booking
+      booking.confirm(); // Confirm booking (sets status to 'confirmed', unsets hold)
       await booking.save();
 
+      // Release Redis locks if booking was held
+      if (booking.isHeld) {
+        try {
+          await SeatLockService.releaseSeats(booking.tripId, seatNumbers);
+        } catch (error) {
+          logger.info('Lưu ý: Không thể mở khóa ghế (có thể đã hết hạn):', error.message);
+        }
+      }
+
       // Generate digital ticket in background
-      getTicketService().then(TicketServiceClass => {
-        TicketServiceClass.generateTicket(booking._id)
-          .then((ticket) => {
-            logger.success(`Ticket generated for cash booking: ${booking.bookingCode}`);
-            return TicketServiceClass.sendTicketNotifications(ticket._id);
-          })
-          .then((notificationResult) => {
-            logger.success('Ticket notifications sent');
-          })
-          .catch((error) => {
-            logger.error(`Ticket generation failed for cash booking: ${error.message}`);
-          });
-      });
+      const TicketServiceClass = getTicketService();
+      TicketServiceClass.generateTicket(booking._id)
+        .then((ticket) => {
+          logger.info('Vé được tạo để đặt vé bằng tiền mặt:', booking.bookingCode);
+          return TicketServiceClass.sendTicketNotifications(ticket._id);
+        })
+        .then((notificationResult) => {
+          logger.info('Đã gửi thông báo vé:', notificationResult);
+        })
+        .catch((error) => {
+          logger.error('Tạo vé không thành công:', error);
+        });
     }
 
     // Populate payment details
@@ -163,14 +198,14 @@ class PaymentService {
    * @returns {Object} Processing result
    */
   static async processVNPayCallback(vnpParams, ipAddress) {
-    logger.info('VNPay callback received');
+    logger.info('VNPay callback đã nhận:', vnpParams);
 
     // Process callback with VNPay service
     const result = vnpayService.processCallback(vnpParams);
-    logger.info(`VNPay signature verification: ${result.success ? 'SUCCESS' : 'FAILED'}`);
+    logger.info('VNPay kết quả xác minh chữ ký:', result);
 
     if (!result.success) {
-      logger.error(`VNPay callback failed: ${result.message}`);
+      logger.error(' VNPay callback thất bại:', result);
       return {
         success: false,
         message: result.message,
@@ -179,11 +214,11 @@ class PaymentService {
     }
 
     const { paymentCode, transactionId, amount, bankCode, cardType, payDate } = result;
-    logger.info(`VNPay payment details - Code: ${paymentCode}, Transaction: ${transactionId}, Amount: ${amount}`);
+    logger.info('VNPay chi tiết thanh toán:', { paymentCode, transactionId, amount, bankCode });
 
     // Find payment
     const payment = await Payment.findOne({ paymentCode }).populate('bookingId');
-    logger.info(`Payment lookup: ${payment ? payment.paymentCode : 'NOT FOUND'}`);
+    logger.info('Đã tìm thấy khoản thanh toán:', payment ? payment.paymentCode : 'NOT FOUND');
 
     if (!payment) {
       return {
@@ -204,9 +239,9 @@ class PaymentService {
     }
 
     // Verify amount
-    logger.info(`Amount verification - VNPay: ${amount}, Payment: ${payment.amount}`);
+    logger.info('Xác minh số tiền:', { vnpayAmount: amount, paymentAmount: payment.amount });
     if (amount !== payment.amount) {
-      logger.error('Amount mismatch detected!');
+      logger.error(' Amount mismatch!');
       payment.markAsFailed(
         `Số tiền không khớp: ${amount} !== ${payment.amount}`,
         'AMOUNT_MISMATCH',
@@ -222,7 +257,7 @@ class PaymentService {
     }
 
     try {
-      logger.info('Processing successful payment...');
+      logger.info('Xử lý thanh toán thành công...');
 
       // Mark payment as completed
       payment.markAsCompleted(transactionId, {
@@ -232,11 +267,11 @@ class PaymentService {
         payDate,
       });
       await payment.save();
-      logger.success('Payment marked as completed');
+      logger.info('Thanh toán được đánh dấu là đã hoàn thành');
 
       // Update booking payment status
       const booking = await Booking.findById(payment.bookingId);
-      logger.info(`Booking lookup: ${booking ? booking.bookingCode : 'NOT FOUND'}`);
+      logger.info('Booking found:', booking ? booking.bookingCode : 'NOT FOUND');
 
       if (booking) {
         booking.paymentStatus = 'paid';
@@ -246,7 +281,7 @@ class PaymentService {
 
         // Auto-confirm booking if it's in pending/held status
         if (booking.status === 'pending' || booking.isHeld) {
-          logger.info('Confirming seats on trip...');
+          logger.info('Xác nhận chỗ ngồi trong chuyến đi...');
 
           // Get trip and update booked seats
           const trip = await Trip.findById(booking.tripId);
@@ -273,18 +308,21 @@ class PaymentService {
             // Update available seats count
             trip.availableSeats = Math.max(0, trip.totalSeats - trip.bookedSeats.length);
             await trip.save();
-            logger.success(`Trip seats updated - Booked: ${trip.bookedSeats.length}, Available: ${trip.availableSeats}`);
+            logger.info('Đã cập nhật chỗ ngồi trong chuyến đi:', {
+              bookedSeats: trip.bookedSeats.length,
+              availableSeats: trip.availableSeats,
+            });
 
             // Release Redis locks (best effort - sessionId unknown in callback)
             try {
               await SeatLockService.releaseSeats(booking.tripId, seatNumbers);
-              logger.info('Redis seat locks released');
+              logger.info('Redis đã mở khóa ghế');
             } catch (lockError) {
-              logger.warn(`Could not release Redis locks (they will expire): ${lockError.message}`);
+              logger.warn('Không thể giải phóng khóa Redis (chúng sẽ hết hạn):', lockError.message);
               // Don't fail payment if lock release fails - they will auto-expire
             }
           } else {
-            logger.error(`Trip not found for booking: ${booking.tripId}`);
+            logger.error('Không tìm thấy chuyến đi để đặt chỗ:', booking.tripId);
           }
 
           // Confirm booking (updates status to confirmed, isHeld to false)
@@ -292,28 +330,27 @@ class PaymentService {
         }
 
         await booking.save();
-        logger.success('Booking updated successfully');
+        logger.info('Đặt chỗ được cập nhật thành công');
 
         // Generate digital ticket in background (UC-7)
-        getTicketService().then(TicketServiceClass => {
-          TicketServiceClass.generateTicket(booking._id)
-            .then((ticket) => {
-              logger.success(`Ticket generated for booking: ${booking.bookingCode}`);
-              // Send ticket notifications in background
-              return TicketServiceClass.sendTicketNotifications(ticket._id);
-            })
-            .then((notificationResult) => {
-              logger.success('Ticket notifications sent');
-            })
-            .catch((error) => {
-              logger.error(`Ticket generation/notification failed: ${error.message}`);
-              // Don't fail the payment if ticket generation fails
-              // Admin can retry ticket generation manually
-            });
-        });
+        const TicketServiceClass = getTicketService();
+        TicketServiceClass.generateTicket(booking._id)
+          .then((ticket) => {
+            logger.info('Vé được tạo để đặt chỗ:', booking.bookingCode);
+            // Send ticket notifications in background
+            return TicketServiceClass.sendTicketNotifications(ticket._id);
+          })
+          .then((notificationResult) => {
+            logger.info('Đã gửi thông báo vé:', notificationResult);
+          })
+          .catch((error) => {
+            logger.error('Tạo vé/thông báo không thành công:', error);
+            // Don't fail the payment if ticket generation fails
+            // Admin can retry ticket generation manually
+          });
       }
 
-      logger.success('VNPay callback processed successfully!');
+      logger.info('VNPay callback xử lý thành công!');
       return {
         success: true,
         message: 'Thanh toán thành công',
@@ -321,7 +358,7 @@ class PaymentService {
         booking,
       };
     } catch (error) {
-      logger.error(`Error processing VNPay callback: ${error.message}`);
+      logger.error('Lỗi xử lý lệnh gọi lại VNPay:', error);
       payment.markAsFailed(error.message, 'PROCESSING_ERROR', result.rawData);
       await payment.save();
 
@@ -542,7 +579,7 @@ class PaymentService {
           });
         }
       } catch (error) {
-        logger.error(`Auto-refund failed for payment ${payment._id}: ${error.message}`);
+        logger.error('Auto-refund failed for payment:', payment._id, error.message);
         results.push({
           success: false,
           paymentId: payment._id,
@@ -583,7 +620,7 @@ class PaymentService {
           paymentId: payment._id,
         });
       } catch (error) {
-        logger.error(`Failed to handle expired payment ${payment._id}: ${error.message}`);
+        logger.error('Failed to handle expired payment:', payment._id, error.message);
         results.push({
           success: false,
           paymentId: payment._id,
@@ -692,4 +729,4 @@ class PaymentService {
   }
 }
 
-export default PaymentService;
+module.exports = PaymentService;

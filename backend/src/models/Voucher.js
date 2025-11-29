@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+const mongoose = require('mongoose');
 
 /**
  * Voucher/Coupon Schema
@@ -211,8 +210,6 @@ VoucherSchema.methods.calculateDiscount = function (bookingAmount) {
  */
 VoucherSchema.methods.incrementUsage = async function () {
   this.currentUsageCount += 1;
-  const remaining = this.maxUsageTotal ? this.maxUsageTotal - this.currentUsageCount : 'unlimited';
-  logger.info(`Voucher ${this.code} used - Count: ${this.currentUsageCount}, Remaining: ${remaining}`);
   await this.save();
 };
 
@@ -350,8 +347,6 @@ VoucherSchema.statics.getStatistics = async function (operatorId = null) {
  * Pre-save middleware
  */
 VoucherSchema.pre('save', function (next) {
-  const isNew = this.isNew;
-
   // Ensure code is uppercase
   if (this.isModified('code')) {
     this.code = this.code.toUpperCase().trim();
@@ -369,17 +364,9 @@ VoucherSchema.pre('save', function (next) {
     return next(new Error('Ngày bắt đầu phải trước ngày kết thúc'));
   }
 
-  // Log new voucher creation
-  if (isNew) {
-    const discountDesc = this.discountType === 'percentage'
-      ? `${this.discountValue}%`
-      : `${this.discountValue} VND`;
-    logger.success(`New voucher created: ${this.code} - ${this.name} - Discount: ${discountDesc}`);
-  }
-
   next();
 });
 
 const Voucher = mongoose.model('Voucher', VoucherSchema);
 
-export default Voucher;
+module.exports = Voucher;

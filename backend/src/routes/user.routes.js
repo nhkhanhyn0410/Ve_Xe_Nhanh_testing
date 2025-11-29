@@ -1,13 +1,13 @@
-import express from 'express';
-import { param } from 'express-validator';
-import * as userController from '../controllers/user.controller.js';
-import * as ticketController from '../controllers/ticket.controller.js';
-import { authenticate } from '../middleware/auth.middleware.js';
-import { uploadAvatar, handleUploadError } from '../middleware/upload.middleware.js';
-import {
+const express = require('express');
+const userController = require('../controllers/user.controller');
+const ticketController = require('../controllers/ticket.controller');
+const { authenticate } = require('../middleware/auth.middleware');
+const { uploadAvatar, handleUploadError } = require('../middleware/upload.middleware');
+const {
   validateUpdateProfile,
   validateChangePassword,
-} from '../middleware/validate.middleware.js';
+} = require('../middleware/validate.middleware');
+const { param } = require('express-validator');
 
 const router = express.Router();
 
@@ -98,4 +98,4 @@ router.post(
   ticketController.cancelTicket
 );
 
-export default router;
+module.exports = router;

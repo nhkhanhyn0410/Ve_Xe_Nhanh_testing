@@ -1,8 +1,7 @@
-import express from 'express';
-import * as employeeController from '../controllers/employee.controller.js';
-import { authenticate } from '../middleware/auth.middleware.js';
-
+const express = require('express');
 const router = express.Router();
+const employeeController = require('../controllers/employee.controller');
+const { authenticate } = require('../middleware/auth.middleware');
 
 /**
  * Employee Routes
@@ -27,11 +26,4 @@ router.use(authenticate);
  */
 router.get('/my-trips', employeeController.getMyTrips);
 
-/**
- * @route   POST /api/v1/employees/change-password
- * @desc    Change password (self)
- * @access  Private (Employee)
- */
-router.post('/change-password', employeeController.changePassword);
-
-export default router;
+module.exports = router;

@@ -1,187 +1,235 @@
-import http from 'http';
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import helmet from 'helmet';
-import compression from 'compression';
-import cookieParser from 'cookie-parser';
-import morgan from 'morgan';
-import rateLimit from 'express-rate-limit';
-import connectDB from './config/database.js';
-import routes from './routes/index.js';
-import { errorHandler } from './middleware/error.middleware.js';
-import connectRedis, { getRedisClient } from './config/redis.js';
-import { logger } from './utils/logger.js';
-import {
-    sanitizeData,
-    preventXSS,
-    preventHPP,
-    setSecurityHeaders,
-    detectAttackPatterns,
-    preventPrototypePollution,
-    validateContentType,
-} from './middleware/security.middleware.js';
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+const http = require('http');
+const logger = require('./utils/logger');
 
 // Load environment variables
 dotenv.config();
 
+// Import configurations
+const connectDB = require('./config/database');
+const connectRedis = require('./config/redis');
+const websocketService = require('./services/websocket.service');
+const schedulerService = require('./services/scheduler.service');
+
+// Import routes
+const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
+const operatorRoutes = require('./routes/operator.routes');
+const employeeRoutes = require('./routes/employee.routes');
+const adminRoutes = require('./routes/admin.routes');
+const routeRoutes = require('./routes/route.routes');
+const busRoutes = require('./routes/bus.routes');
+const tripRoutes = require('./routes/trip.routes');
+const bookingRoutes = require('./routes/booking.routes');
+const voucherRoutes = require('./routes/voucher.routes');
+const paymentRoutes = require('./routes/payment.routes');
+const ticketRoutes = require('./routes/ticket.routes');
+const tripManagerRoutes = require('./routes/tripManager.routes');
+const complaintRoutes = require('./routes/complaint.routes');
+const contentRoutes = require('./routes/content.routes');
+const reviewRoutes = require('./routes/review.routes');
+
+// Import middleware
+const errorHandler = require('./middleware/error.middleware');
+const {
+  sanitizeData,
+  preventXSS,
+  preventHPP,
+  setSecurityHeaders,
+  sanitizeRequest,
+  detectAttackPatterns,
+} = require('./middleware/security.middleware');
+const { validateOrigin } = require('./middleware/csrf.middleware');
+
 // Initialize express app
 const app = express();
 
-// Connect to database and Redis with error handling
-const initializeConnections = async () => {
-    try {
-        await connectDB();
-        await connectRedis();
-        logger.info('Database và Redis kết nối được thiết lập');
-    } catch (error) {
-        logger.error('Không thể khởi tạo kết nối:', error);
-        process.exit(1);
-    }
-};
+// Connect to MongoDB
+connectDB();
 
-initializeConnections();
+// Connect to Redis
+connectRedis();
 
-// Security middleware - Helmet with custom headers
-app.use(helmet());
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      fontSrc: ["'self'", 'data:'],
+      connectSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+}));
+
+// Additional security headers
 app.use(setSecurityHeaders);
 
 // CORS configuration
 const corsOptions = {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
-    credentials: true,
-    optionsSuccessStatus: 200,
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  credentials: true,
+  optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
-    message: 'Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau 15 phút',
-});
-app.use('/api', limiter);
-
-// Body parser middleware
+// Body parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cookieParser());
 
-// Security middleware from security.middleware.js
-app.use(validateContentType);
+// Data sanitization against NoSQL injection
 app.use(sanitizeData());
+
+// Data sanitization against XSS
 app.use(preventXSS());
+
+// Prevent parameter pollution
 app.use(preventHPP());
+
+// Custom request sanitization
+app.use(sanitizeRequest);
+
+// Detect attack patterns
 app.use(detectAttackPatterns);
-app.use(preventPrototypePollution);
+
+// Validate origin for state-changing requests
+app.use(validateOrigin);
 
 // Compression middleware
 app.use(compression());
 
 // Logging middleware
 if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
+  app.use(morgan('dev'));
 } else {
-    app.use(morgan('combined'));
+  app.use(morgan('combined'));
 }
 
-// Mount routes (includes 404 handler inside routes/index.js)
-app.use('/', routes);
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW, 10) || 60000, // 1 minute
+  max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100, // 100 requests per minute
+  message: 'Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', limiter);
 
-// Global error handler - must be last
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'API đang chạy',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+  });
+});
+
+// API routes
+const API_VERSION = process.env.API_VERSION || 'v1';
+app.get(`/api/${API_VERSION}`, (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'API v1',
+    version: '1.0.0',
+    documentation: `/api/${API_VERSION}/docs`,
+  });
+});
+
+// Mount routes
+app.use(`/api/${API_VERSION}/auth`, authRoutes);
+app.use(`/api/${API_VERSION}/users`, userRoutes);
+app.use(`/api/${API_VERSION}/operators`, operatorRoutes);
+app.use(`/api/${API_VERSION}/employees`, employeeRoutes);
+app.use(`/api/${API_VERSION}/admin`, adminRoutes);
+app.use(`/api/${API_VERSION}/routes`, routeRoutes);
+app.use(`/api/${API_VERSION}/buses`, busRoutes);
+app.use(`/api/${API_VERSION}/trips`, tripRoutes);
+app.use(`/api/${API_VERSION}/bookings`, bookingRoutes);
+app.use(`/api/${API_VERSION}/vouchers`, voucherRoutes);
+app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
+app.use(`/api/${API_VERSION}/tickets`, ticketRoutes);
+app.use(`/api/${API_VERSION}/trip-manager`, tripManagerRoutes);
+app.use(`/api/${API_VERSION}/complaints`, complaintRoutes);
+app.use(`/api/${API_VERSION}/content`, contentRoutes);
+app.use(`/api/${API_VERSION}/reviews`, reviewRoutes);
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: 'Không tìm thấy route',
+    path: req.originalUrl,
+  });
+});
+
+// Error handling middleware
 app.use(errorHandler);
 
-// Create HTTP server
-const PORT = process.env.PORT || 5500;
-const API_VERSION = process.env.API_VERSION || 'v1';
+// Create HTTP server for Socket.IO
+const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
+
+// Initialize WebSocket
+websocketService.initialize(server);
+
+// Initialize Scheduler (cron jobs)
+schedulerService.initialize();
 
 // Start server
 server.listen(PORT, () => {
-    logger.start(`=====================================================================`)
-    logger.success(`Server đang chạy ở chế độ ${process.env.NODE_ENV} trên port ${PORT}`);
-    logger.success(`Health check: http://localhost:${PORT}/health`);
-    logger.success(`API endpoint: http://localhost:${PORT}/api/${API_VERSION}`);
-    logger.success(`Máy chủ WebSocket sẵn sàng cập nhật theo thời gian thực`);
+  logger.start(`=====================================================================`)
+  logger.success(`Máy chủ đang chạy ở chế độ ${process.env.NODE_ENV} trên port ${PORT}`);
+  logger.success(`Health check: http://localhost:${PORT}/health`);
+  logger.success(`API endpoint: http://localhost:${PORT}/api/${API_VERSION}`);
 });
-
-// Handle server errors
-server.on('error', (error) => {
-    if (error.code === 'EADDRINUSE') {
-        logger.error(`Port ${PORT} đang được sử dụng`);
-        logger.error(`Vui lòng kill process hoặc đổi port khác`);
-        process.exit(1);
-    } else {
-        logger.error(' Server error:', error);
-        process.exit(1);
-    }
-});
-
-/**
- * Graceful shutdown helper
- * Đóng tất cả các kết nối trước khi tắt server
- */
-const gracefulShutdown = async (signal) => {
-    logger.info(`${signal} RECEIVED. Đang tắt gracefully...`);
-
-    // Đóng HTTP server trước
-    server.close(async () => {
-        logger.info('HTTP server đã đóng');
-
-        try {
-            // Đóng kết nối Redis
-            const redisClient = getRedisClient();
-            if (redisClient && redisClient.isOpen) {
-                await redisClient.quit();
-                logger.info('Redis connection đã đóng');
-            }
-
-            // Đóng kết nối MongoDB
-            const mongoose = await import('mongoose');
-            if (mongoose.default.connection.readyState === 1) {
-                await mongoose.default.connection.close();
-                logger.info('MongoDB connection đã đóng');
-            }
-
-            logger.info('Tất cả kết nối đã đóng. Thoát chương trình.');
-            process.exit(0);
-        } catch (error) {
-            logger.error('Lỗi khi đóng kết nối:', error);
-            process.exit(1);
-        }
-    });
-
-    // Nếu server không đóng trong 10s, force shutdown
-    setTimeout(() => {
-        logger.error('Không thể đóng kết nối gracefully, forcing shutdown...');
-        process.exit(1);
-    }, 10000);
-};
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-    logger.error('UNHANDLED REJECTION! Shutting down...');
-    logger.error('Error name:', err.name);
-    logger.error('Error message:', err.message);
-    logger.error('Stack:', err.stack);
-    server.close(() => {
-        process.exit(1);
-    });
+  logger.error('LỖI KHÔNG ĐƯỢC XỬ LÝ (unhandledRejection)! Đang tắt...');
+  if (err instanceof Error) {
+    logger.error(`${err.name}: ${err.message}\n${err.stack}`);
+  } else {
+    logger.error(JSON.stringify(err));
+  }
+  server.close(() => {
+    process.exit(1);
+  });
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-    logger.error('UNCAUGHT EXCEPTION! Shutting down...');
-    logger.error('Error name:', err.name);
-    logger.error('Error message:', err.message);
-    logger.error('Stack:', err.stack);
-    process.exit(1);
+  logger.error('LỖI KHÔNG ĐƯỢC XỬ LÝ (uncaughtException)! Đang tắt...');
+  if (err instanceof Error) {
+    logger.error(`${err.name}: ${err.message}\n${err.stack}`);
+  } else {
+    logger.error(JSON.stringify(err));
+  }
+  process.exit(1); // Nếu server chưa khởi tạo xong
 });
 
-// Handle SIGINT (Ctrl+C)
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+// Handle SIGTERM
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM RECEIVED. Đang tắt server một cách nhẹ nhàng...');
+  server.close(() => {
+    logger.info('Server đã tắt. Tiến trình kết thúc!');
+  });
+});
 
-// Handle SIGTERM (Process manager shutdowns)
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 
-export default app;
+module.exports = app;

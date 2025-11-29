@@ -1,7 +1,6 @@
-import express from 'express';
-import * as GuestController from '../controllers/guest.controller.js';
-
+const express = require('express');
 const router = express.Router();
+const GuestController = require('../controllers/guest.controller');
 
 /**
  * Guest Booking Routes
@@ -29,4 +28,4 @@ router.delete('/session', GuestController.deleteSession);
 // Check OTP status
 router.get('/otp-status/:identifier', GuestController.checkOTPStatus);
 
-export default router;
+module.exports = router;

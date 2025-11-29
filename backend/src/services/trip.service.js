@@ -1,11 +1,9 @@
-import Trip from '../models/Trip.js';
-import Route from '../models/Route.js';
-import Bus from '../models/Bus.js';
-import Employee from '../models/Employee.js';
-
-import { v4 as uuidv4 } from 'uuid';
-import { logger } from '../utils/logger.js';
-
+const Trip = require('../models/Trip');
+const Route = require('../models/Route');
+const Bus = require('../models/Bus');
+const Employee = require('../models/Employee');
+const { v4: uuidv4 } = require('uuid');
+const logger = require('../utils/logger');
 
 /**
  * Trip Service
@@ -505,17 +503,17 @@ class TripService {
       sortOrder = 'asc',
     } = searchCriteria;
 
-    logger.info('🔍 Search criteria:', { fromCity, toCity, date, passengers });
+    logger.debug('Search tiêu chí: ' + JSON.stringify({ fromCity, toCity, date, passengers }));
 
     // Build query
     const query = {
       status: 'scheduled',
       availableSeats: { $gte: passengers },
-      departureTime: { $gt: new Date() },
     };
 
-    // Date filter
+    // Date/Time filter
     if (date) {
+      // If date is specified, search for trips on that specific date
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(date);
@@ -525,7 +523,17 @@ class TripService {
         $gte: startOfDay,
         $lte: endOfDay,
       };
-      logger.info('Date range:', { startOfDay, endOfDay });
+      logger.debug('Ngày phạm vi: ' + JSON.stringify({ startOfDay, endOfDay }));
+    } else {
+      // If no date specified (browse all mode), show trips from last 7 days to future
+      // This helps with demo/testing and allows users to see recent trips
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      query.departureTime = {
+        $gte: sevenDaysAgo, // Include trips from last 7 days
+      };
+      logger.debug('Browse chế độ:  ' + JSON.stringify({ sevenDaysAgo }));
     }
 
     // Price range filter
@@ -563,13 +571,13 @@ class TripService {
       .sort(sortCriteria)
       .lean();
 
-    logger.info(`Found ${trips.length} trips from database`);
+    logger.debug(`Tìm thấy ${trips.length} chuyến từ cơ sở dữ liệu`);
     if (trips.length > 0) {
-      logger.info('Sample trip routes:', trips.slice(0, 2).map(t => ({
+      logger.debug('Mẫu chuyến tuyến: ' + JSON.stringify(trips.slice(0, 2).map(t => ({
         from: t.routeId?.origin?.city,
         to: t.routeId?.destination?.city,
         departure: t.departureTime
-      })));
+      }))));
     }
 
     // Filter by cities (after populate)
@@ -590,7 +598,7 @@ class TripService {
           return fromMatch && toMatch;
         }
       );
-      logger.info(`After city filter (${fromCity} → ${toCity}): ${trips.length} trips`);
+      logger.debug(`After city filter (${fromCity} → ${toCity}): ${trips.length} trips`);
     } else if (fromCity) {
       trips = trips.filter(
         (trip) => {
@@ -600,7 +608,7 @@ class TripService {
             trip.routeId.origin.city?.toLowerCase().includes(fromCity.toLowerCase());
         }
       );
-      logger.info(`After fromCity filter (${fromCity}): ${trips.length} trips`);
+      logger.debug(`After fromCity filter (${fromCity}): ${trips.length} trips`);
     } else if (toCity) {
       trips = trips.filter(
         (trip) => {
@@ -610,7 +618,7 @@ class TripService {
             trip.routeId.destination.city?.toLowerCase().includes(toCity.toLowerCase());
         }
       );
-      logger.info(`After toCity filter (${toCity}): ${trips.length} trips`);
+      logger.debug(`After toCity filter (${toCity}): ${trips.length} trips`);
     }
 
     // Filter by bus type (after populate)
@@ -648,7 +656,7 @@ class TripService {
       });
     }
 
-    logger.info(`Returning ${trips.length} trips after all filters`);
+    logger.debug(`Đang trả về ${trips.length} chuyến sau tất cả bộ lọc`);
     return trips;
   }
 
@@ -823,4 +831,4 @@ class TripService {
   }
 }
 
-export default TripService;
+module.exports = TripService;

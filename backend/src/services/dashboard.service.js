@@ -3,11 +3,12 @@
  * Aggregates data for operator dashboard statistics
  */
 
-import Booking from '../models/Booking.js';
-import Trip from '../models/Trip.js';
-import Ticket from '../models/Ticket.js';
-import Payment from '../models/Payment.js';
-import dayjs from 'dayjs.js';
+const Booking = require('../models/Booking');
+const Trip = require('../models/Trip');
+const Ticket = require('../models/Ticket');
+const Payment = require('../models/Payment');
+const dayjs = require('dayjs');
+const logger = require('../utils/logger');
 
 class DashboardService {
   /**
@@ -344,6 +345,12 @@ class DashboardService {
    * Get trend data for charts (revenue and bookings)
    */
   static async getTrendData(operatorId, period) {
+    logger.info('Lấy dữ liệu xu hướng cho:', {
+      operatorId,
+      operatorIdType: typeof operatorId,
+      period
+    });
+
     let groupBy, dateFormat;
 
     switch (period) {
@@ -377,7 +384,7 @@ class DashboardService {
         $group: {
           _id: groupBy,
           count: { $sum: 1 },
-          revenue: { $sum: '$total' },
+          revenue: { $sum: '$finalPrice' },  // Use finalPrice instead of total
         },
       },
       {
@@ -387,6 +394,11 @@ class DashboardService {
         $limit: period === 'day' ? 24 : period === 'week' ? 7 : period === 'month' ? 31 : 12,
       },
     ]);
+
+    logger.info('Kết quả dữ liệu xu hướng:', {
+      bookingTrendsCount: bookingTrends.length,
+      sample: bookingTrends[0]
+    });
 
     return {
       bookings: bookingTrends.map((item) => ({
@@ -418,4 +430,4 @@ class DashboardService {
   }
 }
 
-export default DashboardService;
+module.exports = DashboardService;

@@ -1,15 +1,12 @@
-import Booking from '../models/Booking.js';
-import Trip from '../models/Trip.js';
-import Route from '../models/Route.js';
-import Payment from '../models/Payment.js';
-
-import ExcelJS from 'exceljs';
-import PDFDocument from 'pdfkit';
-import moment from 'moment-timezone';
-import mongoose from 'mongoose';
-
-import { logger } from '../utils/logger.js';
-
+const Booking = require('../models/Booking');
+const Trip = require('../models/Trip');
+const Route = require('../models/Route');
+const Payment = require('../models/Payment');
+const ExcelJS = require('exceljs');
+const PDFDocument = require('pdfkit');
+const moment = require('moment-timezone');
+const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 /**
  * Revenue Report Service
@@ -73,12 +70,15 @@ class ReportService {
       // Calculate average booking value
       const averageBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
 
-      // Revenue breakdown by route
-      const revenueByRoute = await this.getRevenueByRoute(bookings);
+      // Get cancellation statistics by route
+      const cancellationStatsByRoute = await this.getCancellationStatsByRoute(operatorId, start, end);
+
+      // Revenue breakdown by route (with cancellation rates)
+      const revenueByRoute = await this.getRevenueByRoute(bookings, cancellationStatsByRoute);
 
       // Top performing routes
       const topRoutes = revenueByRoute
-        .sort((a, b) => b.revenue - a.revenue)
+        .sort((a, b) => b.totalRevenue - a.totalRevenue)
         .slice(0, 10);
 
       // Revenue by payment method
@@ -119,7 +119,7 @@ class ReportService {
 
       return report;
     } catch (error) {
-      logger.error('Get revenue report error:', error);
+      logger.error('Nhận lỗi báo cáo doanh thu:', error);
       throw new Error('Không thể tạo báo cáo doanh thu');
     }
   }
@@ -127,9 +127,10 @@ class ReportService {
   /**
    * Calculate revenue breakdown by route
    * @param {Array} bookings - Bookings array
+   * @param {Map} cancellationStatsByRoute - Cancellation statistics by route
    * @returns {Array} Revenue by route
    */
-  async getRevenueByRoute(bookings) {
+  async getRevenueByRoute(bookings, cancellationStatsByRoute = new Map()) {
     const routeMap = new Map();
 
     bookings.forEach((booking) => {
@@ -157,7 +158,24 @@ class ReportService {
       routeData.tickets += booking.seats.length;
     });
 
-    return Array.from(routeMap.values());
+    // Transform to match frontend expectations with correct field names
+    return Array.from(routeMap.values()).map(route => {
+      // Get cancellation rate from the stats map
+      const cancellationStats = cancellationStatsByRoute.get(route.routeId);
+      const cancellationRate = cancellationStats ? cancellationStats.cancellationRate : 0;
+
+      return {
+        routeId: route.routeId,
+        routeName: route.routeName,
+        origin: route.origin,
+        destination: route.destination,
+        totalRevenue: route.revenue, // Frontend expects totalRevenue
+        ticketCount: route.tickets, // Frontend expects ticketCount
+        bookings: route.bookings,
+        averagePrice: route.tickets > 0 ? Math.round(route.revenue / route.tickets) : 0, // Calculate average price per ticket
+        cancellationRate: cancellationRate, // Real cancellation rate from query
+      };
+    });
   }
 
   /**
@@ -199,7 +217,7 @@ class ReportService {
 
       return payments;
     } catch (error) {
-      logger.error('Get revenue by payment method error:', error);
+      logger.error('Nhận doanh thu do lỗi phương thức thanh toán:', error);
       return [];
     }
   }
@@ -350,7 +368,7 @@ class ReportService {
         cancellationsByRoute,
       };
     } catch (error) {
-      logger.error('Get cancellation report error:', error);
+      logger.error('Nhận lỗi báo cáo hủy:', error);
       return {
         totalBookings: 0,
         totalCancelled: 0,
@@ -358,6 +376,103 @@ class ReportService {
         totalRefunded: 0,
         cancellationsByRoute: [],
       };
+    }
+  }
+
+  /**
+   * Get cancellation statistics by route
+   * @param {String} operatorId - Operator ID
+   * @param {Date} start - Start date
+   * @param {Date} end - End date
+   * @returns {Promise<Map>} Map of routeId to cancellation stats
+   */
+  async getCancellationStatsByRoute(operatorId, start, end) {
+    try {
+      // Get all cancelled bookings for the period
+      const cancelledBookings = await Booking.aggregate([
+        {
+          $match: {
+            operatorId: new mongoose.Types.ObjectId(operatorId),
+            status: { $in: ['cancelled', 'refunded'] },
+            createdAt: { $gte: start, $lte: end },
+          },
+        },
+        {
+          $lookup: {
+            from: 'trips',
+            localField: 'tripId',
+            foreignField: '_id',
+            as: 'trip',
+          },
+        },
+        {
+          $unwind: '$trip',
+        },
+        {
+          $group: {
+            _id: '$trip.routeId',
+            cancelledCount: { $sum: 1 },
+          },
+        },
+      ]);
+
+      // Get total bookings by route for the period
+      const totalBookings = await Booking.aggregate([
+        {
+          $match: {
+            operatorId: new mongoose.Types.ObjectId(operatorId),
+            createdAt: { $gte: start, $lte: end },
+          },
+        },
+        {
+          $lookup: {
+            from: 'trips',
+            localField: 'tripId',
+            foreignField: '_id',
+            as: 'trip',
+          },
+        },
+        {
+          $unwind: '$trip',
+        },
+        {
+          $group: {
+            _id: '$trip.routeId',
+            totalCount: { $sum: 1 },
+          },
+        },
+      ]);
+
+      // Create a map of cancellation stats by route
+      const statsMap = new Map();
+
+      // Initialize with total bookings
+      totalBookings.forEach((item) => {
+        const routeId = item._id.toString();
+        statsMap.set(routeId, {
+          totalBookings: item.totalCount,
+          cancelledBookings: 0,
+          cancellationRate: 0,
+        });
+      });
+
+      // Add cancelled bookings counts
+      cancelledBookings.forEach((item) => {
+        const routeId = item._id.toString();
+        if (statsMap.has(routeId)) {
+          const stats = statsMap.get(routeId);
+          stats.cancelledBookings = item.cancelledCount;
+          stats.cancellationRate =
+            stats.totalBookings > 0
+              ? parseFloat(((item.cancelledCount / stats.totalBookings) * 100).toFixed(2))
+              : 0;
+        }
+      });
+
+      return statsMap;
+    } catch (error) {
+      logger.error('Nhận số liệu thống kê hủy theo lỗi tuyến đường:', error);
+      return new Map();
     }
   }
 
@@ -426,7 +541,7 @@ class ReportService {
         },
       };
     } catch (error) {
-      logger.error('Get growth metrics error:', error);
+      logger.error('Nhận lỗi số liệu tăng trưởng:', error);
       return {
         current: { revenue: 0, bookings: 0 },
         previous: { revenue: 0, bookings: 0 },
@@ -443,7 +558,7 @@ class ReportService {
   async exportToExcel(reportData) {
     try {
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'QuikRide';
+      workbook.creator = 'Vé xe nhanh';
       workbook.created = new Date();
 
       // Summary sheet
@@ -557,7 +672,7 @@ class ReportService {
       const buffer = await workbook.xlsx.writeBuffer();
       return buffer;
     } catch (error) {
-      logger.error('Export to Excel error:', error);
+      logger.error('Lỗi xuất sang Excel:', error);
       throw new Error('Không thể xuất báo cáo Excel');
     }
   }
@@ -664,7 +779,7 @@ class ReportService {
 
         doc.end();
       } catch (error) {
-        logger.error('Export to PDF error:', error);
+        logger.error('Lỗi xuất sang PDF:', error);
         reject(new Error('Không thể xuất báo cáo PDF'));
       }
     });
@@ -681,5 +796,4 @@ class ReportService {
   }
 }
 
-export default new ReportService();
-
+module.exports = new ReportService();

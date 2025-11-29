@@ -1,6 +1,6 @@
-import nodemailer from 'nodemailer';
-import SMSService from './sms.service.js';
-import { logger } from '../utils/logger.js';
+const nodemailer = require('nodemailer');
+const smsService = require('./sms.service');
+const logger = require('../utils/logger');
 
 /**
  * Notification Service
@@ -10,7 +10,7 @@ class NotificationService {
   constructor() {
     // Email transporter setup with error handling
     try {
-      this.emailTransporter = nodemailer.createTransporter({
+      this.emailTransporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: process.env.SMTP_PORT || 587,
         secure: false, // true for 465, false for other ports
@@ -20,15 +20,15 @@ class NotificationService {
         },
       });
     } catch (error) {
-      logger.warn(`Failed to create email transporter: ${error.message}`);
+      logger.warn('Không thể tạo email vận chuyển:', error.message);
       this.emailTransporter = null;
     }
 
-    // SMS service
-    this.smsService = SMSService;
+    // SMS service (singleton instance)
+    this.smsService = smsService;
 
-    this.fromEmail = process.env.FROM_EMAIL || 'noreply@quikride.com';
-    this.fromName = process.env.FROM_NAME || 'QuikRide';
+    this.fromEmail = process.env.FROM_EMAIL || 'noreply@vexenhanh.com';
+    this.fromName = process.env.FROM_NAME || 'Vé xe nhanh';
     this.emailEnabled = process.env.EMAIL_ENABLED !== 'false'; // Default enabled
     this.smsEnabled = process.env.SMS_ENABLED === 'true';
   }
@@ -43,17 +43,17 @@ class NotificationService {
   async sendEmail(to, subject, html) {
     try {
       if (!this.emailEnabled) {
-        logger.info(`Email disabled, skipping: ${to}`);
+        logger.info('Email disabled, bỏ qua:', to);
         return { success: true, skipped: true, reason: 'Email disabled' };
       }
 
       if (!this.emailTransporter) {
-        logger.warn('Email transporter not available');
+        logger.info('Email bộ vận chuyển không khả dụng');
         return { success: false, error: 'Email transporter not configured' };
       }
 
       if (!to) {
-        logger.warn('No recipient email provided');
+        logger.info('No người nhận email provided');
         return { success: false, error: 'No recipient email' };
       }
 
@@ -66,13 +66,13 @@ class NotificationService {
 
       const info = await this.emailTransporter.sendMail(mailOptions);
 
-      logger.success(`Email sent successfully to: ${to}`);
+      logger.info('Email đã gửi thành công đến:', to);
       return {
         success: true,
         messageId: info.messageId,
       };
     } catch (error) {
-      logger.error(`Email send error: ${error.message}`);
+      logger.error(' Email gửi lỗi:', error.message);
       return {
         success: false,
         error: error.message,
@@ -89,19 +89,19 @@ class NotificationService {
   async sendSMS(phone, message) {
     try {
       if (!this.smsEnabled) {
-        logger.info(`SMS disabled, skipping: ${phone}`);
+        logger.info('SMS disabled, bỏ qua:', phone);
         return { success: true, skipped: true, reason: 'SMS disabled' };
       }
 
       if (!phone) {
-        logger.warn('No phone number provided');
+        logger.info('No phtrêne number provided');
         return { success: false, error: 'No phone number' };
       }
 
       const result = await this.smsService.sendSMS(phone, message);
       return result;
     } catch (error) {
-      logger.error(`SMS send error: ${error.message}`);
+      logger.error('SMS send lỗi:', error.message);
       return {
         success: false,
         error: error.message,
@@ -118,7 +118,7 @@ class NotificationService {
    */
   async notifyTripStatusChange(trip, oldStatus, newStatus) {
     try {
-      const { default: Booking } = await import('../models/Booking.js');
+      const Booking = require('../models/Booking');
 
       // Get all confirmed bookings for this trip
       const bookings = await Booking.find({
@@ -129,7 +129,7 @@ class NotificationService {
         .lean();
 
       if (bookings.length === 0) {
-        logger.info(`No bookings to notify for trip: ${trip._id}`);
+        logger.info('No đặt chỗ đến notify cho chuyến:', trip._id);
         return {
           success: true,
           notified: 0,
@@ -181,13 +181,13 @@ class NotificationService {
         await this.delay(100);
       }
 
-      logger.success(`Trip status change notifications sent - Emails: ${results.emailSent}, SMS: ${results.smsSent}`);
+      logger.info('Chuyến trạng thái change thông báo đã gửi:', results);
       return {
         success: true,
         results,
       };
     } catch (error) {
-      logger.error(`Error notifying passengers: ${error.message}`);
+      logger.error('Error notifytrtrêngg passengers:', error);
       return {
         success: false,
         error: error.message,
@@ -234,13 +234,13 @@ class NotificationService {
         statusMessage = 'Chuyến xe của bạn đã bắt đầu hành trình';
         break;
       case 'completed':
-        emailSubject = `✅ Chuyến xe đã hoàn thành - ${routeName}`;
+        emailSubject = `Chuyến xe đã hoàn thành - ${routeName}`;
         statusIcon = '✅';
         statusMessage = 'Chuyến xe của bạn đã đến điểm đến';
         break;
       case 'cancelled':
-        emailSubject = `❌ Chuyến xe đã bị hủy - ${routeName}`;
-        statusIcon = '❌';
+        emailSubject = ` Chuyến xe đã bị hủy - ${routeName}`;
+        statusIcon = '';
         statusMessage =
           'Chuyến xe của bạn đã bị hủy. Vui lòng liên hệ nhà xe để được hỗ trợ hoàn tiền.';
         break;
@@ -336,7 +336,7 @@ class NotificationService {
       <body>
         <div class="container">
           <div class="header">
-            <h1>${statusIcon} QuikRide</h1>
+            <h1>${statusIcon} Vé xe nhanh</h1>
             <p>Cập nhật trạng thái chuyến xe</p>
           </div>
 
@@ -356,43 +356,39 @@ class NotificationService {
               <h3 style="margin-top: 0; color: #334155;">Thông tin chuyến xe:</h3>
               <p><strong>Tuyến đường:</strong> ${routeName}</p>
               <p><strong>Thời gian khởi hành:</strong> ${departureTime}</p>
-              ${
-                trip.routeId?.origin?.city
-                  ? `<p><strong>Điểm đi:</strong> ${trip.routeId.origin.city}</p>`
-                  : ''
-              }
-              ${
-                trip.routeId?.destination?.city
-                  ? `<p><strong>Điểm đến:</strong> ${trip.routeId.destination.city}</p>`
-                  : ''
-              }
+              ${trip.routeId?.origin?.city
+        ? `<p><strong>Điểm đi:</strong> ${trip.routeId.origin.city}</p>`
+        : ''
+      }
+              ${trip.routeId?.destination?.city
+        ? `<p><strong>Điểm đến:</strong> ${trip.routeId.destination.city}</p>`
+        : ''
+      }
             </div>
 
-            ${
-              newStatus === 'cancelled'
-                ? `
+            ${newStatus === 'cancelled'
+        ? `
               <p style="color: #dc2626; font-weight: bold;">
-                ⚠️ Chuyến xe đã bị hủy. Vui lòng liên hệ nhà xe để được hỗ trợ hoàn tiền.
+                Chuyến xe đã bị hủy. Vui lòng liên hệ nhà xe để được hỗ trợ hoàn tiền.
               </p>
             `
-                : ''
-            }
+        : ''
+      }
 
-            ${
-              newStatus === 'completed'
-                ? `
+            ${newStatus === 'completed'
+        ? `
               <p>
-                Cảm ơn bạn đã sử dụng dịch vụ QuikRide!
+                Cảm ơn bạn đã sử dụng dịch vụ Vé xe nhanh!
                 Đừng quên đánh giá chuyến đi của bạn để giúp chúng tôi cải thiện dịch vụ.
               </p>
             `
-                : ''
-            }
+        : ''
+      }
 
             <p style="margin-top: 30px; color: #666;">
               Nếu có bất kỳ thắc mắc nào, vui lòng liên hệ:
               <br>
-              📧 Email: support@quikride.com
+              📧 Email: support@vexenhanh.com
               <br>
               📞 Hotline: 1900-xxxx
             </p>
@@ -400,7 +396,7 @@ class NotificationService {
 
           <div class="footer">
             <p>
-              © ${new Date().getFullYear()} QuikRide - Hệ thống đặt vé xe khách trực tuyến
+               ${new Date().getFullYear()} Vé xe nhanh - Hệ thống đặt vé xe khách trực tuyến
             </p>
             <p style="font-size: 12px; color: #94a3b8;">
               Email này được gửi tự động, vui lòng không trả lời.
@@ -415,16 +411,16 @@ class NotificationService {
     let smsMessage = '';
     switch (newStatus) {
       case 'ongoing':
-        smsMessage = `QuikRide: Chuyen xe ${routeName} (${departureTime}) da khoi hanh. Chuc ban hanh trinh tot lanh!`;
+        smsMessage = `Ve xe nhanh: Chuyen xe ${routeName} (${departureTime}) da khoi hanh. Chuc ban hanh trinh tot lanh!`;
         break;
       case 'completed':
-        smsMessage = `QuikRide: Chuyen xe ${routeName} da hoan thanh. Cam on ban da su dung dich vu!`;
+        smsMessage = `Ve xe nhanh: Chuyen xe ${routeName} da hoan thanh. Cam on ban da su dung dich vu!`;
         break;
       case 'cancelled':
-        smsMessage = `QuikRide: Chuyen xe ${routeName} (${departureTime}) da bi huy. Vui long lien he nha xe de duoc ho tro.`;
+        smsMessage = `Ve xe nhanh: Chuyen xe ${routeName} (${departureTime}) da bi huy. Vui long lien he nha xe de duoc ho tro.`;
         break;
       default:
-        smsMessage = `QuikRide: Trang thai chuyen xe ${routeName} da duoc cap nhat thanh: ${newStatusLabel}`;
+        smsMessage = `Ve xe nhanh: Trang thai chuyen xe ${routeName} da duoc cap nhat thanh: ${newStatusLabel}`;
     }
 
     return {
@@ -443,7 +439,7 @@ class NotificationService {
   async notifyBookingConfirmation(booking, trip) {
     // Implementation for booking confirmation
     // This can be called from booking service
-    logger.info(`Booking confirmation notification: ${booking.bookingCode}`);
+    logger.info('Đặt chỗ ctrênfirmtạiitrên thông báo:', booking.bookingCode);
     return { success: true };
   }
 
@@ -455,7 +451,7 @@ class NotificationService {
    */
   async notifyCancellation(booking, trip) {
     // Implementation for cancellation notification
-    logger.info(`Cancellation notification: ${booking.bookingCode}`);
+    logger.info('Hủy thông báo:', booking.bookingCode);
     return { success: true };
   }
 
@@ -475,17 +471,17 @@ class NotificationService {
   async testEmailConfiguration() {
     try {
       if (!this.emailTransporter) {
-        logger.error('Email transporter not configured');
+        logger.error(' Email bộ vận chuyển không config');
         return false;
       }
       await this.emailTransporter.verify();
-      logger.success('Email configuration is valid');
+      logger.info('Email cấu hình is valid');
       return true;
     } catch (error) {
-      logger.error(`Email configuration error: ${error.message}`);
+      logger.error(' Email cấu hình lỗi:', error.message);
       return false;
     }
   }
 }
 
-export default new NotificationService();
+module.exports = new NotificationService();

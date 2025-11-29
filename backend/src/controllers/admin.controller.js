@@ -1,10 +1,7 @@
-import OperatorService from '../services/operator.service.js';
-import User from '../models/User.js';
-import Booking from '../models/Booking.js';
-import Operator from '../models/Operator.js';
-import Trip from '../models/Trip.js';
-import Route from '../models/Route.js';
-import { logger } from '../utils/logger.js';
+const OperatorService = require('../services/operator.service');
+const User = require('../models/User');
+const Booking = require('../models/Booking');
+const logger = require('../utils/logger');
 
 /**
  * Admin Controller
@@ -17,7 +14,7 @@ import { logger } from '../utils/logger.js';
  * @desc    Lấy danh sách operators (Admin)
  * @access  Private (Admin)
  */
-export const getAllOperators = async (req, res, next) => {
+exports.getAllOperators = async (req, res, next) => {
   try {
     const {
       verificationStatus,
@@ -54,7 +51,7 @@ export const getAllOperators = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get operators error:', error);
+    logger.error('Lỗi lấy nhà xe:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách nhà xe thất bại',
@@ -67,7 +64,7 @@ export const getAllOperators = async (req, res, next) => {
  * @desc    Lấy thông tin chi tiết operator (Admin)
  * @access  Private (Admin)
  */
-export const getOperatorById = async (req, res, next) => {
+exports.getOperatorById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -80,7 +77,7 @@ export const getOperatorById = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get operator error:', error);
+    logger.error('Lỗi lấy nhà điều hành:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy nhà xe',
@@ -93,7 +90,7 @@ export const getOperatorById = async (req, res, next) => {
  * @desc    Duyệt nhà xe
  * @access  Private (Admin)
  */
-export const approveOperator = async (req, res, next) => {
+exports.approveOperator = async (req, res, next) => {
   try {
     const { id } = req.params;
     const adminId = req.userId; // Từ authenticate middleware
@@ -108,7 +105,7 @@ export const approveOperator = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Approve operator error:', error);
+    logger.error('Lỗi phê duyệt nhà xe:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Duyệt nhà xe thất bại',
@@ -121,7 +118,7 @@ export const approveOperator = async (req, res, next) => {
  * @desc    Từ chối nhà xe
  * @access  Private (Admin)
  */
-export const rejectOperator = async (req, res, next) => {
+exports.rejectOperator = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
@@ -144,7 +141,7 @@ export const rejectOperator = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Reject operator error:', error);
+    logger.error('Lỗi từ chối nhà xe:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Từ chối nhà xe thất bại',
@@ -157,7 +154,7 @@ export const rejectOperator = async (req, res, next) => {
  * @desc    Tạm ngưng nhà xe
  * @access  Private (Admin)
  */
-export const suspendOperator = async (req, res, next) => {
+exports.suspendOperator = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
@@ -179,7 +176,7 @@ export const suspendOperator = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Suspend operator error:', error);
+    logger.error('Lỗi tạm ngưng nhà xe:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tạm ngưng nhà xe thất bại',
@@ -192,7 +189,7 @@ export const suspendOperator = async (req, res, next) => {
  * @desc    Khôi phục nhà xe
  * @access  Private (Admin)
  */
-export const resumeOperator = async (req, res, next) => {
+exports.resumeOperator = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -206,7 +203,7 @@ export const resumeOperator = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Resume operator error:', error);
+    logger.error('Lỗi kích hoạt lại nhà xe:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Khôi phục nhà xe thất bại',
@@ -225,7 +222,7 @@ export const resumeOperator = async (req, res, next) => {
  * @desc    Get all users with filtering and pagination
  * @access  Private (Admin)
  */
-export const getUsers = async (req, res) => {
+exports.getUsers = async (req, res) => {
   try {
     const {
       page = 1,
@@ -329,7 +326,7 @@ export const getUsers = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get users error:', error);
+    logger.error('Lỗi lấy người dùng:', error);
     res.status(500).json({
       success: false,
       message: 'Không thể tải danh sách người dùng',
@@ -343,7 +340,7 @@ export const getUsers = async (req, res) => {
  * @desc    Get user details by ID
  * @access  Private (Admin)
  */
-export const getUserById = async (req, res) => {
+exports.getUserById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -420,7 +417,7 @@ export const getUserById = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get user by ID error:', error);
+    logger.error('Lỗi lấy người dùng theo ID:', error);
     res.status(500).json({
       success: false,
       message: 'Không thể tải thông tin người dùng',
@@ -434,7 +431,7 @@ export const getUserById = async (req, res) => {
  * @desc    Block a user
  * @access  Private (Admin)
  */
-export const blockUser = async (req, res) => {
+exports.blockUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
@@ -494,7 +491,7 @@ export const blockUser = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Block user error:', error);
+    logger.error('Lỗi khóa người dùng:', error);
     res.status(500).json({
       success: false,
       message: 'Không thể khóa tài khoản',
@@ -508,7 +505,7 @@ export const blockUser = async (req, res) => {
  * @desc    Unblock a user
  * @access  Private (Admin)
  */
-export const unblockUser = async (req, res) => {
+exports.unblockUser = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -549,7 +546,7 @@ export const unblockUser = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Unblock user error:', error);
+    logger.error('Lỗi mở khóa người dùng:', error);
     res.status(500).json({
       success: false,
       message: 'Không thể mở khóa tài khoản',
@@ -563,7 +560,7 @@ export const unblockUser = async (req, res) => {
  * @desc    Reset user password (admin)
  * @access  Private (Admin)
  */
-export const resetUserPassword = async (req, res) => {
+exports.resetUserPassword = async (req, res) => {
   try {
     const { id } = req.params;
     const { newPassword, sendEmail = true } = req.body;
@@ -624,7 +621,7 @@ export const resetUserPassword = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Reset user password error:', error);
+    logger.error('Lỗi đặt lại mật khẩu người dùng:', error);
     res.status(500).json({
       success: false,
       message: 'Không thể đặt lại mật khẩu',
@@ -638,7 +635,7 @@ export const resetUserPassword = async (req, res) => {
  * @desc    Get user statistics (dashboard)
  * @access  Private (Admin)
  */
-export const getUserStatistics = async (req, res) => {
+exports.getUserStatistics = async (req, res) => {
   try {
     // Total users
     const totalUsers = await User.countDocuments();
@@ -726,7 +723,7 @@ export const getUserStatistics = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get user statistics error:', error);
+    logger.error('Lỗi lấy thống kê người dùng:', error);
     res.status(500).json({
       success: false,
       message: 'Không thể tải thống kê người dùng',
@@ -746,9 +743,12 @@ export const getUserStatistics = async (req, res) => {
  * @desc    Get comprehensive system overview report
  * @access  Private (Admin)
  */
-export const getSystemOverview = async (req, res) => {
+exports.getSystemOverview = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
+    const BusOperator = require('../models/BusOperator');
+    const Trip = require('../models/Trip');
+    const Route = require('../models/Route');
 
     // Parse date range or default to last 30 days
     const end = endDate ? new Date(endDate) : new Date();
@@ -762,9 +762,9 @@ export const getSystemOverview = async (req, res) => {
     const activeUsers = await User.countDocuments({ isActive: true, isBlocked: false });
 
     // Operator Statistics
-    const totalOperators = await Operator.countDocuments();
-    const approvedOperators = await Operator.countDocuments({ verificationStatus: 'approved' });
-    const pendingOperators = await Operator.countDocuments({ verificationStatus: 'pending' });
+    const totalOperators = await BusOperator.countDocuments();
+    const approvedOperators = await BusOperator.countDocuments({ verificationStatus: 'approved' });
+    const pendingOperators = await BusOperator.countDocuments({ verificationStatus: 'pending' });
 
     // Booking Statistics
     const totalBookings = await Booking.countDocuments({
@@ -1016,7 +1016,7 @@ export const getSystemOverview = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get system overview error:', error);
+    logger.error('Lỗi tổng quan hệ thống:', error);
     res.status(500).json({
       success: false,
       message: 'Không thể tải báo cáo tổng quan',

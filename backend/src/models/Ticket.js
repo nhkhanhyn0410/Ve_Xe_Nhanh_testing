@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+const mongoose = require('mongoose');
 
 /**
  * Ticket Schema
@@ -180,9 +179,7 @@ const TicketSchema = new mongoose.Schema(
   }
 );
 
-// Indexes
-TicketSchema.index({ ticketCode: 1 });
-TicketSchema.index({ bookingId: 1 });
+// Indexes (compound indexes only - single field indexes are defined in schema)
 TicketSchema.index({ customerId: 1, status: 1 });
 TicketSchema.index({ tripId: 1, status: 1 });
 TicketSchema.index({ status: 1, createdAt: -1 });
@@ -218,7 +215,6 @@ TicketSchema.statics.generateTicketCode = async function () {
     exists = await this.findOne({ ticketCode: code });
   }
 
-  logger.debug(`Generated ticket code: ${code}`);
   return code;
 };
 
@@ -230,7 +226,6 @@ TicketSchema.methods.markAsUsed = function (verifiedBy) {
   this.usedAt = new Date();
   this.verifiedBy = verifiedBy;
   this.status = 'used';
-  logger.success(`Ticket ${this.ticketCode} marked as used - Verified by: ${verifiedBy}`);
 };
 
 /**
@@ -240,7 +235,6 @@ TicketSchema.methods.cancel = function (reason) {
   this.status = 'cancelled';
   this.cancelledAt = new Date();
   this.cancelReason = reason;
-  logger.warn(`Ticket ${this.ticketCode} cancelled - Reason: ${reason}`);
 };
 
 /**
@@ -249,7 +243,6 @@ TicketSchema.methods.cancel = function (reason) {
 TicketSchema.methods.markEmailSent = function () {
   this.emailSent = true;
   this.emailSentAt = new Date();
-  logger.info(`Email sent for ticket ${this.ticketCode}`);
 };
 
 /**
@@ -258,7 +251,6 @@ TicketSchema.methods.markEmailSent = function () {
 TicketSchema.methods.markSmsSent = function () {
   this.smsSent = true;
   this.smsSentAt = new Date();
-  logger.info(`SMS sent for ticket ${this.ticketCode}`);
 };
 
 /**
@@ -316,4 +308,4 @@ TicketSchema.statics.findByCode = function (ticketCode) {
 
 const Ticket = mongoose.model('Ticket', TicketSchema);
 
-export default Ticket;
+module.exports = Ticket;

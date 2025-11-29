@@ -1,16 +1,15 @@
-import express from 'express';
-import * as operatorController from '../controllers/operator.controller.js';
-import * as routeController from '../controllers/route.controller.js';
-import * as busController from '../controllers/bus.controller.js';
-import * as employeeController from '../controllers/employee.controller.js';
-import * as tripController from '../controllers/trip.controller.js';
-import * as bookingController from '../controllers/booking.controller.js';
-import * as voucherController from '../controllers/voucher.controller.js';
-import * as paymentController from '../controllers/payment.controller.js';
-import * as reportController from '../controllers/report.controller.js';
-import { authenticate, authorize } from '../middleware/auth.middleware.js';
-
+const express = require('express');
 const router = express.Router();
+const operatorController = require('../controllers/operator.controller');
+const routeController = require('../controllers/route.controller');
+const busController = require('../controllers/bus.controller');
+const employeeController = require('../controllers/employee.controller');
+const tripController = require('../controllers/trip.controller');
+const bookingController = require('../controllers/booking.controller');
+const voucherController = require('../controllers/voucher.controller');
+const paymentController = require('../controllers/payment.controller');
+const reportController = require('../controllers/report.controller');
+const { authenticate, authorize } = require('../middleware/auth.middleware');
 
 /**
  * Operator Routes
@@ -34,8 +33,7 @@ router.post('/routes', authenticate, authorize('operator'), routeController.crea
 router.get('/routes', authenticate, authorize('operator'), routeController.getMyRoutes);
 router.get('/routes/:id', authenticate, authorize('operator'), routeController.getById);
 router.put('/routes/:id', authenticate, authorize('operator'), routeController.update);
-// Note: Đã đổi tên hàm từ delete sang deleteRoute trong controller
-router.delete('/routes/:id', authenticate, authorize('operator'), routeController.deleteRoute);
+router.delete('/routes/:id', authenticate, authorize('operator'), routeController.delete);
 router.put('/routes/:id/toggle-active', authenticate, authorize('operator'), routeController.toggleActive);
 
 // Pickup/Dropoff points management
@@ -50,8 +48,7 @@ router.get('/buses', authenticate, authorize('operator'), busController.getMyBus
 router.get('/buses/statistics', authenticate, authorize('operator'), busController.getStatistics);
 router.get('/buses/:id', authenticate, authorize('operator'), busController.getById);
 router.put('/buses/:id', authenticate, authorize('operator'), busController.update);
-// Note: Giả định bạn đã đổi tên hàm trong bus.controller thành deleteBus (tương tự các controller khác)
-router.delete('/buses/:id', authenticate, authorize('operator'), busController.deleteBus);
+router.delete('/buses/:id', authenticate, authorize('operator'), busController.delete);
 router.put('/buses/:id/status', authenticate, authorize('operator'), busController.changeStatus);
 
 // Employee management (Operator only)
@@ -61,8 +58,7 @@ router.get('/employees/statistics', authenticate, authorize('operator'), employe
 router.get('/employees/available/:role', authenticate, authorize('operator'), employeeController.getAvailableForTrips);
 router.get('/employees/:id', authenticate, authorize('operator'), employeeController.getById);
 router.put('/employees/:id', authenticate, authorize('operator'), employeeController.update);
-// Note: Đã đổi tên hàm từ delete sang deleteEmployee trong controller
-router.delete('/employees/:id', authenticate, authorize('operator'), employeeController.deleteEmployee);
+router.delete('/employees/:id', authenticate, authorize('operator'), employeeController.delete);
 router.put('/employees/:id/status', authenticate, authorize('operator'), employeeController.changeStatus);
 router.post('/employees/:id/reset-password', authenticate, authorize('operator'), employeeController.resetPassword);
 
@@ -74,8 +70,7 @@ router.get('/trips/statistics', authenticate, authorize('operator'), tripControl
 router.get('/trips/:id', authenticate, authorize('operator'), tripController.getById);
 router.put('/trips/:id', authenticate, authorize('operator'), tripController.update);
 router.put('/trips/:id/dynamic-pricing', authenticate, authorize('operator'), tripController.configureDynamicPricing);
-// Note: Đã đổi tên hàm từ delete sang deleteTrip trong controller
-router.delete('/trips/:id', authenticate, authorize('operator'), tripController.deleteTrip);
+router.delete('/trips/:id', authenticate, authorize('operator'), tripController.delete);
 router.put('/trips/:id/cancel', authenticate, authorize('operator'), tripController.cancel);
 
 // Booking management (Operator only)
@@ -110,4 +105,4 @@ router.get('/reports/growth', authenticate, authorize('operator'), reportControl
 // Dynamic param routes (MUST BE LAST to avoid conflicts with specific routes)
 router.get('/:id', operatorController.getById);
 
-export default router;
+module.exports = router;

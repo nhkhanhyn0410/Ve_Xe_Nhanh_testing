@@ -1,7 +1,6 @@
-import express from 'express';
-import * as voucherController from '../controllers/voucher.controller.js';
-
+const express = require('express');
 const router = express.Router();
+const voucherController = require('../controllers/voucher.controller');
 
 /**
  * Public voucher routes
@@ -13,4 +12,4 @@ router.post('/validate', voucherController.validateVoucher);
 // Get public vouchers
 router.get('/public', voucherController.getPublicVouchers);
 
-export default router;
+module.exports = router;

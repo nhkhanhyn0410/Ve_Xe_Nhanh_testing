@@ -1,10 +1,9 @@
-import express from 'express';
-import * as adminController from '../controllers/admin.controller.js';
-import * as complaintController from '../controllers/complaint.controller.js';
-import * as adminContentController from '../controllers/adminContent.controller.js';
-import { authenticate, authorize } from '../middleware/auth.middleware.js';
-
+const express = require('express');
 const router = express.Router();
+const adminController = require('../controllers/admin.controller');
+const complaintController = require('../controllers/complaint.controller');
+const adminContentController = require('../controllers/adminContent.controller');
+const { authenticate, authorize } = require('../middleware/auth.middleware');
 
 /**
  * Admin Routes
@@ -64,4 +63,4 @@ router.post('/faqs', adminContentController.createFAQ);
 router.put('/faqs/:id', adminContentController.updateFAQ);
 router.delete('/faqs/:id', adminContentController.deleteFAQ);
 
-export default router;
+module.exports = router;

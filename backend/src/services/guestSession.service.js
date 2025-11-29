@@ -1,6 +1,6 @@
-import crypto from 'crypto';
-import { getRedisClient } from '../config/redis.js';
-import { logger } from '../utils/logger.js';
+const crypto = require('crypto');
+const { getRedisClient } = require('../config/redis');
+const logger = require('../utils/logger');
 
 /**
  * Guest Session Service
@@ -52,8 +52,6 @@ class GuestSessionService {
       await redis.setEx(phoneKey, expirySeconds, sessionToken);
     }
 
-    logger.success(`Guest session created for ${guestData.email || guestData.phone} - Expires in ${expiryHours}h`);
-
     return {
       sessionToken,
       expiresIn: expirySeconds,
@@ -84,7 +82,7 @@ class GuestSessionService {
       const sessionData = JSON.parse(sessionDataStr);
       return sessionData;
     } catch (error) {
-      logger.error(`Error parsing guest session data: ${error.message}`);
+      logger.error('Lỗi xác minh guest phiên dữ liệu:', error);
       return null;
     }
   }
@@ -147,8 +145,6 @@ class GuestSessionService {
       }
     }
 
-    logger.info(`Guest session extended - Token: ${sessionToken.substring(0, 8)}... - New expiry: ${expiryHours}h`);
-
     return {
       success: true,
       expiresIn: expirySeconds,
@@ -182,8 +178,6 @@ class GuestSessionService {
 
     await redis.del(sessionKey);
 
-    logger.info(`Guest session deleted - Token: ${sessionToken.substring(0, 8)}...`);
-
     return {
       success: true,
       message: 'Session đã được xóa',
@@ -209,8 +203,6 @@ class GuestSessionService {
 
     const ttl = await redis.ttl(sessionKey);
     await redis.setEx(sessionKey, ttl, JSON.stringify(updatedData));
-
-    logger.info(`Guest session updated - Token: ${sessionToken.substring(0, 8)}...`);
 
     return {
       success: true,
@@ -243,10 +235,6 @@ class GuestSessionService {
       }
     } while (cursor !== '0');
 
-    if (deletedCount > 0) {
-      logger.info(`Cleaned up ${deletedCount} expired guest sessions`);
-    }
-
     return {
       success: true,
       deletedCount,
@@ -273,4 +261,4 @@ class GuestSessionService {
   }
 }
 
-export default GuestSessionService;
+module.exports = GuestSessionService;

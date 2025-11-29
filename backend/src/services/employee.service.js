@@ -1,5 +1,6 @@
 const Employee = require('../models/Employee');
 const BusOperator = require('../models/BusOperator');
+const logger = require('../utils/logger');
 
 /**
  * Employee Service

@@ -1,5 +1,5 @@
-import { getRedisClient } from '../config/redis.js';
-import { logger } from '../utils/logger.js';
+const { getRedisClient } = require('../config/redis');
+const logger = require('../utils/logger');
 
 /**
  * Seat Lock Service
@@ -72,13 +72,6 @@ class SeatLockService {
         }
       }
 
-      if (locked.length > 0) {
-        logger.success(`Locked ${locked.length} seat(s) for trip ${tripId} - User: ${userId.substring(0, 8)}...`);
-      }
-      if (failed.length > 0) {
-        logger.warn(`Failed to lock ${failed.length} seat(s) for trip ${tripId}`);
-      }
-
       return {
         success: locked.length > 0,
         locked,
@@ -87,7 +80,7 @@ class SeatLockService {
         expiresAt: new Date(Date.now() + duration * 1000),
       };
     } catch (error) {
-      logger.error(`Error locking seats for trip ${tripId}: ${error.message}`);
+      logger.error('Lỗi khóa ghế:', error);
       throw new Error('Không thể khóa ghế. Vui lòng thử lại.');
     }
   }
@@ -134,17 +127,13 @@ class SeatLockService {
         }
       }
 
-      if (released.length > 0) {
-        logger.info(`Released ${released.length} seat(s) for trip ${tripId} - User: ${userId.substring(0, 8)}...`);
-      }
-
       return {
         success: released.length > 0,
         released,
         failed,
       };
     } catch (error) {
-      logger.error(`Error releasing seats for trip ${tripId}: ${error.message}`);
+      logger.error('Lỗi nhả ghế:', error);
       throw new Error('Không thể mở khóa ghế. Vui lòng thử lại.');
     }
   }
@@ -175,7 +164,7 @@ class SeatLockService {
 
       return results;
     } catch (error) {
-      logger.error(`Error checking seats for trip ${tripId}: ${error.message}`);
+      logger.error('Lỗi kiểm tra chỗ ngồi:', error);
       throw new Error('Không thể kiểm tra trạng thái ghế.');
     }
   }
@@ -193,7 +182,7 @@ class SeatLockService {
       const lockedSeats = await redis.sMembers(tripLocksKey);
       return lockedSeats || [];
     } catch (error) {
-      logger.error(`Error getting locked seats for trip ${tripId}: ${error.message}`);
+      logger.error('Lỗi bị khóa ghế:', error);
       return [];
     }
   }
@@ -233,10 +222,6 @@ class SeatLockService {
         }
       }
 
-      if (extended.length > 0) {
-        logger.info(`Extended lock for ${extended.length} seat(s) for trip ${tripId} - User: ${userId.substring(0, 8)}...`);
-      }
-
       return {
         success: extended.length > 0,
         extended,
@@ -245,7 +230,7 @@ class SeatLockService {
         expiresAt: new Date(Date.now() + duration * 1000),
       };
     } catch (error) {
-      logger.error(`Error extending lock for trip ${tripId}: ${error.message}`);
+      logger.error('Lỗi mở rộng khóa:', error);
       throw new Error('Không thể gia hạn khóa ghế.');
     }
   }
@@ -274,13 +259,9 @@ class SeatLockService {
         }
       }
 
-      if (cleaned > 0) {
-        logger.info(`Cleaned up ${cleaned} expired seat lock(s) for trip ${tripId}`);
-      }
-
       return cleaned;
     } catch (error) {
-      logger.error(`Error cleaning up locks for trip ${tripId}: ${error.message}`);
+      logger.error('Lỗi khi dọn dẹp ổ khóa:', error);
       return 0;
     }
   }
@@ -309,7 +290,7 @@ class SeatLockService {
 
       return userSeats;
     } catch (error) {
-      logger.error(`Error getting user locks for trip ${tripId}: ${error.message}`);
+      logger.error('Lỗi nhận khóa người dùng:', error);
       return [];
     }
   }
@@ -334,10 +315,10 @@ class SeatLockService {
 
       return await this.releaseSeats(tripId, userSeats, userId);
     } catch (error) {
-      logger.error(`Error releasing all user locks for trip ${tripId}: ${error.message}`);
+      logger.error('Lỗi giải phóng tất cả các khóa người dùng:', error);
       throw new Error('Không thể mở khóa tất cả ghế.');
     }
   }
 }
 
-export default SeatLockService;
+module.exports = SeatLockService;

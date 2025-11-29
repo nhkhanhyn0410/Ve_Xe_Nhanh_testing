@@ -1,7 +1,7 @@
 {
-  "name": "ve-xe-nhanh-monorepo",
+  "name": "vexenhanh-monorepo",
   "version": "1.0.0",
-  "description": "Ve_Xe_Nhanh Booking System - Monorepo",
+  "description": "Vé xe nhanh Bus Booking System - Monorepo",
   "private": true,
   "workspaces": [
     "backend",
@@ -27,7 +27,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nhkhanhyn0410/Ve_Xe_Nhanh.git"
+    "url": "https://github.com/nhkhanhyn0410/Te2_vexenhanh.git"
   },
+  "author": "Vé xe nhanh Team",
   "license": "MIT"
 }

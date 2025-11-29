@@ -1,7 +1,7 @@
-import Banner from '../models/Banner.js';
-import Blog from '../models/Blog.js';
-import FAQ from '../models/FAQ.js';
-import { logger } from '../utils/logger.js';
+const Banner = require('../models/Banner');
+const Blog = require('../models/Blog');
+const FAQ = require('../models/FAQ');
+const logger = require('../utils/logger');
 
 // ============= BANNER ADMIN FUNCTIONS =============
 
@@ -10,7 +10,7 @@ import { logger } from '../utils/logger.js';
  * @desc    Get all banners (admin)
  * @access  Private (Admin only)
  */
-export const getAllBanners = async (req, res) => {
+exports.getAllBanners = async (req, res) => {
   try {
     const { position, isActive, page = 1, limit = 20, sort = 'order' } = req.query;
 
@@ -43,7 +43,7 @@ export const getAllBanners = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get all banners error:', error);
+    logger.error('Lỗi lấy tất cả banner:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy danh sách banner',
@@ -57,7 +57,7 @@ export const getAllBanners = async (req, res) => {
  * @desc    Create banner
  * @access  Private (Admin only)
  */
-export const createBanner = async (req, res) => {
+exports.createBanner = async (req, res) => {
   try {
     const {
       title,
@@ -102,7 +102,7 @@ export const createBanner = async (req, res) => {
       data: banner,
     });
   } catch (error) {
-    logger.error('Create banner error:', error);
+    logger.error('Lỗi tạo banner:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi tạo banner',
@@ -116,7 +116,7 @@ export const createBanner = async (req, res) => {
  * @desc    Update banner
  * @access  Private (Admin only)
  */
-export const updateBanner = async (req, res) => {
+exports.updateBanner = async (req, res) => {
   try {
     const banner = await Banner.findById(req.params.id);
 
@@ -155,7 +155,7 @@ export const updateBanner = async (req, res) => {
       data: banner,
     });
   } catch (error) {
-    logger.error('Update banner error:', error);
+    logger.error('Lỗi cập nhật banner:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi cập nhật banner',
@@ -169,7 +169,7 @@ export const updateBanner = async (req, res) => {
  * @desc    Delete banner
  * @access  Private (Admin only)
  */
-export const deleteBanner = async (req, res) => {
+exports.deleteBanner = async (req, res) => {
   try {
     const banner = await Banner.findById(req.params.id);
 
@@ -187,7 +187,7 @@ export const deleteBanner = async (req, res) => {
       message: 'Xóa banner thành công',
     });
   } catch (error) {
-    logger.error('Delete banner error:', error);
+    logger.error('Lỗi xóa banner:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi xóa banner',
@@ -203,7 +203,7 @@ export const deleteBanner = async (req, res) => {
  * @desc    Get all blogs (admin)
  * @access  Private (Admin only)
  */
-export const getAllBlogs = async (req, res) => {
+exports.getAllBlogs = async (req, res) => {
   try {
     const {
       status,
@@ -257,7 +257,7 @@ export const getAllBlogs = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get all blogs error:', error);
+    logger.error('Lỗi lấy tất cả blog:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy danh sách bài viết',
@@ -271,7 +271,7 @@ export const getAllBlogs = async (req, res) => {
  * @desc    Get blog by ID (admin)
  * @access  Private (Admin only)
  */
-export const getBlogById = async (req, res) => {
+exports.getBlogById = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id).populate(
       'author',
@@ -290,7 +290,7 @@ export const getBlogById = async (req, res) => {
       data: blog,
     });
   } catch (error) {
-    logger.error('Get blog error:', error);
+    logger.error('Lỗi lấy blog:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy bài viết',
@@ -304,7 +304,7 @@ export const getBlogById = async (req, res) => {
  * @desc    Create blog
  * @access  Private (Admin only)
  */
-export const createBlog = async (req, res) => {
+exports.createBlog = async (req, res) => {
   try {
     const {
       title,
@@ -355,7 +355,7 @@ export const createBlog = async (req, res) => {
       data: populatedBlog,
     });
   } catch (error) {
-    logger.error('Create blog error:', error);
+    logger.error('Lỗi tạo blog:', error);
 
     if (error.code === 11000) {
       return res.status(400).json({
@@ -377,7 +377,7 @@ export const createBlog = async (req, res) => {
  * @desc    Update blog
  * @access  Private (Admin only)
  */
-export const updateBlog = async (req, res) => {
+exports.updateBlog = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
 
@@ -421,7 +421,7 @@ export const updateBlog = async (req, res) => {
       data: updatedBlog,
     });
   } catch (error) {
-    logger.error('Update blog error:', error);
+    logger.error('Lỗi cập nhật blog:', error);
 
     if (error.code === 11000) {
       return res.status(400).json({
@@ -443,7 +443,7 @@ export const updateBlog = async (req, res) => {
  * @desc    Delete blog
  * @access  Private (Admin only)
  */
-export const deleteBlog = async (req, res) => {
+exports.deleteBlog = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
 
@@ -461,7 +461,7 @@ export const deleteBlog = async (req, res) => {
       message: 'Xóa bài viết thành công',
     });
   } catch (error) {
-    logger.error('Delete blog error:', error);
+    logger.error('Lỗi xóa blog:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi xóa bài viết',
@@ -477,7 +477,7 @@ export const deleteBlog = async (req, res) => {
  * @desc    Get all FAQs (admin)
  * @access  Private (Admin only)
  */
-export const getAllFAQs = async (req, res) => {
+exports.getAllFAQs = async (req, res) => {
   try {
     const {
       category,
@@ -524,7 +524,7 @@ export const getAllFAQs = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get all FAQs error:', error);
+    logger.error('Lỗi lấy tất cả FAQ:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy danh sách FAQ',
@@ -538,7 +538,7 @@ export const getAllFAQs = async (req, res) => {
  * @desc    Create FAQ
  * @access  Private (Admin only)
  */
-export const createFAQ = async (req, res) => {
+exports.createFAQ = async (req, res) => {
   try {
     const { question, answer, category, order, isActive, tags } = req.body;
 
@@ -566,7 +566,7 @@ export const createFAQ = async (req, res) => {
       data: faq,
     });
   } catch (error) {
-    logger.error('Create FAQ error:', error);
+    logger.error('Lỗi tạo FAQ:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi tạo FAQ',
@@ -580,7 +580,7 @@ export const createFAQ = async (req, res) => {
  * @desc    Update FAQ
  * @access  Private (Admin only)
  */
-export const updateFAQ = async (req, res) => {
+exports.updateFAQ = async (req, res) => {
   try {
     const faq = await FAQ.findById(req.params.id);
 
@@ -607,7 +607,7 @@ export const updateFAQ = async (req, res) => {
       data: faq,
     });
   } catch (error) {
-    logger.error('Update FAQ error:', error);
+    logger.error('Lỗi cập nhật FAQ:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi cập nhật FAQ',
@@ -621,7 +621,7 @@ export const updateFAQ = async (req, res) => {
  * @desc    Delete FAQ
  * @access  Private (Admin only)
  */
-export const deleteFAQ = async (req, res) => {
+exports.deleteFAQ = async (req, res) => {
   try {
     const faq = await FAQ.findById(req.params.id);
 
@@ -639,7 +639,7 @@ export const deleteFAQ = async (req, res) => {
       message: 'Xóa FAQ thành công',
     });
   } catch (error) {
-    logger.error('Delete FAQ error:', error);
+    logger.error('Lỗi xóa FAQ:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi xóa FAQ',
@@ -653,7 +653,7 @@ export const deleteFAQ = async (req, res) => {
  * @desc    Get content statistics
  * @access  Private (Admin only)
  */
-export const getContentStatistics = async (req, res) => {
+exports.getContentStatistics = async (req, res) => {
   try {
     // Banner statistics
     const totalBanners = await Banner.countDocuments();
@@ -722,7 +722,7 @@ export const getContentStatistics = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get content statistics error:', error);
+    logger.error('Lỗi lấy thống kê nội dung:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy thống kê nội dung',
@@ -730,3 +730,5 @@ export const getContentStatistics = async (req, res) => {
     });
   }
 };
+
+module.exports = exports;

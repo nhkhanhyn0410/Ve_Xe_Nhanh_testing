@@ -1,5 +1,5 @@
-import ReportService from '../services/report.service.js';
-import { logger } from '../utils/logger.js';
+const ReportService = require('../services/report.service');
+const logger = require('../utils/logger');
 
 /**
  * Report Controller
@@ -12,7 +12,7 @@ import { logger } from '../utils/logger.js';
  * @access  Private (Operator)
  * @query   startDate, endDate, routeId, format (json/excel/pdf)
  */
-export const getRevenueReport = async (req, res, next) => {
+exports.getRevenueReport = async (req, res, next) => {
   try {
     const operatorId = req.userId; // From authenticate middleware
     const { startDate, endDate, routeId, format } = req.query;
@@ -66,7 +66,7 @@ export const getRevenueReport = async (req, res, next) => {
       data: reportData,
     });
   } catch (error) {
-    logger.error('Get revenue report error:', error);
+    logger.error('Lỗi lấy báo cáo doanh thu:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Không thể tạo báo cáo doanh thu',
@@ -80,7 +80,7 @@ export const getRevenueReport = async (req, res, next) => {
  * @access  Private (Operator)
  * @query   startDate, endDate
  */
-export const getRevenueSummary = async (req, res, next) => {
+exports.getRevenueSummary = async (req, res, next) => {
   try {
     const operatorId = req.userId;
     const { startDate, endDate } = req.query;
@@ -101,7 +101,7 @@ export const getRevenueSummary = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get revenue summary error:', error);
+    logger.error('Lỗi lấy tóm tắt doanh thu:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Không thể tải tóm tắt doanh thu',
@@ -115,7 +115,7 @@ export const getRevenueSummary = async (req, res, next) => {
  * @access  Private (Operator)
  * @query   startDate, endDate
  */
-export const getRevenueByRoute = async (req, res, next) => {
+exports.getRevenueByRoute = async (req, res, next) => {
   try {
     const operatorId = req.userId;
     const { startDate, endDate } = req.query;
@@ -133,7 +133,7 @@ export const getRevenueByRoute = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get revenue by route error:', error);
+    logger.error('Lỗi lấy doanh thu theo tuyến:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Không thể tải doanh thu theo tuyến',
@@ -147,7 +147,7 @@ export const getRevenueByRoute = async (req, res, next) => {
  * @access  Private (Operator)
  * @query   startDate, endDate
  */
-export const getRevenueTrend = async (req, res, next) => {
+exports.getRevenueTrend = async (req, res, next) => {
   try {
     const operatorId = req.userId;
     const { startDate, endDate } = req.query;
@@ -171,7 +171,7 @@ export const getRevenueTrend = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get revenue trend error:', error);
+    logger.error('Lỗi lấy xu hướng doanh thu:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Không thể tải xu hướng doanh thu',
@@ -185,7 +185,7 @@ export const getRevenueTrend = async (req, res, next) => {
  * @access  Private (Operator)
  * @query   startDate, endDate
  */
-export const getCancellationReport = async (req, res, next) => {
+exports.getCancellationReport = async (req, res, next) => {
   try {
     const operatorId = req.userId;
     const { startDate, endDate } = req.query;
@@ -202,7 +202,7 @@ export const getCancellationReport = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get cancellation report error:', error);
+    logger.error('Lỗi lấy báo cáo hủy:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Không thể tải báo cáo hủy vé',
@@ -216,7 +216,7 @@ export const getCancellationReport = async (req, res, next) => {
  * @access  Private (Operator)
  * @query   startDate, endDate
  */
-export const getGrowthMetrics = async (req, res, next) => {
+exports.getGrowthMetrics = async (req, res, next) => {
   try {
     const operatorId = req.userId;
     const { startDate, endDate } = req.query;
@@ -233,7 +233,7 @@ export const getGrowthMetrics = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get growth metrics error:', error);
+    logger.error('Lỗi lấy số liệu tăng trưởng:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Không thể tải chỉ số tăng trưởng',

@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import logger from '../utils/logger.js'; // Adjust path as needed
+const mongoose = require('mongoose');
 
 const complaintSchema = new mongoose.Schema(
   {
@@ -115,7 +114,7 @@ const complaintSchema = new mongoose.Schema(
         },
         isInternal: {
           type: Boolean,
-          default: false,
+          default: false, // Internal notes only visible to admins
         },
         createdAt: {
           type: Date,
@@ -153,7 +152,7 @@ const complaintSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: (doc, ret) => {
+      transform: function (doc, ret) {
         delete ret.__v;
         return ret;
       },
@@ -162,8 +161,7 @@ const complaintSchema = new mongoose.Schema(
   }
 );
 
-// Indexes
-complaintSchema.index({ ticketNumber: 1 });
+// Indexes for performance (ticketNumber already has unique: true in schema, which creates an index)
 complaintSchema.index({ userId: 1 });
 complaintSchema.index({ status: 1 });
 complaintSchema.index({ priority: 1 });
@@ -172,112 +170,152 @@ complaintSchema.index({ assignedTo: 1 });
 complaintSchema.index({ bookingId: 1 });
 complaintSchema.index({ createdAt: -1 });
 
-// Generate ticket number
+// Generate unique ticket number before saving
 complaintSchema.pre('save', async function (next) {
-  try {
-    if (this.isNew && !this.ticketNumber) {
-      const date = new Date();
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
+  if (this.isNew && !this.ticketNumber) {
+    // Generate ticket number: TCKT-YYYYMMDD-XXXXX
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
 
-      const startOfDay = new Date(date.setHours(0, 0, 0, 0));
-      const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+    // Get count of tickets today
+    const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(date.setHours(23, 59, 59, 999));
 
-      const count = await this.constructor.countDocuments({
-        createdAt: { $gte: startOfDay, $lte: endOfDay },
-      });
+    const count = await this.constructor.countDocuments({
+      createdAt: {
+        $gte: startOfDay,
+        $lte: endOfDay,
+      },
+    });
 
-      const sequence = String(count + 1).padStart(5, '0');
-      this.ticketNumber = `TCKT-${year}${month}${day}-${sequence}`;
-      logger.info(`Generated ticket number: ${this.ticketNumber}`);
-    }
-    next();
-  } catch (error) {
-    logger.error(`Error generating ticket number: ${error.message}`);
-    next(error);
+    const sequence = String(count + 1).padStart(5, '0');
+    this.ticketNumber = `TCKT-${year}${month}${day}-${sequence}`;
   }
+
+  next();
 });
 
+// Instance method - Add note to complaint
 complaintSchema.methods.addNote = function (content, userId, userRole, isInternal = false) {
-  this.notes.push({ content, addedBy: userId, addedByRole: userRole, isInternal });
-  logger.info(`Note added to complaint ${this.ticketNumber}`);
+  this.notes.push({
+    content,
+    addedBy: userId,
+    addedByRole: userRole,
+    isInternal,
+  });
   return this.save();
 };
 
+// Instance method - Assign complaint
 complaintSchema.methods.assignTo = function (adminId) {
   this.assignedTo = adminId;
   this.assignedAt = Date.now();
   if (this.status === 'open') {
     this.status = 'in_progress';
   }
-  logger.info(`Complaint ${this.ticketNumber} assigned to ${adminId}`);
   return this.save();
 };
 
+// Instance method - Resolve complaint
 complaintSchema.methods.resolve = function (resolution, adminId) {
   this.status = 'resolved';
   this.resolution = resolution;
   this.resolvedBy = adminId;
   this.resolvedAt = Date.now();
-  logger.info(`Complaint ${this.ticketNumber} resolved by ${adminId}`);
   return this.save();
 };
 
+// Instance method - Close complaint
 complaintSchema.methods.close = function () {
   this.status = 'closed';
   this.closedAt = Date.now();
-  logger.info(`Complaint ${this.ticketNumber} closed`);
   return this.save();
 };
 
+// Instance method - Add satisfaction rating
 complaintSchema.methods.addSatisfactionRating = function (rating, feedback = '') {
   if (this.status !== 'resolved' && this.status !== 'closed') {
-    const error = new Error('Chỉ có thể đánh giá khi khiếu nại đã được giải quyết');
-    logger.warn(`Invalid satisfaction rating attempt for ${this.ticketNumber}`);
-    throw error;
+    throw new Error('Chỉ có thể đánh giá khi khiếu nại đã được giải quyết');
   }
   this.satisfactionRating = rating;
   this.satisfactionFeedback = feedback;
-  logger.info(`Satisfaction rating added to ${this.ticketNumber}: ${rating}`);
   return this.save();
 };
 
+// Static method - Get statistics
 complaintSchema.statics.getStatistics = async function (startDate, endDate) {
-  try {
-    const match = {};
-    if (startDate && endDate) {
-      match.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
-    }
-
-    const [stats] = await this.aggregate([
-      { $match: match },
-      {
-        $facet: {
-          byStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
-          byCategory: [{ $group: { _id: '$category', count: { $sum: 1 } } }],
-          byPriority: [{ $group: { _id: '$priority', count: { $sum: 1 } } }],
-          avgResolutionTime: [
-            { $match: { resolvedAt: { $exists: true } } },
-            { $project: { resolutionTime: { $subtract: ['$resolvedAt', '$createdAt'] } } },
-            { $group: { _id: null, avgTime: { $avg: '$resolutionTime' } } },
-          ],
-          satisfaction: [
-            { $match: { satisfactionRating: { $exists: true } } },
-            { $group: { _id: null, avgRating: { $avg: '$satisfactionRating' }, totalRatings: { $sum: 1 } } },
-          ],
-        },
-      },
-    ]);
-
-    logger.info('Complaint statistics retrieved successfully');
-    return stats;
-  } catch (error) {
-    logger.error(`Error fetching complaint statistics: ${error.message}`);
-    throw error;
+  const match = {};
+  if (startDate && endDate) {
+    match.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
   }
+
+  const [stats] = await this.aggregate([
+    { $match: match },
+    {
+      $facet: {
+        byStatus: [
+          {
+            $group: {
+              _id: '$status',
+              count: { $sum: 1 },
+            },
+          },
+        ],
+        byCategory: [
+          {
+            $group: {
+              _id: '$category',
+              count: { $sum: 1 },
+            },
+          },
+        ],
+        byPriority: [
+          {
+            $group: {
+              _id: '$priority',
+              count: { $sum: 1 },
+            },
+          },
+        ],
+        avgResolutionTime: [
+          {
+            $match: { resolvedAt: { $exists: true } },
+          },
+          {
+            $project: {
+              resolutionTime: {
+                $subtract: ['$resolvedAt', '$createdAt'],
+              },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              avgTime: { $avg: '$resolutionTime' },
+            },
+          },
+        ],
+        satisfaction: [
+          {
+            $match: { satisfactionRating: { $exists: true } },
+          },
+          {
+            $group: {
+              _id: null,
+              avgRating: { $avg: '$satisfactionRating' },
+              totalRatings: { $sum: 1 },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return stats;
 };
 
 const Complaint = mongoose.model('Complaint', complaintSchema);
 
-export default Complaint;
+module.exports = Complaint;

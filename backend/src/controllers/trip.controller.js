@@ -1,5 +1,5 @@
-import TripService from '../services/trip.service.js';
-import { logger } from '../utils/logger.js';
+const TripService = require('../services/trip.service');
+const logger = require('../utils/logger');
 
 /**
  * Trip Controller
@@ -11,7 +11,7 @@ import { logger } from '../utils/logger.js';
  * @desc    Tạo chuyến xe mới
  * @access  Private (Operator)
  */
-export const create = async (req, res) => {
+exports.create = async (req, res) => {
   try {
     const operatorId = req.userId;
     const tripData = req.body;
@@ -45,7 +45,7 @@ export const create = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Create trip error:', error);
+    logger.error('Lỗi tạo chuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tạo chuyến xe thất bại',
@@ -58,7 +58,7 @@ export const create = async (req, res) => {
  * @desc    Tạo chuyến xe định kỳ
  * @access  Private (Operator)
  */
-export const createRecurring = async (req, res) => {
+exports.createRecurring = async (req, res) => {
   try {
     const operatorId = req.userId;
     const { tripData, recurringConfig } = req.body;
@@ -94,7 +94,7 @@ export const createRecurring = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Create recurring trips error:', error);
+    logger.error('Lỗi tạo chuyến lặp lại:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tạo chuyến xe định kỳ thất bại',
@@ -107,7 +107,7 @@ export const createRecurring = async (req, res) => {
  * @desc    Lấy danh sách chuyến của operator
  * @access  Private (Operator)
  */
-export const getMyTrips = async (req, res) => {
+exports.getMyTrips = async (req, res) => {
   try {
     const operatorId = req.userId;
     const {
@@ -149,7 +149,7 @@ export const getMyTrips = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get trips error:', error);
+    logger.error('Lỗi lấy chuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách chuyến thất bại',
@@ -162,7 +162,7 @@ export const getMyTrips = async (req, res) => {
  * @desc    Lấy chi tiết chuyến
  * @access  Private (Operator)
  */
-export const getById = async (req, res) => {
+exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -176,7 +176,7 @@ export const getById = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get trip error:', error);
+    logger.error('Lỗi lấy chuyến:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy chuyến xe',
@@ -189,7 +189,7 @@ export const getById = async (req, res) => {
  * @desc    Cập nhật chuyến
  * @access  Private (Operator)
  */
-export const update = async (req, res) => {
+exports.update = async (req, res) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -205,7 +205,7 @@ export const update = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Update trip error:', error);
+    logger.error('Lỗi cập nhật chuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Cập nhật chuyến xe thất bại',
@@ -218,8 +218,7 @@ export const update = async (req, res) => {
  * @desc    Xóa chuyến
  * @access  Private (Operator)
  */
-// Đổi tên từ 'delete' sang 'deleteTrip' vì 'delete' là keyword
-export const deleteTrip = async (req, res) => {
+exports.delete = async (req, res) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -231,7 +230,7 @@ export const deleteTrip = async (req, res) => {
       message: 'Xóa chuyến xe thành công',
     });
   } catch (error) {
-    logger.error('Delete trip error:', error);
+    logger.error('Lỗi xóa chuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xóa chuyến xe thất bại',
@@ -244,7 +243,7 @@ export const deleteTrip = async (req, res) => {
  * @desc    Hủy chuyến
  * @access  Private (Operator)
  */
-export const cancel = async (req, res) => {
+exports.cancel = async (req, res) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -267,7 +266,7 @@ export const cancel = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Cancel trip error:', error);
+    logger.error('Lỗi hủy chuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Hủy chuyến xe thất bại',
@@ -280,7 +279,7 @@ export const cancel = async (req, res) => {
  * @desc    Lấy thống kê chuyến
  * @access  Private (Operator)
  */
-export const getStatistics = async (req, res) => {
+exports.getStatistics = async (req, res) => {
   try {
     const operatorId = req.userId;
     const { fromDate, toDate } = req.query;
@@ -297,7 +296,7 @@ export const getStatistics = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get trip statistics error:', error);
+    logger.error('Lỗi lấy thống kê chuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy thống kê chuyến thất bại',
@@ -322,7 +321,7 @@ export const getStatistics = async (req, res) => {
  * @query   {string} sortBy - Sắp xếp theo (price, time, rating)
  * @query   {string} sortOrder - Thứ tự (asc, desc)
  */
-export const search = async (req, res) => {
+exports.search = async (req, res) => {
   try {
     const {
       fromCity,
@@ -376,7 +375,7 @@ export const search = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Search trips error:', error);
+    logger.error('Lỗi tìm kiếm chuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tìm kiếm chuyến thất bại',
@@ -389,7 +388,7 @@ export const search = async (req, res) => {
  * @desc    Lấy chi tiết chuyến (public)
  * @access  Public
  */
-export const getPublicTripDetail = async (req, res) => {
+exports.getPublicTripDetail = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -402,7 +401,7 @@ export const getPublicTripDetail = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get public trip detail error:', error);
+    logger.error('Lỗi lấy chi tiết chuyến công khai:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy chuyến xe',
@@ -415,7 +414,7 @@ export const getPublicTripDetail = async (req, res) => {
  * @desc    Configure dynamic pricing for a trip
  * @access  Private (Operator)
  */
-export const configureDynamicPricing = async (req, res) => {
+exports.configureDynamicPricing = async (req, res) => {
   try {
     const { id } = req.params;
     const operatorId = req.user._id;
@@ -429,7 +428,7 @@ export const configureDynamicPricing = async (req, res) => {
       message: 'Cấu hình giá động thành công',
     });
   } catch (error) {
-    logger.error('Configure dynamic pricing error:', error);
+    logger.error('Lỗi cấu hình giá động:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể cấu hình giá động',
@@ -442,7 +441,7 @@ export const configureDynamicPricing = async (req, res) => {
  * @desc    Get dynamic price for a trip
  * @access  Public
  */
-export const getDynamicPrice = async (req, res) => {
+exports.getDynamicPrice = async (req, res) => {
   try {
     const { id } = req.params;
     const { bookingDate } = req.query;
@@ -454,7 +453,7 @@ export const getDynamicPrice = async (req, res) => {
       data: priceInfo,
     });
   } catch (error) {
-    logger.error('Get dynamic price error:', error);
+    logger.error('Lỗi lấy giá động:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể tính giá động',

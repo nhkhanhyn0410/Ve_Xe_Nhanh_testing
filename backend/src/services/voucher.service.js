@@ -1,8 +1,8 @@
-import Voucher from '../models/Voucher.js';
-import Booking from '../models/Booking.js';
-import Trip from '../models/Trip.js';
-import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+const Voucher = require('../models/Voucher');
+const Booking = require('../models/Booking');
+const Trip = require('../models/Trip');
+const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 /**
  * Voucher Service
@@ -70,8 +70,6 @@ class VoucherService {
       createdBy: creatorId,
       createdByModel: creatorModel,
     });
-
-    logger.success(`Voucher created: ${voucher.code} - ${voucher.name}`);
 
     return voucher;
   }
@@ -259,8 +257,6 @@ class VoucherService {
     voucher.isActive = true;
     await voucher.save();
 
-    logger.success(`Voucher activated: ${voucher.code}`);
-
     return voucher;
   }
 
@@ -277,8 +273,6 @@ class VoucherService {
 
     voucher.isActive = false;
     await voucher.save();
-
-    logger.warn(`Voucher deactivated: ${voucher.code}`);
 
     return voucher;
   }
@@ -299,7 +293,6 @@ class VoucherService {
       throw new Error('Không thể xóa voucher đã được sử dụng. Hãy vô hiệu hóa thay vì xóa.');
     }
 
-    logger.info(`Voucher deleted: ${voucher.code}`);
     await Voucher.deleteOne({ _id: voucherId });
   }
 
@@ -447,7 +440,7 @@ class VoucherService {
         $group: {
           _id: null,
           totalDiscount: { $sum: '$discount' },
-          totalRevenue: { $sum: '$total' },
+          totalRevenue: { $sum: '$finalPrice' },  // Use finalPrice instead of total
           confirmedCount: {
             $sum: { $cond: [{ $eq: ['$status', 'confirmed'] }, 1, 0] },
           },
@@ -505,4 +498,4 @@ class VoucherService {
   }
 }
 
-export default VoucherService;
+module.exports = VoucherService;

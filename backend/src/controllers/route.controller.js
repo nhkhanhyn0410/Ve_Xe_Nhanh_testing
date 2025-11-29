@@ -1,5 +1,5 @@
-import RouteService from '../services/route.service.js';
-import { logger } from '../utils/logger.js';
+const RouteService = require('../services/route.service');
+const logger = require('../utils/logger');
 
 /**
  * Route Controller
@@ -11,7 +11,7 @@ import { logger } from '../utils/logger.js';
  * @desc    Tạo tuyến đường mới
  * @access  Private (Operator)
  */
-export const create = async (req, res, next) => {
+exports.create = async (req, res, next) => {
   try {
     const operatorId = req.userId; // Từ authenticate middleware
     const routeData = req.body;
@@ -58,7 +58,7 @@ export const create = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Create route error:', error);
+    logger.error('Lỗi tạo tuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tạo tuyến đường thất bại',
@@ -71,7 +71,7 @@ export const create = async (req, res, next) => {
  * @desc    Lấy danh sách routes của operator
  * @access  Private (Operator)
  */
-export const getMyRoutes = async (req, res, next) => {
+exports.getMyRoutes = async (req, res, next) => {
   try {
     const operatorId = req.userId;
     const { isActive, search, page, limit, sortBy, sortOrder } = req.query;
@@ -98,7 +98,7 @@ export const getMyRoutes = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get routes error:', error);
+    logger.error('Lỗi lấy tuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách tuyến đường thất bại',
@@ -111,7 +111,7 @@ export const getMyRoutes = async (req, res, next) => {
  * @desc    Lấy thông tin route theo ID
  * @access  Private (Operator)
  */
-export const getById = async (req, res, next) => {
+exports.getById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -125,7 +125,7 @@ export const getById = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get route error:', error);
+    logger.error('Lỗi lấy tuyến:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy tuyến đường',
@@ -138,7 +138,7 @@ export const getById = async (req, res, next) => {
  * @desc    Cập nhật route
  * @access  Private (Operator)
  */
-export const update = async (req, res, next) => {
+exports.update = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -154,7 +154,7 @@ export const update = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Update route error:', error);
+    logger.error('Lỗi cập nhật tuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Cập nhật tuyến đường thất bại',
@@ -167,8 +167,7 @@ export const update = async (req, res, next) => {
  * @desc    Xóa route (soft delete - deactivate)
  * @access  Private (Operator)
  */
-// Đổi tên hàm thành 'deleteRoute' vì 'delete' là từ khóa trong JS
-export const deleteRoute = async (req, res, next) => {
+exports.delete = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -180,7 +179,7 @@ export const deleteRoute = async (req, res, next) => {
       message: 'Xóa tuyến đường thành công',
     });
   } catch (error) {
-    logger.error('Delete route error:', error);
+    logger.error('Lỗi xóa tuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xóa tuyến đường thất bại',
@@ -193,7 +192,7 @@ export const deleteRoute = async (req, res, next) => {
  * @desc    Kích hoạt/vô hiệu hóa route
  * @access  Private (Operator)
  */
-export const toggleActive = async (req, res, next) => {
+exports.toggleActive = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { isActive } = req.body;
@@ -216,7 +215,7 @@ export const toggleActive = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Toggle route active error:', error);
+    logger.error('Lỗi bật/tắt tuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Thay đổi trạng thái tuyến đường thất bại',
@@ -229,7 +228,7 @@ export const toggleActive = async (req, res, next) => {
  * @desc    Thêm điểm đón
  * @access  Private (Operator)
  */
-export const addPickupPoint = async (req, res, next) => {
+exports.addPickupPoint = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -252,7 +251,7 @@ export const addPickupPoint = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Add pickup point error:', error);
+    logger.error('Lỗi thêm điểm đón:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Thêm điểm đón thất bại',
@@ -265,7 +264,7 @@ export const addPickupPoint = async (req, res, next) => {
  * @desc    Xóa điểm đón
  * @access  Private (Operator)
  */
-export const removePickupPoint = async (req, res, next) => {
+exports.removePickupPoint = async (req, res, next) => {
   try {
     const { id, pointId } = req.params;
     const operatorId = req.userId;
@@ -280,7 +279,7 @@ export const removePickupPoint = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Remove pickup point error:', error);
+    logger.error('Lỗi xóa điểm đón:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xóa điểm đón thất bại',
@@ -293,7 +292,7 @@ export const removePickupPoint = async (req, res, next) => {
  * @desc    Thêm điểm trả
  * @access  Private (Operator)
  */
-export const addDropoffPoint = async (req, res, next) => {
+exports.addDropoffPoint = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -316,7 +315,7 @@ export const addDropoffPoint = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Add dropoff point error:', error);
+    logger.error('Lỗi thêm điểm trả:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Thêm điểm trả thất bại',
@@ -329,7 +328,7 @@ export const addDropoffPoint = async (req, res, next) => {
  * @desc    Xóa điểm trả
  * @access  Private (Operator)
  */
-export const removeDropoffPoint = async (req, res, next) => {
+exports.removeDropoffPoint = async (req, res, next) => {
   try {
     const { id, pointId } = req.params;
     const operatorId = req.userId;
@@ -344,7 +343,7 @@ export const removeDropoffPoint = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Remove dropoff point error:', error);
+    logger.error('Lỗi xóa điểm trả:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xóa điểm trả thất bại',
@@ -357,7 +356,7 @@ export const removeDropoffPoint = async (req, res, next) => {
  * @desc    Tìm kiếm routes (public)
  * @access  Public
  */
-export const search = async (req, res, next) => {
+exports.search = async (req, res, next) => {
   try {
     const { originCity, destinationCity, operatorId, page, limit, sortBy, sortOrder } = req.query;
 
@@ -384,7 +383,7 @@ export const search = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Search routes error:', error);
+    logger.error('Lỗi tìm kiếm tuyến:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tìm kiếm tuyến đường thất bại',

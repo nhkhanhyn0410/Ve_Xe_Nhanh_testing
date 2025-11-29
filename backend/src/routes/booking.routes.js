@@ -1,8 +1,7 @@
-import express from 'express';
-import * as bookingController from '../controllers/booking.controller.js';
-import { authenticate, authorize, optionalAuth } from '../middleware/auth.middleware.js';
-
+const express = require('express');
 const router = express.Router();
+const bookingController = require('../controllers/booking.controller');
+const { authenticate, authorize, optionalAuth } = require('../middleware/auth.middleware');
 
 /**
  * Public booking routes (with optional auth to associate with logged-in users)
@@ -52,4 +51,4 @@ router.post(
 // Get booking details
 router.get('/:bookingId', bookingController.getBookingById);
 
-export default router;
+module.exports = router;

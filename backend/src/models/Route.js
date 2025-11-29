@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+const mongoose = require('mongoose');
 
 /**
  * Route Schema
@@ -215,11 +214,9 @@ const RouteSchema = new mongoose.Schema(
   }
 );
 
-// Indexes
-RouteSchema.index({ routeCode: 1 });
-RouteSchema.index({ operatorId: 1 });
+// Indexes (compound indexes only - single field indexes are defined in schema)
+// Note: routeCode has unique constraint in schema, operatorId and isActive have index: true
 RouteSchema.index({ 'origin.city': 1, 'destination.city': 1 });
-RouteSchema.index({ isActive: 1 });
 RouteSchema.index({ operatorId: 1, isActive: 1 });
 
 // Virtual for route description
@@ -235,14 +232,12 @@ RouteSchema.virtual('estimatedDurationHours').get(function () {
 // Instance method to activate route
 RouteSchema.methods.activate = async function () {
   this.isActive = true;
-  logger.success(`Route ${this.routeCode} (${this.routeDescription}) activated`);
   return this.save();
 };
 
 // Instance method to deactivate route
 RouteSchema.methods.deactivate = async function () {
   this.isActive = false;
-  logger.warn(`Route ${this.routeCode} (${this.routeDescription}) deactivated`);
   return this.save();
 };
 
@@ -252,19 +247,14 @@ RouteSchema.methods.addPickupPoint = async function (point) {
     throw new Error('Không thể thêm quá 20 điểm đón');
   }
   this.pickupPoints.push(point);
-  logger.info(`Added pickup point "${point.name}" to route ${this.routeCode}`);
   return this.save();
 };
 
 // Instance method to remove pickup point
 RouteSchema.methods.removePickupPoint = async function (pointId) {
-  const pointToRemove = this.pickupPoints.find(p => p._id.toString() === pointId.toString());
   this.pickupPoints = this.pickupPoints.filter(
     (point) => point._id.toString() !== pointId.toString()
   );
-  if (pointToRemove) {
-    logger.info(`Removed pickup point "${pointToRemove.name}" from route ${this.routeCode}`);
-  }
   return this.save();
 };
 
@@ -274,19 +264,14 @@ RouteSchema.methods.addDropoffPoint = async function (point) {
     throw new Error('Không thể thêm quá 20 điểm trả');
   }
   this.dropoffPoints.push(point);
-  logger.info(`Added dropoff point "${point.name}" to route ${this.routeCode}`);
   return this.save();
 };
 
 // Instance method to remove dropoff point
 RouteSchema.methods.removeDropoffPoint = async function (pointId) {
-  const pointToRemove = this.dropoffPoints.find(p => p._id.toString() === pointId.toString());
   this.dropoffPoints = this.dropoffPoints.filter(
     (point) => point._id.toString() !== pointId.toString()
   );
-  if (pointToRemove) {
-    logger.info(`Removed dropoff point "${pointToRemove.name}" from route ${this.routeCode}`);
-  }
   return this.save();
 };
 
@@ -323,18 +308,12 @@ RouteSchema.statics.searchByCities = function (originCity, destinationCity) {
 
 // Pre-save middleware to auto-generate route name if not provided
 RouteSchema.pre('save', function (next) {
-  const isNew = this.isNew;
   if (!this.routeName && this.origin && this.destination) {
     this.routeName = `${this.origin.city} - ${this.destination.city}`;
   }
-
-  if (isNew) {
-    logger.success(`New route created: ${this.routeCode} - ${this.routeDescription} (${this.distance}km, ~${this.estimatedDurationHours}h)`);
-  }
-
   next();
 });
 
 const Route = mongoose.model('Route', RouteSchema);
 
-export default Route;
+module.exports = Route;

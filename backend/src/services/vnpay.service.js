@@ -1,7 +1,7 @@
-import crypto from 'crypto';
-import querystring from 'querystring';
-import moment from 'moment';
-import { logger } from '../utils/logger.js';
+const crypto = require('crypto');
+const querystring = require('querystring');
+const moment = require('moment');
+const logger = require('../utils/logger');
 
 /**
  * VNPay Service
@@ -386,4 +386,4 @@ class VNPayService {
   }
 }
 
-export default new VNPayService();
+module.exports = new VNPayService();

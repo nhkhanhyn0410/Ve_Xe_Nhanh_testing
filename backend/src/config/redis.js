@@ -1,36 +1,30 @@
-import redis from 'redis';
-import { logger } from '../utils/logger.js';
+const redis = require('redis');
+const logger = require('../utils/logger')
 
 let redisClient;
 
 const connectRedis = async () => {
   try {
-    const config = {
-      url: process.env.REDIS_URL,
+    redisClient = redis.createClient({
+      url: process.env.REDIS_URL || 'redis://localhost:6379',
+      password: process.env.REDIS_PASSWORD || undefined,
       database: parseInt(process.env.REDIS_DB, 10) || 0,
-    };
-
-    // Chỉ thêm mật khẩu nếu nó đã tồn tại
-    if (process.env.REDIS_PASSWORD) {
-      config.password = process.env.REDIS_PASSWORD;
-    }
-
-    redisClient = redis.createClient(config);
+    });
 
     redisClient.on('error', (err) => {
-      logger.error('Redis Client Error:', err);
+      logger.error(' Lỗi Redis Client:', err);
     });
 
     redisClient.on('connect' && 'ready', () => {
       logger.success('Redis Đã kết nối và sẵn sàng');
     });
 
+
     redisClient.on('reconnecting', () => {
       logger.info('Redis Đang kết nối lại...');
     });
 
     await redisClient.connect();
-
 
     return redisClient;
   } catch (error) {
@@ -40,10 +34,10 @@ const connectRedis = async () => {
 
 const getRedisClient = () => {
   if (!redisClient) {
-    throw new Error('Redis client chưa khởi tạo. Call connectRedis() first.');
+    throw new Error('Redis client chưa khởi tạo. Hãy gọi connectRedis() trước.');
   }
   return redisClient;
 };
 
-export default connectRedis;
-export { getRedisClient };
+module.exports = connectRedis;
+module.exports.getRedisClient = getRedisClient;

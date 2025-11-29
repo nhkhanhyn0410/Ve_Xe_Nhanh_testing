@@ -1,8 +1,7 @@
-import express from 'express';
-import * as complaintController from '../controllers/complaint.controller.js';
-import { authenticate, authorize } from '../middleware/auth.middleware.js';
-
+const express = require('express');
 const router = express.Router();
+const complaintController = require('../controllers/complaint.controller');
+const { authenticate, authorize } = require('../middleware/auth.middleware');
 
 /**
  * Complaint Routes (User-facing)
@@ -19,4 +18,4 @@ router.get('/:id', complaintController.getComplaintById);
 router.post('/:id/notes', complaintController.addNote);
 router.put('/:id/satisfaction', complaintController.addSatisfactionRating);
 
-export default router;
+module.exports = router;

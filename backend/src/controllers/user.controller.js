@@ -1,6 +1,6 @@
-import UserService from '../services/user.service.js';
-import loyaltyService from '../services/loyalty.service.js';
-import { logger } from '../utils/logger.js';
+const UserService = require('../services/user.service');
+const loyaltyService = require('../services/loyalty.service');
+const logger = require('../utils/logger');
 
 /**
  * User Controller
@@ -12,7 +12,7 @@ import { logger } from '../utils/logger.js';
  * @desc    Lấy thông tin profile của user hiện tại
  * @access  Private
  */
-export const getProfile = async (req, res, next) => {
+exports.getProfile = async (req, res, next) => {
   try {
     const userId = req.userId; // Từ authenticate middleware
 
@@ -25,7 +25,7 @@ export const getProfile = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get profile error:', error);
+    logger.error('Lỗi lấy hồ sơ:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy thông tin profile thất bại',
@@ -38,7 +38,7 @@ export const getProfile = async (req, res, next) => {
  * @desc    Cập nhật profile của user
  * @access  Private
  */
-export const updateProfile = async (req, res, next) => {
+exports.updateProfile = async (req, res, next) => {
   try {
     const userId = req.userId;
     const updateData = req.body;
@@ -61,7 +61,7 @@ export const updateProfile = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Update profile error:', error);
+    logger.error('Lỗi cập nhật hồ sơ:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Cập nhật profile thất bại',
@@ -74,7 +74,7 @@ export const updateProfile = async (req, res, next) => {
  * @desc    Upload avatar
  * @access  Private
  */
-export const uploadAvatar = async (req, res, next) => {
+exports.uploadAvatar = async (req, res, next) => {
   try {
     const userId = req.userId;
 
@@ -99,7 +99,7 @@ export const uploadAvatar = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Upload avatar error:', error);
+    logger.error('Lỗi tải ảnh đại diện:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Upload avatar thất bại',
@@ -112,7 +112,7 @@ export const uploadAvatar = async (req, res, next) => {
  * @desc    Xóa avatar
  * @access  Private
  */
-export const deleteAvatar = async (req, res, next) => {
+exports.deleteAvatar = async (req, res, next) => {
   try {
     const userId = req.userId;
 
@@ -126,7 +126,7 @@ export const deleteAvatar = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Delete avatar error:', error);
+    logger.error('Lỗi xóa ảnh đại diện:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xóa avatar thất bại',
@@ -139,7 +139,7 @@ export const deleteAvatar = async (req, res, next) => {
  * @desc    Thay đổi mật khẩu
  * @access  Private
  */
-export const changePassword = async (req, res, next) => {
+exports.changePassword = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { currentPassword, newPassword } = req.body;
@@ -165,7 +165,7 @@ export const changePassword = async (req, res, next) => {
       message: 'Thay đổi mật khẩu thành công',
     });
   } catch (error) {
-    logger.error('Change password error:', error);
+    logger.error('Lỗi đổi mật khẩu:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Thay đổi mật khẩu thất bại',
@@ -178,7 +178,7 @@ export const changePassword = async (req, res, next) => {
  * @desc    Thêm hành khách thường đi
  * @access  Private
  */
-export const addSavedPassenger = async (req, res, next) => {
+exports.addSavedPassenger = async (req, res, next) => {
   try {
     const userId = req.userId;
     const passengerData = req.body;
@@ -201,7 +201,7 @@ export const addSavedPassenger = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Add saved passenger error:', error);
+    logger.error('Lỗi thêm hành khách đã lưu:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Thêm hành khách thất bại',
@@ -214,7 +214,7 @@ export const addSavedPassenger = async (req, res, next) => {
  * @desc    Xóa hành khách thường đi
  * @access  Private
  */
-export const removeSavedPassenger = async (req, res, next) => {
+exports.removeSavedPassenger = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { passengerId } = req.params;
@@ -236,7 +236,7 @@ export const removeSavedPassenger = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Remove saved passenger error:', error);
+    logger.error('Remove đã lưu passenger lỗi:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xóa hành khách thất bại',
@@ -249,7 +249,7 @@ export const removeSavedPassenger = async (req, res, next) => {
  * @desc    Lấy lịch sử điểm loyalty
  * @access  Private
  */
-export const getPointsHistory = async (req, res, next) => {
+exports.getPointsHistory = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { page, limit } = req.query;
@@ -264,7 +264,7 @@ export const getPointsHistory = async (req, res, next) => {
       data: result,
     });
   } catch (error) {
-    logger.error('Get points history error:', error);
+    logger.error('Get điểm hisđếnry lỗi:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy lịch sử điểm thất bại',
@@ -277,7 +277,7 @@ export const getPointsHistory = async (req, res, next) => {
  * @desc    Get loyalty program history
  * @access  Private
  */
-export const getLoyaltyHistory = async (req, res, next) => {
+exports.getLoyaltyHistory = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { page, limit, type } = req.query;
@@ -290,7 +290,7 @@ export const getLoyaltyHistory = async (req, res, next) => {
 
     res.status(200).json(result);
   } catch (error) {
-    logger.error('Get loyalty history error:', error);
+    logger.error('Get tích điểm hisđếnry lỗi:', error);
     res.status(400).json({
       success: false,
       message: error.message || 'Lấy lịch sử loyalty thất bại',
@@ -303,7 +303,7 @@ export const getLoyaltyHistory = async (req, res, next) => {
  * @desc    Get loyalty program overview
  * @access  Private
  */
-export const getLoyaltyOverview = async (req, res, next) => {
+exports.getLoyaltyOverview = async (req, res, next) => {
   try {
     const userId = req.userId;
 
@@ -311,7 +311,7 @@ export const getLoyaltyOverview = async (req, res, next) => {
 
     res.status(200).json(result);
   } catch (error) {
-    logger.error('Get loyalty overview error:', error);
+    logger.error('Get tích điểm tổng quan lỗi:', error);
     res.status(400).json({
       success: false,
       message: error.message || 'Lấy thông tin loyalty thất bại',
@@ -324,7 +324,7 @@ export const getLoyaltyOverview = async (req, res, next) => {
  * @desc    Redeem loyalty points
  * @access  Private
  */
-export const redeemPoints = async (req, res, next) => {
+exports.redeemPoints = async (req, res, next) => {
   try {
     const userId = req.userId;
     const { points } = req.body;
@@ -340,7 +340,7 @@ export const redeemPoints = async (req, res, next) => {
 
     res.status(200).json(result);
   } catch (error) {
-    logger.error('Redeem points error:', error);
+    logger.error('Redeem điểm lỗi:', error);
     res.status(400).json({
       success: false,
       message: error.message || 'Đổi điểm thất bại',

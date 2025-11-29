@@ -1,5 +1,7 @@
-import BusOperator from '../models/BusOperator.js';
-import AuthService from './auth.service.js';
+const BusOperator = require('../models/BusOperator');
+const AuthService = require('./auth.service');
+const logger = require('../utils/logger');
+
 /**
  * Operator Service
  * Xử lý logic liên quan đến bus operators
@@ -340,4 +342,4 @@ class OperatorService {
   }
 }
 
-export default OperatorService;
+module.exports = OperatorService;

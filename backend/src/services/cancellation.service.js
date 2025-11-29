@@ -1,4 +1,5 @@
-import moment from 'moment-timezone.js';
+const moment = require('moment-timezone');
+const logger = require('../utils/logger');
 
 /**
  * Cancellation Service
@@ -152,7 +153,7 @@ class CancellationService {
 
     return {
       ...this.DEFAULT_POLICY,
-      description: 'Chính sách hủy vé của QuikRide',
+      description: 'Chính sách hủy vé của Vé xe nhanh',
       lastUpdated: new Date(),
     };
   }
@@ -253,4 +254,4 @@ class CancellationService {
   }
 }
 
-export default CancellationService;
+module.exports = CancellationService;

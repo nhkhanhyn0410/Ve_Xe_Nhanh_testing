@@ -1,5 +1,7 @@
-import Bus from '../models/Bus.js';
-import BusOperator from '../models/BusOperator.js';
+const Bus = require('../models/Bus');
+const BusOperator = require('../models/BusOperator');
+const logger = require('../utils/logger');
+
 /**
  * Bus Service
  * Xử lý logic liên quan đến buses
@@ -68,9 +70,9 @@ class BusService {
       if (layout) {
         const originalSeats = busData.seatLayout.totalSeats;
         const recalculatedSeats = this.calculateTotalSeats(layout);
-        console.log('🔍 CREATE BUS - Original totalSeats:', originalSeats);
-        console.log('🔍 CREATE BUS - Recalculated totalSeats:', recalculatedSeats);
-        console.log('🔍 CREATE BUS - Layout dimensions:', layout.length, 'x', layout[0]?.length);
+        logger.info('CREATE BUS - Original totalSeats:', originalSeats);
+        logger.info('CREATE BUS - Recalculated totalSeats:', recalculatedSeats);
+        logger.info('CREATE BUS - Layout dimensions:', layout.length, 'x', layout[0]?.length);
         busData.seatLayout.totalSeats = recalculatedSeats;
       }
 
@@ -223,13 +225,13 @@ class BusService {
         // Recalculate totalSeats from layout to ensure accuracy
         const originalSeats = updateData.seatLayout.totalSeats;
         const recalculatedSeats = this.calculateTotalSeats(layout);
-        console.log('🔍 UPDATE BUS - Bus ID:', busId);
-        console.log('🔍 UPDATE BUS - Original totalSeats:', originalSeats);
-        console.log('🔍 UPDATE BUS - Recalculated totalSeats:', recalculatedSeats);
-        console.log('🔍 UPDATE BUS - Layout dimensions:', layout.length, 'x', layout[0]?.length);
+        logger.info('UPDATE BUS - Bus ID:', busId);
+        logger.info('UPDATE BUS - Original totalSeats:', originalSeats);
+        logger.info('UPDATE BUS - Recalculated totalSeats:', recalculatedSeats);
+        logger.info('UPDATE BUS - Layout dimensions:', layout.length, 'x', layout[0]?.length);
 
         // Sample first few rows to see what's in the layout
-        console.log('🔍 UPDATE BUS - First 3 rows of layout:', JSON.stringify(layout.slice(0, 3)));
+        logger.info('UPDATE BUS - First 3 rows of layout:', JSON.stringify(layout.slice(0, 3)));
 
         updateData.seatLayout.totalSeats = recalculatedSeats;
 
@@ -277,8 +279,8 @@ class BusService {
     Object.assign(bus, updateData);
     await bus.save();
 
-    console.log('✅ UPDATE BUS - Saved totalSeats:', bus.seatLayout.totalSeats);
-    console.log('✅ UPDATE BUS - Bus object saved successfully');
+    logger.info('UPDATE BUS - Saved totalSeats:', bus.seatLayout.totalSeats);
+    logger.info('UPDATE BUS - Bus object saved successfully');
 
     return bus;
   }
@@ -449,4 +451,4 @@ class BusService {
   }
 }
 
-export default BusService;
+module.exports = BusService;

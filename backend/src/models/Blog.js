@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import logger from '../utils/logger.js'; // adjust path as needed
+const mongoose = require('mongoose');
 
 const blogSchema = new mongoose.Schema(
   {
@@ -35,7 +34,12 @@ const blogSchema = new mongoose.Schema(
       enum: ['news', 'guide', 'promotion', 'travel_tips', 'company', 'other'],
       default: 'news',
     },
-    tags: [{ type: String, trim: true }],
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -46,27 +50,56 @@ const blogSchema = new mongoose.Schema(
       enum: ['draft', 'published', 'archived'],
       default: 'draft',
     },
-    publishedAt: Date,
-    viewCount: { type: Number, default: 0 },
-    likeCount: { type: Number, default: 0 },
-    metaTitle: { type: String, trim: true, maxlength: [60, 'Meta title không được quá 60 ký tự'] },
-    metaDescription: { type: String, trim: true, maxlength: [160, 'Meta description không được quá 160 ký tự'] },
-    metaKeywords: [{ type: String, trim: true }],
+    publishedAt: {
+      type: Date,
+    },
+    viewCount: {
+      type: Number,
+      default: 0,
+    },
+    likeCount: {
+      type: Number,
+      default: 0,
+    },
+    // SEO fields
+    metaTitle: {
+      type: String,
+      trim: true,
+      maxlength: [60, 'Meta title không được quá 60 ký tự'],
+    },
+    metaDescription: {
+      type: String,
+      trim: true,
+      maxlength: [160, 'Meta description không được quá 160 ký tự'],
+    },
+    metaKeywords: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true, transform: (doc, ret) => { delete ret.__v; return ret; } },
+    toJSON: {
+      virtuals: true,
+      transform: function (doc, ret) {
+        delete ret.__v;
+        return ret;
+      },
+    },
     toObject: { virtuals: true },
   }
 );
 
-blogSchema.index({ slug: 1 });
+// Indexes (slug already has unique: true in schema, which creates an index)
 blogSchema.index({ status: 1, publishedAt: -1 });
 blogSchema.index({ category: 1 });
 blogSchema.index({ tags: 1 });
 blogSchema.index({ author: 1 });
 blogSchema.index({ title: 'text', excerpt: 'text', content: 'text' });
 
+// Auto-generate slug from title before saving
 blogSchema.pre('save', function (next) {
   if (this.isModified('title') && !this.slug) {
     this.slug = this.title
@@ -79,28 +112,29 @@ blogSchema.pre('save', function (next) {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
-    logger.info(`Generated slug: ${this.slug}`);
   }
 
+  // Set publishedAt when status changes to published
   if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
-    this.publishedAt = new Date();
-    logger.info(`Blog published: ${this._id}`);
+    this.publishedAt = Date.now();
   }
 
   next();
 });
 
+// Instance method - increment view count
 blogSchema.methods.incrementView = function () {
   this.viewCount += 1;
-  logger.debug(`Số lượt xem đã tăng lên cho blog: ${this._id}`);
   return this.save({ validateBeforeSave: false });
 };
 
+// Instance method - increment like count
 blogSchema.methods.incrementLike = function () {
   this.likeCount += 1;
   return this.save({ validateBeforeSave: false });
 };
 
+// Instance method - decrement like count
 blogSchema.methods.decrementLike = function () {
   if (this.likeCount > 0) {
     this.likeCount -= 1;
@@ -108,15 +142,15 @@ blogSchema.methods.decrementLike = function () {
   }
 };
 
+// Static method - get published blogs
 blogSchema.statics.getPublished = function (filters = {}) {
-  logger.info('Đang tìm nạp đã xuất bản blogs');
   return this.find({
     status: 'published',
-    publishedAt: { $lte: new Date() },
+    publishedAt: { $lte: Date.now() },
     ...filters,
   }).sort({ publishedAt: -1 });
 };
 
 const Blog = mongoose.model('Blog', blogSchema);
 
-export default Blog;
+module.exports = Blog;

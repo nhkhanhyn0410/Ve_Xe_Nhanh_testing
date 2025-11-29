@@ -1,26 +1,28 @@
-import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 const connectDB = async () => {
-    try {
-        const MONGODB_URL = process.env.MONGODB_URI;
+  try {
+    const MONGODB_URI = process.env.NODE_ENV === 'test'
+      ? process.env.MONGODB_TEST_URI
+      : process.env.MONGODB_URI;
 
-        const conn = await mongoose.connect(MONGODB_URL);
+    const conn = await mongoose.connect(MONGODB_URI);
 
-        logger.success(`MongoDB Đã kết nối: ${conn.connection.host}`);
+    logger.success(`MongoDB Đã kết nối: ${conn.connection.host}`);
 
-        //Connection events
-        mongoose.connection.on('error', (err) => {
-            logger.error('Lỗi khi kết nối MongoDB:', err);
-        });
+    // Connection events
+    mongoose.connection.on('error', (err) => {
+      logger.error('Lỗi khi kết nối MongoDB:', err);
+    });
 
-        mongoose.connection.on('disconnected', () => {
-            logger.warn('MongoDB Đã ngắt kết nối')
-        });
-    } catch (error) {
-        logger.error(`Lỗi kết nối với MongoDB: ${error.message}`);
-        throw error;
-    }
+    mongoose.connection.on('disconnected', () => {
+      logger.info('MongoDB Đã ngắt kết nối');
+    });
+  } catch (error) {
+    logger.error('Lỗi kết nối với MongoDB:', error.message);
+    process.exit(1);
+  }
 };
 
-export default connectDB;
+module.exports = connectDB;

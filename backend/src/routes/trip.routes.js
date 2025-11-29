@@ -1,7 +1,6 @@
-import express from 'express';
-import * as tripController from '../controllers/trip.controller.js';
-
+const express = require('express');
 const router = express.Router();
+const tripController = require('../controllers/trip.controller');
 
 /**
  * Trip Routes (Public)
@@ -19,4 +18,4 @@ router.get('/:id', tripController.getPublicTripDetail);
 // Get dynamic price for a trip
 router.get('/:id/dynamic-price', tripController.getDynamicPrice);
 
-export default router;
+module.exports = router;

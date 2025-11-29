@@ -1,16 +1,15 @@
-import Booking from '../models/Booking.js';
-import Trip from '../models/Trip.js';
-import SeatLockService from './seatLock.service.js';
-import VoucherService from './voucher.service.js';
-import mongoose from 'mongoose';
-import { logger } from '../utils/logger.js';
+const Booking = require('../models/Booking');
+const Trip = require('../models/Trip');
+const SeatLockService = require('./seatLock.service');
+const VoucherService = require('./voucher.service');
+const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 // Lazy-load PaymentService to avoid circular dependency
 let PaymentService = null;
-const getPaymentService = async () => {
+const getPaymentService = () => {
   if (!PaymentService) {
-    const module = await import('./payment.service.js');
-    PaymentService = module.default;
+    PaymentService = require('./payment.service');
   }
   return PaymentService;
 };
@@ -27,6 +26,12 @@ class BookingService {
    */
   static async holdSeats(holdData) {
     const { tripId, seats, contactInfo, customerId, pickupPoint, dropoffPoint, voucherCode } = holdData;
+
+    logger.info('=== HOLD SEATS ===');
+    logger.info('Khách hàng ID:', customerId);
+    logger.info('Is Guest Đặt chỗ:', !customerId);
+    logger.info('Chuyến ID:', tripId);
+    logger.info('Ghế:', seats?.length);
 
     // Validate trip exists and is bookable
     const trip = await Trip.findById(tripId)
@@ -62,8 +67,8 @@ class BookingService {
       throw new Error(`Ghế ${alreadyBooked.join(', ')} đã được đặt`);
     }
 
-    // Generate session ID for lock
-    const sessionId = customerId || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Generate session ID for lock (convert ObjectId to string if needed)
+    const sessionId = customerId ? customerId.toString() : `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     // Try to lock seats in Redis
     const lockResult = await SeatLockService.lockSeats(
@@ -99,7 +104,7 @@ class BookingService {
         voucherId = voucherValidation.voucher.id;
       } catch (error) {
         // Don't fail the whole booking if voucher is invalid, just ignore it
-        logger.warn(`Voucher validation failed for booking: ${error.message}`);
+        logger.info('Xác minh Voucher thất bại:', error.message);
       }
     }
 
@@ -137,8 +142,6 @@ class BookingService {
       isHeld: true,
       heldUntil: lockResult.expiresAt,
     });
-
-    logger.success(`Booking ${bookingCode} created - Trip: ${tripId} - ${seats.length} seat(s) held`);
 
     return {
       booking: await Booking.findById(booking._id)
@@ -200,24 +203,54 @@ class BookingService {
     booking.confirm();
     await booking.save();
 
-    // Increment voucher usage if voucher was applied
+    // Tăng mức sử dụng voucher nếu áp dụng voucher
     if (booking.voucherId) {
       try {
         await VoucherService.applyToBooking(booking.voucherId);
       } catch (error) {
-        logger.error(`Failed to increment voucher usage for booking ${bookingId}: ${error.message}`);
+        logger.error('Không thể truy vấn voucher đã sử dụng:', error.message);
       }
     }
 
     // Release Redis locks
     await SeatLockService.releaseSeats(booking.tripId, seatNumbers, sessionId);
 
-    logger.success(`Booking ${booking.bookingCode} confirmed - ${seatNumbers.length} seat(s) booked`);
-
     return await Booking.findById(booking._id)
       .populate('tripId')
       .populate('operatorId', 'companyName phone email')
       .populate('voucherId');
+  }
+
+  /**
+   * Cancel booking for guest users (no authentication required)
+   * Verifies booking ownership using email or phone
+   * @param {string} bookingId - Booking ID
+   * @param {string} email - Customer email
+   * @param {string} phone - Customer phone
+   * @param {string} reason - Cancellation reason
+   * @param {string} ipAddress - IP address
+   * @returns {Promise<Object>} Cancelled booking with refund result
+   */
+  static async cancelBookingGuest(bookingId, email, phone, reason, ipAddress) {
+    const booking = await Booking.findById(bookingId).populate('customerId', 'email phone');
+
+    if (!booking) {
+      throw new Error('Không tìm thấy mã đặt vé');
+    }
+
+    // Verify booking ownership using email or phone
+    const customerEmail = booking.customerId?.email || booking.guestInfo?.email;
+    const customerPhone = booking.customerId?.phone || booking.guestInfo?.phone;
+
+    const emailMatch = email && customerEmail && email.toLowerCase() === customerEmail.toLowerCase();
+    const phoneMatch = phone && customerPhone && phone === customerPhone;
+
+    if (!emailMatch && !phoneMatch) {
+      throw new Error('Thông tin xác thực không chính xác. Vui lòng kiểm tra lại email hoặc số điện thoại.');
+    }
+
+    // Use the existing cancelBooking method
+    return await this.cancelBooking(bookingId, reason, 'customer', ipAddress);
   }
 
   /**
@@ -260,7 +293,7 @@ class BookingService {
       try {
         await VoucherService.releaseFromBooking(booking.voucherId);
       } catch (error) {
-        logger.error(`Failed to release voucher usage for booking ${bookingId}: ${error.message}`);
+        logger.error('Không thể sử dụng voucher:', error.message);
       }
     }
 
@@ -268,7 +301,7 @@ class BookingService {
     let refundResult = null;
     if (booking.paymentStatus === 'paid' && booking.status === 'confirmed') {
       try {
-        const PaymentServiceClass = await getPaymentService();
+        const PaymentServiceClass = getPaymentService();
         refundResult = await PaymentServiceClass.autoRefundOnCancellation(
           bookingId,
           reason,
@@ -277,12 +310,12 @@ class BookingService {
         );
 
         if (refundResult.success) {
-          logger.success(`Auto-refund successful for booking ${booking.bookingCode}`);
+          logger.info('Hoàn tiền successful cho đặt chỗ:', bookingId);
         } else {
-          logger.error(`Auto-refund failed for booking ${booking.bookingCode}`);
+          logger.error('Hoàn tiền failed cho đặt chỗ:', bookingId);
         }
       } catch (error) {
-        logger.error(`Auto-refund error for booking ${bookingId}: ${error.message}`);
+        logger.error('Hoàn tiền lỗi:', error.message);
         // Don't fail the cancellation if refund fails
       }
     }
@@ -290,8 +323,6 @@ class BookingService {
     // Cancel booking
     booking.cancel(reason, cancelledBy);
     await booking.save();
-
-    logger.warn(`Booking ${booking.bookingCode} cancelled - Reason: ${reason} - By: ${cancelledBy}`);
 
     return {
       booking,
@@ -334,8 +365,6 @@ class BookingService {
     // Update booking
     booking.heldUntil = lockResult.expiresAt;
     await booking.save();
-
-    logger.info(`Booking ${booking.bookingCode} hold extended - New expiry: ${minutes} minutes`);
 
     return {
       booking: await Booking.findById(booking._id),
@@ -606,4 +635,4 @@ class BookingService {
   }
 }
 
-export default BookingService;
+module.exports = BookingService;

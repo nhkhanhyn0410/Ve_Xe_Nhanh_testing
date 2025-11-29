@@ -1,8 +1,7 @@
-import express from 'express';
-import * as reviewController from '../controllers/review.controller.js';
-import { authenticate, authorize } from '../middleware/auth.middleware.js';
-
+const express = require('express');
 const router = express.Router();
+const reviewController = require('../controllers/review.controller');
+const { authenticate, authorize } = require('../middleware/auth.middleware');
 
 /**
  * Review Routes
@@ -61,4 +60,4 @@ router.post(
   reviewController.reportReview
 );
 
-export default router;
+module.exports = router;

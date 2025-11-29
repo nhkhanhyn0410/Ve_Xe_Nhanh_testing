@@ -1,14 +1,14 @@
-import Complaint from '../models/Complaint.js';
-import User from '../models/User.js';
-import Booking from '../models/Booking.js';
-import { logger } from '../utils/logger.js';
+const Complaint = require('../models/Complaint');
+const User = require('../models/User');
+const Booking = require('../models/Booking');
+const logger = require('../utils/logger');
 
 /**
  * @route   POST /api/complaints
  * @desc    Create a new complaint
  * @access  Private (Authenticated users)
  */
-export const createComplaint = async (req, res) => {
+exports.createComplaint = async (req, res) => {
   try {
     const {
       subject,
@@ -71,7 +71,7 @@ export const createComplaint = async (req, res) => {
       data: complaint,
     });
   } catch (error) {
-    logger.error('Create complaint error:', error);
+    logger.error('Lỗi tạo khiếu nại:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi tạo khiếu nại',
@@ -85,7 +85,7 @@ export const createComplaint = async (req, res) => {
  * @desc    Get user's complaints
  * @access  Private (Authenticated users)
  */
-export const getMyComplaints = async (req, res) => {
+exports.getMyComplaints = async (req, res) => {
   try {
     const { status, category, page = 1, limit = 10, sort = '-createdAt' } = req.query;
 
@@ -122,7 +122,7 @@ export const getMyComplaints = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get my complaints error:', error);
+    logger.error('Lỗi lấy khiếu nại của tôi:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy danh sách khiếu nại',
@@ -136,7 +136,7 @@ export const getMyComplaints = async (req, res) => {
  * @desc    Get complaint details
  * @access  Private (Owner or Admin)
  */
-export const getComplaintById = async (req, res) => {
+exports.getComplaintById = async (req, res) => {
   try {
     const complaint = await Complaint.findById(req.params.id)
       .populate('userId', 'fullName email phone')
@@ -177,7 +177,7 @@ export const getComplaintById = async (req, res) => {
       data: complaint,
     });
   } catch (error) {
-    logger.error('Get complaint error:', error);
+    logger.error('Lỗi lấy khiếu nại:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy thông tin khiếu nại',
@@ -191,7 +191,7 @@ export const getComplaintById = async (req, res) => {
  * @desc    Add note to complaint
  * @access  Private (Owner or Admin)
  */
-export const addNote = async (req, res) => {
+exports.addNote = async (req, res) => {
   try {
     const { content, isInternal } = req.body;
 
@@ -239,7 +239,7 @@ export const addNote = async (req, res) => {
       data: updatedComplaint,
     });
   } catch (error) {
-    logger.error('Add note error:', error);
+    logger.error('Lỗi thêm ghi chú:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi thêm ghi chú',
@@ -253,7 +253,7 @@ export const addNote = async (req, res) => {
  * @desc    Add satisfaction rating
  * @access  Private (Owner only)
  */
-export const addSatisfactionRating = async (req, res) => {
+exports.addSatisfactionRating = async (req, res) => {
   try {
     const { rating, feedback } = req.body;
 
@@ -289,7 +289,7 @@ export const addSatisfactionRating = async (req, res) => {
       data: complaint,
     });
   } catch (error) {
-    logger.error('Add satisfaction rating error:', error);
+    logger.error('Lỗi thêm đánh giá hài lòng:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lỗi khi thêm đánh giá',
@@ -304,7 +304,7 @@ export const addSatisfactionRating = async (req, res) => {
  * @desc    Get all complaints (admin)
  * @access  Private (Admin only)
  */
-export const getAllComplaints = async (req, res) => {
+exports.getAllComplaints = async (req, res) => {
   try {
     const {
       status,
@@ -375,7 +375,7 @@ export const getAllComplaints = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get all complaints error:', error);
+    logger.error('Lỗi lấy tất cả khiếu nại:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy danh sách khiếu nại',
@@ -389,7 +389,7 @@ export const getAllComplaints = async (req, res) => {
  * @desc    Assign complaint to admin
  * @access  Private (Admin only)
  */
-export const assignComplaint = async (req, res) => {
+exports.assignComplaint = async (req, res) => {
   try {
     const { adminId } = req.body;
 
@@ -430,7 +430,7 @@ export const assignComplaint = async (req, res) => {
       data: updatedComplaint,
     });
   } catch (error) {
-    logger.error('Assign complaint error:', error);
+    logger.error('Lỗi chỉ định khiếu nại:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi phân công khiếu nại',
@@ -444,7 +444,7 @@ export const assignComplaint = async (req, res) => {
  * @desc    Update complaint status
  * @access  Private (Admin only)
  */
-export const updateComplaintStatus = async (req, res) => {
+exports.updateComplaintStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
@@ -478,7 +478,7 @@ export const updateComplaintStatus = async (req, res) => {
       data: updatedComplaint,
     });
   } catch (error) {
-    logger.error('Update status error:', error);
+    logger.error('Lỗi cập nhật trạng thái:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi cập nhật trạng thái',
@@ -492,7 +492,7 @@ export const updateComplaintStatus = async (req, res) => {
  * @desc    Update complaint priority
  * @access  Private (Admin only)
  */
-export const updateComplaintPriority = async (req, res) => {
+exports.updateComplaintPriority = async (req, res) => {
   try {
     const { priority } = req.body;
 
@@ -522,7 +522,7 @@ export const updateComplaintPriority = async (req, res) => {
       data: complaint,
     });
   } catch (error) {
-    logger.error('Update priority error:', error);
+    logger.error('Lỗi cập nhật mức độ ưu tiên:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi cập nhật độ ưu tiên',
@@ -536,7 +536,7 @@ export const updateComplaintPriority = async (req, res) => {
  * @desc    Resolve complaint
  * @access  Private (Admin only)
  */
-export const resolveComplaint = async (req, res) => {
+exports.resolveComplaint = async (req, res) => {
   try {
     const { resolution } = req.body;
 
@@ -569,7 +569,7 @@ export const resolveComplaint = async (req, res) => {
       data: updatedComplaint,
     });
   } catch (error) {
-    logger.error('Resolve complaint error:', error);
+    logger.error('Lỗi giải quyết khiếu nại:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi giải quyết khiếu nại',
@@ -583,7 +583,7 @@ export const resolveComplaint = async (req, res) => {
  * @desc    Get complaint statistics
  * @access  Private (Admin only)
  */
-export const getComplaintStatistics = async (req, res) => {
+exports.getComplaintStatistics = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
 
@@ -616,7 +616,7 @@ export const getComplaintStatistics = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get complaint statistics error:', error);
+    logger.error('Lỗi lấy thống kê khiếu nại:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy thống kê khiếu nại',
@@ -624,3 +624,5 @@ export const getComplaintStatistics = async (req, res) => {
     });
   }
 };
+
+module.exports = exports;

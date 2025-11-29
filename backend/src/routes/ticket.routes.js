@@ -1,11 +1,10 @@
-import express from 'express';
-import { body, param } from 'express-validator';
-import * as TicketController from '../controllers/ticket.controller.js';
+const express = require('express');
+const router = express.Router();
+const TicketController = require('../controllers/ticket.controller');
+const { body, param } = require('express-validator');
 
 // Note: auth middleware should be imported from your middleware folder
-// import { protect, authorize } from '../middleware/auth.middleware.js';
-
-const router = express.Router();
+// const { protect, authorize } = require('../middleware/auth.middleware');
 
 /**
  * Ticket Routes
@@ -31,8 +30,6 @@ const validateLookupTicket = [
 ];
 
 const validateRequestOTP = [
-  // Note: If you want to support phone-only lookup (as mentioned in controller),
-  // you might want to make ticketCode optional here: .optional()
   body('ticketCode').notEmpty().withMessage('Mã vé là bắt buộc'),
   body('phone')
     .notEmpty()
@@ -247,4 +244,4 @@ router.get(
   TicketController.getTicketById
 );
 
-export default router;
+module.exports = router;

@@ -1,9 +1,9 @@
-import PDFDocument from 'pdfkit';
-import fs from 'fs';
-import path from 'path';
-import moment from 'moment-timezone';
-import QRService from './qr.service.js';
-import { logger } from '../utils/logger.js';
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
+const moment = require('moment-timezone');
+const QRService = require('./qr.service');
+const logger = require('../utils/logger');
 
 /**
  * PDF Service
@@ -35,8 +35,8 @@ class PDFService {
           size: 'A4',
           margin: 50,
           info: {
-            Title: `QuikRide Ticket - ${ticketCode}`,
-            Author: 'QuikRide',
+            Title: `Vé xe nhanh Ticket - ${ticketCode}`,
+            Author: 'Vé xe nhanh',
             Subject: 'Bus Ticket',
           },
         });
@@ -298,7 +298,7 @@ class PDFService {
           .fontSize(8)
           .fillColor('#94a3b8')
           .text(
-            'QuikRide - Nền tảng đặt vé xe khách trực tuyến',
+            'Vé xe nhanh - Nền tảng đặt vé xe khách trực tuyến',
             margin,
             doc.page.height - 40,
             { align: 'center' }
@@ -315,16 +315,16 @@ class PDFService {
         doc.end();
 
         stream.on('finish', () => {
-          logger.success(`PDF ticket generated successfully: ${ticketCode} - ${outputPath}`);
+          logger.info('PDF vé đã tạo thành công:', outputPath);
           resolve(outputPath);
         });
 
         stream.on('error', (error) => {
-          logger.error(`PDF generation error for ticket ${ticketCode}: ${error.message}`);
+          logger.error('Tạo PDF lỗi:', error);
           reject(error);
         });
       } catch (error) {
-        logger.error(`PDF generation error: ${error.message}`);
+        logger.error('Tạo PDF lỗi:', error);
         reject(error);
       }
     });
@@ -339,7 +339,7 @@ class PDFService {
       .fontSize(28)
       .fillColor(primaryColor)
       .font('Helvetica-Bold')
-      .text('QuikRide', margin, 50);
+      .text('Vé xe nhanh', margin, 50);
 
     doc
       .fontSize(10)
@@ -402,12 +402,12 @@ class PDFService {
     try {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
-        logger.info(`PDF deleted: ${filePath}`);
+        logger.info('PDF đã xóa:', filePath);
       }
     } catch (error) {
-      logger.error(`PDF deletion error: ${error.message}`);
+      logger.error('PDF lỗi:', error);
     }
   }
 }
 
-export default new PDFService();
+module.exports = new PDFService();

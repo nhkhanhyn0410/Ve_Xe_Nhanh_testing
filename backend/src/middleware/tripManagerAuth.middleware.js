@@ -1,6 +1,5 @@
-import jwt from 'jsonwebtoken';
-import Employee from '../models/Employee.js';
-import { logger } from '../utils/logger.js';
+const jwt = require('jsonwebtoken');
+const Employee = require('../models/Employee');
 
 /**
  * Trip Manager Authentication Middleware
@@ -31,7 +30,6 @@ const protectTripManager = async (req, res, next) => {
 
     // Check if token type is access
     if (decoded.type !== 'access') {
-      logger.warn(`Invalid token type for trip manager auth: ${decoded.type}`);
       return res.status(403).json({
         success: false,
         message: 'Token không hợp lệ',
@@ -40,7 +38,6 @@ const protectTripManager = async (req, res, next) => {
 
     // Check if role is trip_manager or driver
     if (decoded.role !== 'trip_manager' && decoded.role !== 'driver') {
-      logger.warn(`Unauthorized role attempted trip manager access: ${decoded.role}`);
       return res.status(403).json({
         success: false,
         message: 'Chỉ Trip Manager hoặc Driver mới có quyền truy cập',
@@ -50,7 +47,6 @@ const protectTripManager = async (req, res, next) => {
     // Verify employee exists and is active
     const employee = await Employee.findById(decoded.userId);
     if (!employee || employee.status !== 'active') {
-      logger.warn(`Inactive or non-existent employee attempted access: ${decoded.userId}`);
       return res.status(403).json({
         success: false,
         message: 'Tài khoản không hoạt động',
@@ -66,10 +62,9 @@ const protectTripManager = async (req, res, next) => {
     req.userId = decoded.userId;
     req.user = employee;
 
-    logger.info(`Trip manager authenticated - ID: ${decoded.userId}, Role: ${decoded.role}`);
     next();
   } catch (error) {
-    logger.error(`Trip manager auth error: ${error.message}`);
+    logger.error('Lỗi xác thực quản lý chuyến:', error);
 
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
@@ -106,7 +101,6 @@ const authorizeTripManager = (...roles) => {
     }
 
     if (!roles.includes(req.tripManager.role)) {
-      logger.warn(`Role ${req.tripManager.role} attempted to access ${roles.join(', ')} only resource`);
       return res.status(403).json({
         success: false,
         message: `Chỉ ${roles.join(', ')} mới có quyền truy cập`,
@@ -117,4 +111,7 @@ const authorizeTripManager = (...roles) => {
   };
 };
 
-export { protectTripManager, authorizeTripManager };
+module.exports = {
+  protectTripManager,
+  authorizeTripManager,
+};

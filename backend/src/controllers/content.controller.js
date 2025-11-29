@@ -1,7 +1,7 @@
-import Banner from '../models/Banner.js';
-import Blog from '../models/Blog.js';
-import FAQ from '../models/FAQ.js';
-import { logger } from '../utils/logger.js';
+const Banner = require('../models/Banner');
+const Blog = require('../models/Blog');
+const FAQ = require('../models/FAQ');
+const logger = require('../utils/logger');
 
 // ============= BANNER MANAGEMENT =============
 
@@ -10,7 +10,7 @@ import { logger } from '../utils/logger.js';
  * @desc    Get active banners for a position
  * @access  Public
  */
-export const getBanners = async (req, res) => {
+exports.getBanners = async (req, res) => {
   try {
     const { position = 'homepage' } = req.query;
 
@@ -34,7 +34,7 @@ export const getBanners = async (req, res) => {
       data: banners,
     });
   } catch (error) {
-    logger.error('Get banners error:', error);
+    logger.error('Lỗi lấy banner:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy danh sách banner',
@@ -48,7 +48,7 @@ export const getBanners = async (req, res) => {
  * @desc    Track banner view
  * @access  Public
  */
-export const trackBannerView = async (req, res) => {
+exports.trackBannerView = async (req, res) => {
   try {
     const banner = await Banner.findById(req.params.id);
 
@@ -66,7 +66,7 @@ export const trackBannerView = async (req, res) => {
       message: 'Đã ghi nhận lượt xem',
     });
   } catch (error) {
-    logger.error('Track banner view error:', error);
+    logger.error('Lỗi theo dõi lượt xem banner:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi ghi nhận lượt xem',
@@ -80,7 +80,7 @@ export const trackBannerView = async (req, res) => {
  * @desc    Track banner click
  * @access  Public
  */
-export const trackBannerClick = async (req, res) => {
+exports.trackBannerClick = async (req, res) => {
   try {
     const banner = await Banner.findById(req.params.id);
 
@@ -101,7 +101,7 @@ export const trackBannerClick = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Track banner click error:', error);
+    logger.error('Lỗi theo dõi lượt nhấp banner:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi ghi nhận lượt click',
@@ -117,7 +117,7 @@ export const trackBannerClick = async (req, res) => {
  * @desc    Get published blogs
  * @access  Public
  */
-export const getBlogs = async (req, res) => {
+exports.getBlogs = async (req, res) => {
   try {
     const {
       category,
@@ -168,7 +168,7 @@ export const getBlogs = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get blogs error:', error);
+    logger.error('Lỗi lấy blog:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy danh sách bài viết',
@@ -182,7 +182,7 @@ export const getBlogs = async (req, res) => {
  * @desc    Get blog by slug
  * @access  Public
  */
-export const getBlogBySlug = async (req, res) => {
+exports.getBlogBySlug = async (req, res) => {
   try {
     const blog = await Blog.findOne({
       slug: req.params.slug,
@@ -217,7 +217,7 @@ export const getBlogBySlug = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get blog error:', error);
+    logger.error('Lỗi lấy blog:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy bài viết',
@@ -231,7 +231,7 @@ export const getBlogBySlug = async (req, res) => {
  * @desc    Like a blog post
  * @access  Public
  */
-export const likeBlog = async (req, res) => {
+exports.likeBlog = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
 
@@ -252,7 +252,7 @@ export const likeBlog = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Like blog error:', error);
+    logger.error('Lỗi thích blog:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi thích bài viết',
@@ -268,7 +268,7 @@ export const likeBlog = async (req, res) => {
  * @desc    Get FAQs
  * @access  Public
  */
-export const getFAQs = async (req, res) => {
+exports.getFAQs = async (req, res) => {
   try {
     const { category, search } = req.query;
 
@@ -299,7 +299,7 @@ export const getFAQs = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get FAQs error:', error);
+    logger.error('Lỗi lấy FAQ:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy danh sách FAQ',
@@ -313,7 +313,7 @@ export const getFAQs = async (req, res) => {
  * @desc    Get FAQ by ID
  * @access  Public
  */
-export const getFAQById = async (req, res) => {
+exports.getFAQById = async (req, res) => {
   try {
     const faq = await FAQ.findById(req.params.id);
 
@@ -332,7 +332,7 @@ export const getFAQById = async (req, res) => {
       data: faq,
     });
   } catch (error) {
-    logger.error('Get FAQ error:', error);
+    logger.error('Lỗi lấy FAQ:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi lấy FAQ',
@@ -346,7 +346,7 @@ export const getFAQById = async (req, res) => {
  * @desc    Mark FAQ as helpful
  * @access  Public
  */
-export const markFAQHelpful = async (req, res) => {
+exports.markFAQHelpful = async (req, res) => {
   try {
     const { helpful } = req.body;
 
@@ -374,7 +374,7 @@ export const markFAQHelpful = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Mark FAQ helpful error:', error);
+    logger.error('Lỗi đánh dấu FAQ hữu ích:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi khi ghi nhận phản hồi',
@@ -382,3 +382,5 @@ export const markFAQHelpful = async (req, res) => {
     });
   }
 };
+
+module.exports = exports;

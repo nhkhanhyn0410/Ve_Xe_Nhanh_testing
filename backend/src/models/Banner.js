@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import logger from '../config/logger.js';
+const mongoose = require('mongoose');
 
 const bannerSchema = new mongoose.Schema(
   {
@@ -18,7 +17,7 @@ const bannerSchema = new mongoose.Schema(
       required: [true, 'Hình ảnh banner là bắt buộc'],
     },
     mobileImageUrl: {
-      type: String,
+      type: String, // Optional separate image for mobile
     },
     linkUrl: {
       type: String,
@@ -61,7 +60,7 @@ const bannerSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: (doc, ret) => {
+      transform: function (doc, ret) {
         delete ret.__v;
         return ret;
       },
@@ -70,10 +69,12 @@ const bannerSchema = new mongoose.Schema(
   }
 );
 
+// Indexes
 bannerSchema.index({ position: 1, order: 1 });
 bannerSchema.index({ isActive: 1 });
 bannerSchema.index({ startDate: 1, endDate: 1 });
 
+// Virtual to check if banner is currently active based on dates
 bannerSchema.virtual('isCurrentlyActive').get(function () {
   if (!this.isActive) return false;
 
@@ -84,28 +85,18 @@ bannerSchema.virtual('isCurrentlyActive').get(function () {
   return true;
 });
 
-bannerSchema.methods.incrementView = async function () {
-  try {
-    this.viewCount += 1;
-    await this.save({ validateBeforeSave: false });
-    logger.info(`Banner ${this._id} số lượt xem tăng lên ${this.viewCount}`);
-  } catch (error) {
-    logger.error(`Lỗi tăng số lượt xem cho banner ${this._id}:`, error);
-    throw error;
-  }
+// Instance method - increment view count
+bannerSchema.methods.incrementView = function () {
+  this.viewCount += 1;
+  return this.save({ validateBeforeSave: false });
 };
 
-bannerSchema.methods.incrementClick = async function () {
-  try {
-    this.clickCount += 1;
-    await this.save({ validateBeforeSave: false });
-    logger.info(`Banner ${this._id} số lần nhấp đã tăng lên ${this.clickCount}`);
-  } catch (error) {
-    logger.error(`Lỗi tăng số lần nhấp chuột cho banner ${this._id}:`, error);
-    throw error;
-  }
+// Instance method - increment click count
+bannerSchema.methods.incrementClick = function () {
+  this.clickCount += 1;
+  return this.save({ validateBeforeSave: false });
 };
 
 const Banner = mongoose.model('Banner', bannerSchema);
 
-export default Banner;
+module.exports = Banner;

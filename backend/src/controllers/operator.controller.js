@@ -1,6 +1,6 @@
-import OperatorService from '../services/operator.service.js';
-import DashboardService from '../services/dashboard.service.js';
-import { logger } from '../utils/logger.js';
+const OperatorService = require('../services/operator.service');
+const DashboardService = require('../services/dashboard.service');
+const logger = require('../utils/logger');
 
 /**
  * Operator Controller
@@ -12,7 +12,7 @@ import { logger } from '../utils/logger.js';
  * @desc    Get comprehensive dashboard statistics
  * @access  Private (Operator)
  */
-export const getDashboardStats = async (req, res, next) => {
+exports.getDashboardStats = async (req, res, next) => {
   try {
     const operatorId = req.userId; // From authenticate middleware
     const { period, startDate, endDate } = req.query;
@@ -28,7 +28,7 @@ export const getDashboardStats = async (req, res, next) => {
       data: stats,
     });
   } catch (error) {
-    logger.error('Get dashboard stats error:', error);
+    logger.error('Lỗi lấy thống kê dashboard:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Không thể tải thống kê dashboard',
@@ -41,7 +41,7 @@ export const getDashboardStats = async (req, res, next) => {
  * @desc    Đăng ký nhà xe mới
  * @access  Public
  */
-export const register = async (req, res, next) => {
+exports.register = async (req, res, next) => {
   try {
     const {
       companyName,
@@ -88,7 +88,7 @@ export const register = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Operator register error:', error);
+    logger.error('Lỗi đăng ký nhà điều hành:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Đăng ký nhà xe thất bại',
@@ -101,7 +101,7 @@ export const register = async (req, res, next) => {
  * @desc    Đăng nhập cho operator
  * @access  Public
  */
-export const login = async (req, res, next) => {
+exports.login = async (req, res, next) => {
   try {
     const { email, password, rememberMe } = req.body;
 
@@ -126,7 +126,7 @@ export const login = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Operator login error:', error);
+    logger.error('Lỗi đăng nhập nhà điều hành:', error);
     res.status(401).json({
       status: 'error',
       message: error.message || 'Đăng nhập thất bại',
@@ -139,7 +139,7 @@ export const login = async (req, res, next) => {
  * @desc    Lấy thông tin operator hiện tại
  * @access  Private (Operator)
  */
-export const getMe = async (req, res, next) => {
+exports.getMe = async (req, res, next) => {
   try {
     const operatorId = req.userId; // Từ authenticate middleware
 
@@ -152,7 +152,7 @@ export const getMe = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get operator error:', error);
+    logger.error('Lỗi lấy nhà điều hành:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy nhà xe',
@@ -165,7 +165,7 @@ export const getMe = async (req, res, next) => {
  * @desc    Cập nhật thông tin operator
  * @access  Private (Operator)
  */
-export const updateMe = async (req, res, next) => {
+exports.updateMe = async (req, res, next) => {
   try {
     const operatorId = req.userId; // Từ authenticate middleware
     const updateData = req.body;
@@ -180,7 +180,7 @@ export const updateMe = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Update operator error:', error);
+    logger.error('Lỗi cập nhật nhà điều hành:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Cập nhật thông tin thất bại',
@@ -193,7 +193,7 @@ export const updateMe = async (req, res, next) => {
  * @desc    Lấy thông tin operator theo ID
  * @access  Public
  */
-export const getById = async (req, res, next) => {
+exports.getById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -206,7 +206,7 @@ export const getById = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get operator error:', error);
+    logger.error('Lỗi lấy nhà điều hành:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy nhà xe',
@@ -219,7 +219,7 @@ export const getById = async (req, res, next) => {
  * @desc    Lấy danh sách operators
  * @access  Public
  */
-export const getAll = async (req, res, next) => {
+exports.getAll = async (req, res, next) => {
   try {
     const {
       verificationStatus,
@@ -256,7 +256,7 @@ export const getAll = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get operators error:', error);
+    logger.error('Lỗi lấy nhà điều hành:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách nhà xe thất bại',

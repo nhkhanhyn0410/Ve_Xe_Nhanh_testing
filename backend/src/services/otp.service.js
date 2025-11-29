@@ -1,6 +1,6 @@
-import crypto from 'crypto';
-import { getRedisClient } from '../config/redis.js';
-import { logger } from '../utils/logger.js';
+const crypto = require('crypto');
+const { getRedisClient } = require('../config/redis');
+const logger = require('../utils/logger');
 
 /**
  * OTP Service
@@ -91,8 +91,6 @@ class OTPService {
     // OTP is valid, delete it
     await redis.del(key);
 
-    logger.success(`OTP verified successfully for: ${identifier}`);
-
     return {
       success: true,
       message: 'Xác thực OTP thành công',
@@ -109,7 +107,10 @@ class OTPService {
   static async sendOTPEmail(email, otp, purpose = 'guest_booking') {
     // In production, integrate with email service (SendGrid, AWS SES, etc.)
     // For now, just log the OTP
-    logger.info(`Sending OTP to email ${email} - Purpose: ${purpose}`);
+    logger.info(`Đang gửi OTP đến ${email}:`);
+    logger.info(`OTP Code: ${OTP}`);
+    logger.info(`Purpose: ${purpose}`);
+    logger.info(`---`);
 
     // TODO: Implement actual email sending
     // Example with nodemailer:
@@ -126,7 +127,7 @@ class OTPService {
     const mailOptions = {
       from: process.env.EMAIL_FROM,
       to: email,
-      subject: 'Mã xác thực QuikRide',
+      subject: 'Mã xác thực Vé xe nhanh',
       html: `
         <h2>Mã xác thực của bạn</h2>
         <p>Mã OTP của bạn là: <strong>${otp}</strong></p>
@@ -153,7 +154,10 @@ class OTPService {
   static async sendOTPSMS(phone, otp, purpose = 'guest_booking') {
     // In production, integrate with SMS service (Twilio, VNPT SMS, etc.)
     // For now, just log the OTP
-    logger.info(`Sending OTP to phone ${phone} - Purpose: ${purpose}`);
+    logger.info(`Đang gửi OTP đến ${phtrêne}:`);
+    logger.info(`OTP Code: ${OTP}`);
+    logger.info(`Purpose: ${purpose}`);
+    logger.info(`---`);
 
     // TODO: Implement actual SMS sending
     // Example with VNPT SMS:
@@ -166,7 +170,7 @@ class OTPService {
         password: process.env.VNPT_SMS_PASSWORD,
         brandname: process.env.VNPT_SMS_BRANDNAME,
         to: phone,
-        message: `Ma xac thuc QuikRide cua ban la: ${otp}. Ma co hieu luc trong 5 phut.`,
+        message: `Ma xac thuc Vé xe nhanh cua ban la: ${otp}. Ma co hieu luc trong 5 phut.`,
       }
     );
     */
@@ -224,8 +228,6 @@ class OTPService {
       sendResult = await this.sendOTPSMS(identifier, otp, 'guest_booking');
     }
 
-    logger.success(`OTP requested successfully for ${type}: ${identifier}`);
-
     return {
       success: true,
       message: sendResult.message,
@@ -259,4 +261,4 @@ class OTPService {
   }
 }
 
-export default OTPService;
+module.exports = OTPService;

@@ -1,12 +1,12 @@
-import BusService from '../services/bus.service.js';
-import {
+const BusService = require('../services/bus.service');
+const logger = require('../utils/logger');
+const {
   listAllTemplates,
   getTemplatesByBusType,
   getTemplate,
   buildCustomTemplate,
-} from '../utils/seatLayoutTemplates.js';
-import { validateSeatLayoutForBusType } from '../utils/seatLayout.js';
-import { logger } from '../utils/logger.js';
+} = require('../utils/seatLayoutTemplates');
+const { validateSeatLayoutForBusType } = require('../utils/seatLayout');
 
 /**
  * Bus Controller
@@ -18,7 +18,7 @@ import { logger } from '../utils/logger.js';
  * @desc    Tạo xe mới
  * @access  Private (Operator)
  */
-export const create = async (req, res, next) => {
+exports.create = async (req, res, next) => {
   try {
     const operatorId = req.userId; // Từ authenticate middleware
     const busData = req.body;
@@ -44,8 +44,6 @@ export const create = async (req, res, next) => {
 
     const bus = await BusService.create(operatorId, busData);
 
-    logger.success(`Bus created - Number: ${bus.busNumber}, Type: ${bus.busType}, Operator: ${operatorId}`);
-
     res.status(201).json({
       status: 'success',
       message: 'Tạo xe thành công',
@@ -54,7 +52,7 @@ export const create = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Create bus error: ${error.message}`);
+    logger.error('Lỗi tạo xe xe bus:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tạo xe thất bại',
@@ -67,7 +65,7 @@ export const create = async (req, res, next) => {
  * @desc    Lấy danh sách buses của operator
  * @access  Private (Operator)
  */
-export const getMyBuses = async (req, res, next) => {
+exports.getMyBuses = async (req, res, next) => {
   try {
     const operatorId = req.userId;
     const { status, busType, search, page, limit, sortBy, sortOrder } = req.query;
@@ -87,8 +85,6 @@ export const getMyBuses = async (req, res, next) => {
 
     const result = await BusService.getByOperator(operatorId, filters, options);
 
-    logger.info(`Retrieved ${result.buses.length} buses for operator: ${operatorId}`);
-
     res.status(200).json({
       status: 'success',
       data: {
@@ -97,7 +93,7 @@ export const getMyBuses = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Get buses error: ${error.message}`);
+    logger.error('Lỗi lấy xe xe bus:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách xe thất bại',
@@ -110,7 +106,7 @@ export const getMyBuses = async (req, res, next) => {
  * @desc    Lấy thông tin bus theo ID
  * @access  Private (Operator)
  */
-export const getById = async (req, res, next) => {
+exports.getById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -124,7 +120,7 @@ export const getById = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Get bus error: ${error.message}`);
+    logger.error('Lỗi lấy xe xe bus:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy xe',
@@ -137,15 +133,13 @@ export const getById = async (req, res, next) => {
  * @desc    Cập nhật bus
  * @access  Private (Operator)
  */
-export const update = async (req, res, next) => {
+exports.update = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
     const updateData = req.body;
 
     const bus = await BusService.update(id, operatorId, updateData);
-
-    logger.success(`Bus updated - ID: ${id}, Number: ${bus.busNumber}`);
 
     res.status(200).json({
       status: 'success',
@@ -155,7 +149,7 @@ export const update = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Update bus error: ${error.message}`);
+    logger.error('Lỗi cập nhật xe xe bus:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Cập nhật xe thất bại',
@@ -168,21 +162,19 @@ export const update = async (req, res, next) => {
  * @desc    Xóa bus (soft delete - retire)
  * @access  Private (Operator)
  */
-export const deleteBus = async (req, res, next) => {
+exports.delete = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
 
     await BusService.delete(id, operatorId);
 
-    logger.success(`Bus deleted - ID: ${id}, Operator: ${operatorId}`);
-
     res.status(200).json({
       status: 'success',
       message: 'Xóa xe thành công',
     });
   } catch (error) {
-    logger.error(`Delete bus error: ${error.message}`);
+    logger.error('Lỗi xóa xe xe bus:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xóa xe thất bại',
@@ -195,7 +187,7 @@ export const deleteBus = async (req, res, next) => {
  * @desc    Thay đổi trạng thái bus
  * @access  Private (Operator)
  */
-export const changeStatus = async (req, res, next) => {
+exports.changeStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -210,8 +202,6 @@ export const changeStatus = async (req, res, next) => {
 
     const bus = await BusService.changeStatus(id, operatorId, status);
 
-    logger.success(`Bus status changed - ID: ${id}, New status: ${status}`);
-
     res.status(200).json({
       status: 'success',
       message: 'Thay đổi trạng thái xe thành công',
@@ -220,7 +210,7 @@ export const changeStatus = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Change bus status error: ${error.message}`);
+    logger.error('Lỗi thay đổi trạng thái xe xe bus:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Thay đổi trạng thái xe thất bại',
@@ -233,7 +223,7 @@ export const changeStatus = async (req, res, next) => {
  * @desc    Lấy thống kê buses
  * @access  Private (Operator)
  */
-export const getStatistics = async (req, res, next) => {
+exports.getStatistics = async (req, res, next) => {
   try {
     const operatorId = req.userId;
 
@@ -246,7 +236,7 @@ export const getStatistics = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Get bus statistics error: ${error.message}`);
+    logger.error('Lỗi lấy thống kê xe xe bus:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy thống kê xe thất bại',
@@ -259,7 +249,7 @@ export const getStatistics = async (req, res, next) => {
  * @desc    Tìm kiếm buses (public)
  * @access  Public
  */
-export const search = async (req, res, next) => {
+exports.search = async (req, res, next) => {
   try {
     const { busType, operatorId, minSeats, maxSeats, amenities, page, limit, sortBy, sortOrder } = req.query;
 
@@ -280,8 +270,6 @@ export const search = async (req, res, next) => {
 
     const result = await BusService.search(filters, options);
 
-    logger.info(`Bus search completed - Found: ${result.buses.length} buses`);
-
     res.status(200).json({
       status: 'success',
       data: {
@@ -290,7 +278,7 @@ export const search = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Search buses error: ${error.message}`);
+    logger.error('Lỗi tìm kiếm xe xe bus:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tìm kiếm xe thất bại',
@@ -303,7 +291,7 @@ export const search = async (req, res, next) => {
  * @desc    Lấy danh sách tất cả templates sơ đồ ghế
  * @access  Public
  */
-export const getAllSeatLayoutTemplates = async (req, res, next) => {
+exports.getAllSeatLayoutTemplates = async (req, res, next) => {
   try {
     const templates = listAllTemplates();
 
@@ -315,7 +303,7 @@ export const getAllSeatLayoutTemplates = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Get seat layout templates error: ${error.message}`);
+    logger.error('Lỗi lấy mẫu bố cục ghế:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách templates thất bại',
@@ -328,7 +316,7 @@ export const getAllSeatLayoutTemplates = async (req, res, next) => {
  * @desc    Lấy templates cho loại xe cụ thể
  * @access  Public
  */
-export const getTemplatesByType = async (req, res, next) => {
+exports.getTemplatesByType = async (req, res, next) => {
   try {
     const { busType } = req.params;
 
@@ -350,7 +338,7 @@ export const getTemplatesByType = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Get templates by type error: ${error.message}`);
+    logger.error('Lỗi lấy mẫu theo loại:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy templates thất bại',
@@ -363,7 +351,7 @@ export const getTemplatesByType = async (req, res, next) => {
  * @desc    Lấy template cụ thể
  * @access  Public
  */
-export const getSpecificTemplate = async (req, res, next) => {
+exports.getSpecificTemplate = async (req, res, next) => {
   try {
     const { busType, templateKey } = req.params;
 
@@ -383,7 +371,7 @@ export const getSpecificTemplate = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Get specific template error: ${error.message}`);
+    logger.error('Lỗi lấy mẫu cụ thể:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy template thất bại',
@@ -396,7 +384,7 @@ export const getSpecificTemplate = async (req, res, next) => {
  * @desc    Tạo sơ đồ ghế tùy chỉnh
  * @access  Public
  */
-export const buildSeatLayout = async (req, res, next) => {
+exports.buildSeatLayout = async (req, res, next) => {
   try {
     const { busType, rows, columns, floors, pattern, emptyPositions } = req.body;
 
@@ -417,8 +405,6 @@ export const buildSeatLayout = async (req, res, next) => {
       emptyPositions: emptyPositions || [],
     });
 
-    logger.success(`Custom seat layout built - Type: ${busType}, Size: ${rows}x${columns}`);
-
     res.status(200).json({
       status: 'success',
       message: 'Tạo sơ đồ ghế thành công',
@@ -427,7 +413,7 @@ export const buildSeatLayout = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Build seat layout error: ${error.message}`);
+    logger.error('Lỗi xây dựng bố cục ghế:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tạo sơ đồ ghế thất bại',
@@ -440,7 +426,7 @@ export const buildSeatLayout = async (req, res, next) => {
  * @desc    Validate sơ đồ ghế
  * @access  Public
  */
-export const validateSeatLayout = async (req, res, next) => {
+exports.validateSeatLayout = async (req, res, next) => {
   try {
     const { seatLayout, busType } = req.body;
 
@@ -453,10 +439,6 @@ export const validateSeatLayout = async (req, res, next) => {
 
     const validation = validateSeatLayoutForBusType(seatLayout, busType);
 
-    if (!validation.valid) {
-      logger.warn(`Seat layout validation failed for ${busType}: ${validation.errors.join(', ')}`);
-    }
-
     res.status(200).json({
       status: 'success',
       data: {
@@ -465,7 +447,7 @@ export const validateSeatLayout = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error(`Validate seat layout error: ${error.message}`);
+    logger.error('Lỗi xác thực bố cục ghế:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Validate sơ đồ ghế thất bại',

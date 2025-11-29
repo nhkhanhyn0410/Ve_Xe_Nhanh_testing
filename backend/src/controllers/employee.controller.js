@@ -1,7 +1,7 @@
-import EmployeeService from '../services/employee.service.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { logger } from '../utils/logger.js';
+const EmployeeService = require('../services/employee.service');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const logger = require('../utils/logger');
 
 /**
  * Employee Controller
@@ -13,7 +13,7 @@ import { logger } from '../utils/logger.js';
  * @desc    Employee login (Trip Manager / Driver)
  * @access  Public
  */
-export const login = async (req, res, next) => {
+exports.login = async (req, res, next) => {
   try {
     const { employeeCode, password } = req.body;
 
@@ -64,7 +64,7 @@ export const login = async (req, res, next) => {
       process.env.JWT_SECRET || 'your-secret-key',
       {
         expiresIn: '7d',
-        issuer: 'quikride'
+        issuer: 'vexenhanh'
       }
     );
 
@@ -81,7 +81,7 @@ export const login = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Employee login error:', error);
+    logger.error('Lỗi đăng nhập nhân viên:', error);
     res.status(500).json({
       status: 'error',
       message: error.message || 'Đăng nhập thất bại',
@@ -94,7 +94,7 @@ export const login = async (req, res, next) => {
  * @desc    Get trips assigned to logged-in employee
  * @access  Private (Employee)
  */
-export const getMyTrips = async (req, res, next) => {
+exports.getMyTrips = async (req, res, next) => {
   try {
     const employeeId = req.userId; // From authenticate middleware
     const { status, fromDate, toDate } = req.query;
@@ -110,7 +110,7 @@ export const getMyTrips = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get my trips error:', error);
+    logger.error('Lỗi lấy chuyến của tôi:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể lấy danh sách chuyến xe',
@@ -123,7 +123,7 @@ export const getMyTrips = async (req, res, next) => {
  * @desc    Tạo nhân viên mới
  * @access  Private (Operator)
  */
-export const create = async (req, res, next) => {
+exports.create = async (req, res, next) => {
   try {
     const operatorId = req.userId; // Từ authenticate middleware
     const employeeData = req.body;
@@ -157,7 +157,7 @@ export const create = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Create employee error:', error);
+    logger.error('Lỗi tạo nhân viên:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Tạo nhân viên thất bại',
@@ -170,7 +170,7 @@ export const create = async (req, res, next) => {
  * @desc    Lấy danh sách employees của operator
  * @access  Private (Operator)
  */
-export const getMyEmployees = async (req, res, next) => {
+exports.getMyEmployees = async (req, res, next) => {
   try {
     const operatorId = req.userId;
     const { role, status, search, page, limit, sortBy, sortOrder } =
@@ -203,7 +203,7 @@ export const getMyEmployees = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get employees error:', error);
+    logger.error('Lỗi lấy nhân viên:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách nhân viên thất bại',
@@ -216,7 +216,7 @@ export const getMyEmployees = async (req, res, next) => {
  * @desc    Lấy thông tin employee theo ID
  * @access  Private (Operator)
  */
-export const getById = async (req, res, next) => {
+exports.getById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -230,7 +230,7 @@ export const getById = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get employee error:', error);
+    logger.error('Lỗi lấy nhân viên:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy nhân viên',
@@ -243,7 +243,7 @@ export const getById = async (req, res, next) => {
  * @desc    Cập nhật employee
  * @access  Private (Operator)
  */
-export const update = async (req, res, next) => {
+exports.update = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -263,7 +263,7 @@ export const update = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Update employee error:', error);
+    logger.error('Lỗi cập nhật nhân viên:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Cập nhật nhân viên thất bại',
@@ -276,8 +276,7 @@ export const update = async (req, res, next) => {
  * @desc    Xóa employee (soft delete - terminate)
  * @access  Private (Operator)
  */
-// NOTE: Đổi tên hàm từ 'delete' sang 'deleteEmployee' vì delete là từ khóa
-export const deleteEmployee = async (req, res, next) => {
+exports.delete = async (req, res, next) => {
   try {
     const { id } = req.params;
     const operatorId = req.userId;
@@ -289,7 +288,7 @@ export const deleteEmployee = async (req, res, next) => {
       message: 'Xóa nhân viên thành công',
     });
   } catch (error) {
-    logger.error('Delete employee error:', error);
+    logger.error('Lỗi xóa nhân viên:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xóa nhân viên thất bại',
@@ -302,7 +301,7 @@ export const deleteEmployee = async (req, res, next) => {
  * @desc    Thay đổi trạng thái employee
  * @access  Private (Operator)
  */
-export const changeStatus = async (req, res, next) => {
+exports.changeStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -329,7 +328,7 @@ export const changeStatus = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Change employee status error:', error);
+    logger.error('Lỗi thay đổi trạng thái nhân viên:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Thay đổi trạng thái nhân viên thất bại',
@@ -342,7 +341,7 @@ export const changeStatus = async (req, res, next) => {
  * @desc    Lấy thống kê employees
  * @access  Private (Operator)
  */
-export const getStatistics = async (req, res, next) => {
+exports.getStatistics = async (req, res, next) => {
   try {
     const operatorId = req.userId;
 
@@ -355,7 +354,7 @@ export const getStatistics = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get employee statistics error:', error);
+    logger.error('Lỗi lấy thống kê nhân viên:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy thống kê nhân viên thất bại',
@@ -368,7 +367,7 @@ export const getStatistics = async (req, res, next) => {
  * @desc    Lấy danh sách nhân viên có thể assign vào chuyến
  * @access  Private (Operator)
  */
-export const getAvailableForTrips = async (req, res, next) => {
+exports.getAvailableForTrips = async (req, res, next) => {
   try {
     const { role } = req.params;
     const operatorId = req.userId;
@@ -386,7 +385,7 @@ export const getAvailableForTrips = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Get available employees error:', error);
+    logger.error('Lỗi lấy nhân viên khả dụng:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Lấy danh sách nhân viên thất bại',
@@ -399,7 +398,7 @@ export const getAvailableForTrips = async (req, res, next) => {
  * @desc    Reset mật khẩu nhân viên
  * @access  Private (Operator)
  */
-export const resetPassword = async (req, res, next) => {
+exports.resetPassword = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { newPassword } = req.body;
@@ -426,7 +425,7 @@ export const resetPassword = async (req, res, next) => {
       message: 'Reset mật khẩu thành công',
     });
   } catch (error) {
-    logger.error('Reset password error:', error);
+    logger.error('Lỗi đặt lại mật khẩu:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Reset mật khẩu thất bại',
@@ -439,7 +438,7 @@ export const resetPassword = async (req, res, next) => {
  * @desc    Đổi mật khẩu (employee tự đổi)
  * @access  Private (Employee)
  */
-export const changePassword = async (req, res, next) => {
+exports.changePassword = async (req, res, next) => {
   try {
     const employeeId = req.userId; // From authenticate middleware
     const { currentPassword, newPassword } = req.body;
@@ -469,7 +468,7 @@ export const changePassword = async (req, res, next) => {
       message: 'Đổi mật khẩu thành công',
     });
   } catch (error) {
-    logger.error('Change password error:', error);
+    logger.error('Lỗi đổi mật khẩu:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Đổi mật khẩu thất bại',

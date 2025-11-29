@@ -1,6 +1,5 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-import logger from '../utils/logger.js'; // Adjust path as needed
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 /**
  * BusOperator Schema
@@ -37,7 +36,7 @@ const BusOperatorSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Mật khẩu là bắt buộc'],
       minlength: [6, 'Mật khẩu phải có ít nhất 6 ký tự'],
-      select: false,
+      select: false, // Don't include password in queries by default
     },
 
     // Business Info
@@ -71,18 +70,42 @@ const BusOperatorSchema = new mongoose.Schema(
 
     // Address
     address: {
-      street: { type: String, trim: true },
-      ward: { type: String, trim: true },
-      district: { type: String, trim: true },
-      city: { type: String, trim: true },
-      country: { type: String, default: 'Vietnam' },
+      street: {
+        type: String,
+        trim: true,
+      },
+      ward: {
+        type: String,
+        trim: true,
+      },
+      district: {
+        type: String,
+        trim: true,
+      },
+      city: {
+        type: String,
+        trim: true,
+      },
+      country: {
+        type: String,
+        default: 'Vietnam',
+      },
     },
 
-    // Bank Info
+    // Bank Info (for payment settlements)
     bankInfo: {
-      bankName: { type: String, trim: true },
-      accountNumber: { type: String, trim: true },
-      accountHolder: { type: String, trim: true },
+      bankName: {
+        type: String,
+        trim: true,
+      },
+      accountNumber: {
+        type: String,
+        trim: true,
+      },
+      accountHolder: {
+        type: String,
+        trim: true,
+      },
     },
 
     // Approval Status
@@ -94,9 +117,19 @@ const BusOperatorSchema = new mongoose.Schema(
       },
       default: 'pending',
     },
-    verifiedAt: { type: Date, default: null },
-    verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-    rejectionReason: { type: String, default: null },
+    verifiedAt: {
+      type: Date,
+      default: null,
+    },
+    verifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    rejectionReason: {
+      type: String,
+      default: null,
+    },
 
     // Rating & Reviews
     averageRating: {
@@ -112,8 +145,16 @@ const BusOperatorSchema = new mongoose.Schema(
     },
 
     // Statistics
-    totalTrips: { type: Number, default: 0, min: [0, 'Số chuyến không thể âm'] },
-    totalRevenue: { type: Number, default: 0, min: [0, 'Doanh thu không thể âm'] },
+    totalTrips: {
+      type: Number,
+      default: 0,
+      min: [0, 'Số chuyến không thể âm'],
+    },
+    totalRevenue: {
+      type: Number,
+      default: 0,
+      min: [0, 'Doanh thu không thể âm'],
+    },
 
     // Commission
     commissionRate: {
@@ -124,36 +165,48 @@ const BusOperatorSchema = new mongoose.Schema(
     },
 
     // Status
-    isActive: { type: Boolean, default: true },
-    isSuspended: { type: Boolean, default: false },
-    suspensionReason: { type: String, default: null },
-    suspendedAt: { type: Date, default: null },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    isSuspended: {
+      type: Boolean,
+      default: false,
+    },
+    suspensionReason: {
+      type: String,
+      default: null,
+    },
+    suspendedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
-    timestamps: true,
+    timestamps: true, // Automatically manage createdAt and updatedAt
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
   }
 );
 
-// Indexes
-BusOperatorSchema.index({ companyName: 1 });
-BusOperatorSchema.index({ email: 1 });
+// Indexes (companyName and email already have unique: true in schema, which creates indexes)
 BusOperatorSchema.index({ verificationStatus: 1 });
 BusOperatorSchema.index({ averageRating: -1 });
 BusOperatorSchema.index({ createdAt: -1 });
 
 // Hash password before saving
 BusOperatorSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  // Only hash password if it's modified or new
+  if (!this.isModified('password')) {
+    return next();
+  }
 
   try {
+    // Generate salt and hash password
     const salt = await bcrypt.genSalt(12);
     this.password = await bcrypt.hash(this.password, salt);
-    logger.info(`Password hashed for operator: ${this.email}`);
     next();
   } catch (error) {
-    logger.error(`Password hashing failed for ${this.email}:`, error);
     next(error);
   }
 });
@@ -163,23 +216,24 @@ BusOperatorSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
-    logger.error('Password comparison error:', error);
     throw new Error('Lỗi so sánh mật khẩu');
   }
 };
 
-// Static methods
+// Static method to find by email
 BusOperatorSchema.statics.findByEmail = function (email) {
   return this.findOne({ email: email.toLowerCase() });
 };
 
+// Static method to find by company name
 BusOperatorSchema.statics.findByCompanyName = function (companyName) {
   return this.findOne({ companyName });
 };
 
-// Virtuals
+// Virtual for full address
 BusOperatorSchema.virtual('fullAddress').get(function () {
   if (!this.address) return '';
+
   const parts = [
     this.address.street,
     this.address.ward,
@@ -187,13 +241,16 @@ BusOperatorSchema.virtual('fullAddress').get(function () {
     this.address.city,
     this.address.country,
   ].filter(Boolean);
+
   return parts.join(', ');
 });
 
+// Virtual for role (always 'operator' for BusOperator)
 BusOperatorSchema.virtual('role').get(function () {
   return 'operator';
 });
 
+// Virtual for verification status label (for display)
 BusOperatorSchema.virtual('verificationStatusLabel').get(function () {
   const labels = {
     pending: 'Đang chờ duyệt',
@@ -203,41 +260,40 @@ BusOperatorSchema.virtual('verificationStatusLabel').get(function () {
   return labels[this.verificationStatus] || this.verificationStatus;
 });
 
-// Instance methods
+// Instance method to approve verification
 BusOperatorSchema.methods.approve = async function (adminId) {
   this.verificationStatus = 'approved';
   this.verifiedAt = new Date();
   this.verifiedBy = adminId;
   this.rejectionReason = null;
-  logger.info(`Operator approved: ${this.email}`);
   return this.save();
 };
 
+// Instance method to reject verification
 BusOperatorSchema.methods.reject = async function (adminId, reason) {
   this.verificationStatus = 'rejected';
   this.verifiedAt = new Date();
   this.verifiedBy = adminId;
   this.rejectionReason = reason;
-  logger.warn(`Operator rejected: ${this.email} - Reason: ${reason}`);
   return this.save();
 };
 
+// Instance method to suspend operator
 BusOperatorSchema.methods.suspend = async function (reason) {
   this.isSuspended = true;
   this.suspensionReason = reason;
   this.suspendedAt = new Date();
-  logger.warn(`Operator suspended: ${this.email} - Reason: ${reason}`);
   return this.save();
 };
 
+// Instance method to resume operator
 BusOperatorSchema.methods.resume = async function () {
   this.isSuspended = false;
   this.suspensionReason = null;
   this.suspendedAt = null;
-  logger.info(`Operator resumed: ${this.email}`);
   return this.save();
 };
 
 const BusOperator = mongoose.model('BusOperator', BusOperatorSchema);
 
-export default BusOperator;
+module.exports = BusOperator;

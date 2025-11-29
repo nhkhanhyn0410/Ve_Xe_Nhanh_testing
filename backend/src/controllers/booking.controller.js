@@ -1,12 +1,12 @@
-import { logger } from '../utils/logger.js';
-import BookingService from '../services/booking.service.js';
+const BookingService = require('../services/booking.service');
+const logger = require('../utils/logger');
 
 /**
  * @route   POST /api/v1/bookings/hold-seats
  * @desc    Hold seats temporarily (15 minutes)
  * @access  Public
  */
-export const holdSeats = async (req, res) => {
+exports.holdSeats = async (req, res) => {
   try {
     const { tripId, seats, contactInfo, pickupPoint, dropoffPoint, voucherCode } = req.body;
 
@@ -58,7 +58,7 @@ export const holdSeats = async (req, res) => {
       message: 'Giữ ghế thành công. Vui lòng hoàn tất thanh toán trong 15 phút.',
     });
   } catch (error) {
-    logger.error('Hold seats error:', error);
+    logger.error('Lỗi giữ ghế:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể giữ ghế. Vui lòng thử lại.',
@@ -71,7 +71,7 @@ export const holdSeats = async (req, res) => {
  * @desc    Confirm booking after payment
  * @access  Public
  */
-export const confirmBooking = async (req, res) => {
+exports.confirmBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { sessionId } = req.body;
@@ -91,7 +91,7 @@ export const confirmBooking = async (req, res) => {
       message: 'Xác nhận booking thành công',
     });
   } catch (error) {
-    logger.error('Confirm booking error:', error);
+    logger.error('Lỗi xác nhận đặt chỗ:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể xác nhận booking',
@@ -104,7 +104,7 @@ export const confirmBooking = async (req, res) => {
  * @desc    Cancel booking
  * @access  Private (Customer or Operator)
  */
-export const cancelBooking = async (req, res) => {
+exports.cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { reason } = req.body;
@@ -134,7 +134,7 @@ export const cancelBooking = async (req, res) => {
       message: 'Hủy booking thành công',
     });
   } catch (error) {
-    logger.error('Cancel booking error:', error);
+    logger.error('Lỗi hủy đặt chỗ:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể hủy booking',
@@ -147,7 +147,7 @@ export const cancelBooking = async (req, res) => {
  * @desc    Cancel booking for guest users (no auth required)
  * @access  Public
  */
-export const cancelBookingGuest = async (req, res) => {
+exports.cancelBookingGuest = async (req, res) => {
   try {
     const { bookingId, email, phone, reason } = req.body;
 
@@ -190,7 +190,7 @@ export const cancelBookingGuest = async (req, res) => {
       message: 'Hủy vé thành công. Tiền sẽ được hoàn lại trong 3-7 ngày làm việc.',
     });
   } catch (error) {
-    logger.error('Cancel booking guest error:', error);
+    logger.error('Lỗi hủy đặt chỗ khách:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể hủy vé',
@@ -203,7 +203,7 @@ export const cancelBookingGuest = async (req, res) => {
  * @desc    Extend seat hold duration
  * @access  Public
  */
-export const extendHold = async (req, res) => {
+exports.extendHold = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { sessionId, minutes } = req.body;
@@ -227,7 +227,7 @@ export const extendHold = async (req, res) => {
       message: 'Gia hạn giữ ghế thành công',
     });
   } catch (error) {
-    logger.error('Extend hold error:', error);
+    logger.error('Lỗi gia hạn giữ chỗ:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể gia hạn',
@@ -240,7 +240,7 @@ export const extendHold = async (req, res) => {
  * @desc    Release seat hold manually
  * @access  Public
  */
-export const releaseHold = async (req, res) => {
+exports.releaseHold = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { sessionId } = req.body;
@@ -260,7 +260,7 @@ export const releaseHold = async (req, res) => {
       message: 'Hủy giữ ghế thành công',
     });
   } catch (error) {
-    logger.error('Release hold error:', error);
+    logger.error('Lỗi phát hành giữ chỗ:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể hủy giữ ghế',
@@ -273,7 +273,7 @@ export const releaseHold = async (req, res) => {
  * @desc    Get booking details
  * @access  Public (with authorization)
  */
-export const getBookingById = async (req, res) => {
+exports.getBookingById = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const customerId = req.user ? req.user._id : null;
@@ -285,7 +285,7 @@ export const getBookingById = async (req, res) => {
       data: { booking },
     });
   } catch (error) {
-    logger.error('Get booking error:', error);
+    logger.error('Lỗi lấy đặt chỗ:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy booking',
@@ -298,7 +298,7 @@ export const getBookingById = async (req, res) => {
  * @desc    Get booking by code (for guests)
  * @access  Public
  */
-export const getBookingByCode = async (req, res) => {
+exports.getBookingByCode = async (req, res) => {
   try {
     const { bookingCode } = req.params;
     const { phone } = req.query;
@@ -317,7 +317,7 @@ export const getBookingByCode = async (req, res) => {
       data: { booking },
     });
   } catch (error) {
-    logger.error('Get booking by code error:', error);
+    logger.error('Lỗi lấy đặt chỗ theo mã:', error);
     res.status(404).json({
       status: 'error',
       message: error.message || 'Không tìm thấy booking',
@@ -330,7 +330,7 @@ export const getBookingByCode = async (req, res) => {
  * @desc    Get available seats for a trip
  * @access  Public
  */
-export const getAvailableSeats = async (req, res) => {
+exports.getAvailableSeats = async (req, res) => {
   try {
     const { tripId } = req.params;
 
@@ -341,7 +341,7 @@ export const getAvailableSeats = async (req, res) => {
       data: seatsInfo,
     });
   } catch (error) {
-    logger.error('Get available seats error:', error);
+    logger.error('Lỗi lấy ghế trống:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể lấy thông tin ghế',
@@ -354,7 +354,7 @@ export const getAvailableSeats = async (req, res) => {
  * @desc    Get customer's bookings
  * @access  Private (Customer)
  */
-export const getMyBookings = async (req, res) => {
+exports.getMyBookings = async (req, res) => {
   try {
     const customerId = req.user._id;
     const { status, fromDate, toDate } = req.query;
@@ -373,7 +373,7 @@ export const getMyBookings = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get my bookings error:', error);
+    logger.error('Lỗi lấy đặt chỗ của tôi:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể lấy danh sách booking',
@@ -386,7 +386,7 @@ export const getMyBookings = async (req, res) => {
  * @desc    Get operator's bookings
  * @access  Private (Operator)
  */
-export const getOperatorBookings = async (req, res) => {
+exports.getOperatorBookings = async (req, res) => {
   try {
     const operatorId = req.user._id;
     const { status, paymentStatus, fromDate, toDate } = req.query;
@@ -406,7 +406,7 @@ export const getOperatorBookings = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Get operator bookings error:', error);
+    logger.error('Lỗi lấy đặt chỗ nhà điều hành:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể lấy danh sách booking',
@@ -419,7 +419,7 @@ export const getOperatorBookings = async (req, res) => {
  * @desc    Get booking statistics for operator
  * @access  Private (Operator)
  */
-export const getStatistics = async (req, res) => {
+exports.getStatistics = async (req, res) => {
   try {
     const operatorId = req.user._id;
     const { fromDate, toDate } = req.query;
@@ -434,7 +434,7 @@ export const getStatistics = async (req, res) => {
       data: stats,
     });
   } catch (error) {
-    logger.error('Lỗi thống kê:', error);
+    logger.error('Lỗi lấy thống kê:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể lấy thống kê',
@@ -447,7 +447,7 @@ export const getStatistics = async (req, res) => {
  * @desc    Update booking payment status
  * @access  Private (Operator)
  */
-export const updatePayment = async (req, res) => {
+exports.updatePayment = async (req, res) => {
   try {
     const { bookingId } = req.params;
     const { paymentId, paymentMethod, paymentStatus } = req.body;
@@ -464,7 +464,7 @@ export const updatePayment = async (req, res) => {
       message: 'Cập nhật thanh toán thành công',
     });
   } catch (error) {
-    logger.error('Cập nhật lỗi thanh toán:', error);
+    logger.error('Lỗi cập nhật thanh đếnán:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Không thể cập nhật thanh toán',

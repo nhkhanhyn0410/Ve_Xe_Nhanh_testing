@@ -1,6 +1,5 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-import logger from '../utils/logger.js'; // Adjust path as needed
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 /**
  * Employee Schema
@@ -47,9 +46,9 @@ const EmployeeSchema = new mongoose.Schema(
       type: String,
       trim: true,
       validate: {
-        validator: (v) => {
-          if (!v) return true;
-          return /^[0-9]{9,12}$/.test(v);
+        validator: function (v) {
+          if (!v) return true; // Optional field
+          return /^[0-9]{9,12}$/.test(v); // CMND: 9 digits, CCCD: 12 digits
         },
         message: 'CMND/CCCD không hợp lệ (9-12 chữ số)',
       },
@@ -66,7 +65,7 @@ const EmployeeSchema = new mongoose.Schema(
         validator: function (v) {
           if (!v) return true;
           const age = (new Date() - new Date(v)) / (365.25 * 24 * 60 * 60 * 1000);
-          return age >= 18 && age <= 70;
+          return age >= 18 && age <= 70; // Age between 18 and 70
         },
         message: 'Tuổi nhân viên phải từ 18-70',
       },
@@ -77,7 +76,7 @@ const EmployeeSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Mật khẩu là bắt buộc'],
       minlength: [6, 'Mật khẩu phải có ít nhất 6 ký tự'],
-      select: false,
+      select: false, // Don't return password by default
     },
 
     // Role
@@ -97,6 +96,7 @@ const EmployeeSchema = new mongoose.Schema(
       trim: true,
       validate: {
         validator: function (v) {
+          // Only required for drivers
           if (this.role === 'driver') {
             return !!v;
           }
@@ -115,6 +115,7 @@ const EmployeeSchema = new mongoose.Schema(
       },
       validate: {
         validator: function (v) {
+          // Only required for drivers
           if (this.role === 'driver') {
             return !!v;
           }
@@ -128,9 +129,10 @@ const EmployeeSchema = new mongoose.Schema(
       type: Date,
       validate: {
         validator: function (v) {
+          // Only required for drivers
           if (this.role === 'driver') {
             if (!v) return false;
-            return new Date(v) > new Date();
+            return new Date(v) > new Date(); // Must be in the future
           }
           return true;
         },
@@ -159,7 +161,7 @@ const EmployeeSchema = new mongoose.Schema(
       validate: {
         validator: function (v) {
           if (!v) return true;
-          return v > this.hireDate;
+          return v > this.hireDate; // Must be after hire date
         },
         message: 'Ngày nghỉ việc phải sau ngày tuyển dụng',
       },
@@ -175,14 +177,21 @@ const EmployeeSchema = new mongoose.Schema(
 /**
  * Indexes
  */
+// Unique employee code per operator
 EmployeeSchema.index({ operatorId: 1, employeeCode: 1 }, { unique: true });
+
+// Query by operator, role, and status
 EmployeeSchema.index({ operatorId: 1, role: 1, status: 1 });
+
+// Search by phone
 EmployeeSchema.index({ phone: 1 });
 
 /**
  * Pre-save Middleware
+ * Hash password before saving
  */
 EmployeeSchema.pre('save', async function (next) {
+  // Only hash if password is modified
   if (!this.isModified('password')) {
     return next();
   }
@@ -192,7 +201,6 @@ EmployeeSchema.pre('save', async function (next) {
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
-    logger.error('Error hashing password:', error);
     next(error);
   }
 });
@@ -200,13 +208,24 @@ EmployeeSchema.pre('save', async function (next) {
 /**
  * Instance Methods
  */
+
+/**
+ * Compare password for authentication
+ * @param {String} candidatePassword - Password to compare
+ * @returns {Promise<Boolean>}
+ */
 EmployeeSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
+/**
+ * Check if employee can be assigned to trips
+ * @returns {Boolean}
+ */
 EmployeeSchema.methods.canBeAssignedToTrips = function () {
   if (this.status !== 'active') return false;
 
+  // For drivers, check license expiry
   if (this.role === 'driver') {
     return this.licenseExpiry && new Date(this.licenseExpiry) > new Date();
   }
@@ -214,6 +233,10 @@ EmployeeSchema.methods.canBeAssignedToTrips = function () {
   return true;
 };
 
+/**
+ * Get employee display info (without sensitive data)
+ * @returns {Object}
+ */
 EmployeeSchema.methods.getPublicInfo = function () {
   return {
     _id: this._id,
@@ -229,7 +252,7 @@ EmployeeSchema.methods.getPublicInfo = function () {
 };
 
 /**
- * Virtuals
+ * Virtual: Years of service
  */
 EmployeeSchema.virtual('yearsOfService').get(function () {
   const endDate = this.terminationDate || new Date();
@@ -237,6 +260,9 @@ EmployeeSchema.virtual('yearsOfService').get(function () {
   return Math.max(0, years.toFixed(1));
 });
 
+/**
+ * Virtual: Is license expiring soon (within 30 days)
+ */
 EmployeeSchema.virtual('isLicenseExpiringSoon').get(function () {
   if (this.role !== 'driver' || !this.licenseExpiry) return false;
 
@@ -247,6 +273,13 @@ EmployeeSchema.virtual('isLicenseExpiringSoon').get(function () {
 
 /**
  * Static Methods
+ */
+
+/**
+ * Find employees by operator and filters
+ * @param {ObjectId} operatorId
+ * @param {Object} filters
+ * @returns {Promise<Array>}
  */
 EmployeeSchema.statics.findByOperator = function (operatorId, filters = {}) {
   const query = { operatorId };
@@ -261,10 +294,15 @@ EmployeeSchema.statics.findByOperator = function (operatorId, filters = {}) {
     ];
   }
 
-  logger.debug('Finding employees with query:', query);
   return this.find(query).select('-password').sort({ createdAt: -1 });
 };
 
+/**
+ * Find available employees for trip assignment
+ * @param {ObjectId} operatorId
+ * @param {String} role - 'driver' or 'trip_manager'
+ * @returns {Promise<Array>}
+ */
 EmployeeSchema.statics.findAvailableForTrips = function (operatorId, role) {
   const query = {
     operatorId,
@@ -272,12 +310,12 @@ EmployeeSchema.statics.findAvailableForTrips = function (operatorId, role) {
     status: 'active',
   };
 
+  // For drivers, ensure license is valid
   if (role === 'driver') {
     query.licenseExpiry = { $gt: new Date() };
   }
 
-  logger.debug('Finding available employees for trips:', { operatorId, role });
   return this.find(query).select('-password').sort({ fullName: 1 });
 };
 
-export default mongoose.model('Employee', EmployeeSchema);
+module.exports = mongoose.model('Employee', EmployeeSchema);

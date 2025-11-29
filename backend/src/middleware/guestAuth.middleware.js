@@ -1,5 +1,4 @@
-import GuestSessionService from '../services/guestSession.service.js';
-import { logger } from '../utils/logger.js';
+const GuestSessionService = require('../services/guestSession.service');
 
 /**
  * Guest Authentication Middleware
@@ -22,7 +21,6 @@ const guestAuth = async (req, res, next) => {
     const guestData = await GuestSessionService.verifySession(guestToken);
 
     if (!guestData) {
-      logger.warn(`Invalid or expired guest session - Token: ${guestToken.substring(0, 8)}...`);
       return res.status(401).json({
         status: 'error',
         message: 'Guest session không hợp lệ hoặc đã hết hạn',
@@ -35,10 +33,9 @@ const guestAuth = async (req, res, next) => {
     req.guestToken = guestToken;
     req.isGuest = true;
 
-    logger.info(`Guest authenticated - Email: ${guestData.email || 'N/A'}, Phone: ${guestData.phone || 'N/A'}`);
     next();
   } catch (error) {
-    logger.error(`Guest auth error: ${error.message}`);
+    logger.error('Lỗi xác thực khách:', error);
     return res.status(401).json({
       status: 'error',
       message: 'Xác thực guest thất bại',
@@ -69,15 +66,17 @@ const optionalGuestAuth = async (req, res, next) => {
         req.guest = guestData;
         req.guestToken = guestToken;
         req.isGuest = true;
-        logger.info(`Optional guest auth - Guest session verified for ${guestData.email || guestData.phone}`);
       }
     }
 
     next();
   } catch (error) {
-    logger.error(`Optional guest auth error: ${error.message}`);
+    logger.error('Lỗi xác thực khách tùy chọn:', error);
     next();
   }
 };
 
-export { guestAuth, optionalGuestAuth };
+module.exports = {
+  guestAuth,
+  optionalGuestAuth,
+};

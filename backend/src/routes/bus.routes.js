@@ -1,7 +1,6 @@
-import express from 'express';
-import * as busController from '../controllers/bus.controller.js';
-
+const express = require('express');
 const router = express.Router();
+const busController = require('../controllers/bus.controller');
 
 /**
  * Public Bus Routes
@@ -20,4 +19,4 @@ router.get('/seat-layout/templates/:busType/:templateKey', busController.getSpec
 router.post('/seat-layout/build', busController.buildSeatLayout);
 router.post('/seat-layout/validate', busController.validateSeatLayout);
 
-export default router;
+module.exports = router;
