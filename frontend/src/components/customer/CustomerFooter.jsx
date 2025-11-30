@@ -104,8 +104,8 @@ const CustomerFooter = () => {
                 { href: '/operator/login', text: 'Đăng nhập nhà xe', icon: LoginOutlined, color: 'text-orange-400' },
                 { href: '/operator/register', text: 'Đăng ký nhà xe', icon: UserAddOutlined, color: 'text-blue-400' },
                 { href: '/admin/login', text: 'Quản trị viên', icon: DashboardOutlined, color: 'text-purple-400' },
-                { href: '/operator/dashboard', text: 'Quản lý chuyến xe', icon: CarOutlined, color: 'text-green-400' },
-                { href: '/operator/settings', text: 'Cài đặt tài khoản', icon: SettingOutlined, color: 'text-cyan-400' }
+                { href: '/trip-manager/login', text: 'Đăng nhập nhân viên', icon: CarOutlined, color: 'text-green-400' },
+                // { href: '/operator/settings', text: 'Cài đặt tài khoản', icon: SettingOutlined, color: 'text-cyan-400' }
               ].map((item, index) => (
                 <div key={index} className="group">
                   <Link
