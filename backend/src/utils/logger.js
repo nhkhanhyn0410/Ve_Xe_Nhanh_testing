@@ -3,8 +3,10 @@ const path = require('path');
 const chalk = require('chalk');
 
 /**
- * Enhanced logger utility with colored console output
- * For production, consider using Winston or Pino
+ * Complete logger utility
+ * - Colored console output
+ * - Writes to log files
+ * - Automatically handles Error objects for all log methods
  */
 
 // Ensure logs directory exists
@@ -19,11 +21,11 @@ const errorLogFile = path.join(logsDir, 'error.log');
 const timestamp = () =>
   new Date().toLocaleString('en-GB', { hour12: false });
 
-// Độ rộng tối đa cho label (SUCCESS = 7)
 const LABEL_WIDTH = 7;
 
+// Format console output
 const format = (label, labelColor, textColor, message) => {
-  const paddedLabel = label.padEnd(LABEL_WIDTH, ' '); // căn đều
+  const paddedLabel = label.padEnd(LABEL_WIDTH, ' ');
   console.log(
     chalk.gray(`[${timestamp()}]`) +
     '  ' +
@@ -33,81 +35,56 @@ const format = (label, labelColor, textColor, message) => {
   );
 };
 
-/**
- * Format log message for file writing
- * @param {string} level - Log level
- * @param {string} message - Log message
- * @param {object} meta - Additional metadata
- * @returns {string} - Formatted log message
- */
+// Format log message for file writing
 const formatLog = (level, message, meta = {}) => {
   const ts = new Date().toISOString();
   const metaStr = Object.keys(meta).length > 0 ? ` | ${JSON.stringify(meta)}` : '';
   return `[${ts}] [${level.toUpperCase()}] ${message}${metaStr}\n`;
 };
 
-/**
- * Write log to file
- * @param {string} file - Log file path
- * @param {string} message - Log message
- */
+// Write log to file
 const writeLog = (file, message) => {
   fs.appendFile(file, message, (err) => {
     if (err) {
-      // Use the new logger format for internal errors
-      format('ERROR', chalk.red, chalk.redBright, 'Error writing to log file: ' + err.message);
+      console.error('Error writing to log file:', err);
     }
   });
 };
 
-/**
- * Logger object with colored console output
- */
+// Convert any input to string (handles Error objects, objects, etc.)
+const stringify = (input) => {
+  if (input instanceof Error) {
+    return input.stack || input.message;
+  } else if (typeof input === 'object') {
+    try {
+      return JSON.stringify(input, null, 2);
+    } catch {
+      return String(input);
+    }
+  }
+  return String(input);
+};
+
+// Unified logger method to handle multiple arguments
+const logMethod = (label, labelColor, textColor, fileTargets = []) => (...args) => {
+  const message = args.map(arg => stringify(arg)).join(' ');
+  format(label, labelColor, textColor, message);
+  if (process.env.NODE_ENV !== 'test') {
+    fileTargets.forEach(file => writeLog(file, formatLog(label.toLowerCase(), message)));
+  }
+};
+
 const logger = {
-  info: (msg, meta = {}) => {
-    format('INFO', chalk.blue, chalk.cyan, msg);
-    if (process.env.NODE_ENV !== 'test') {
-      writeLog(logFile, formatLog('log', msg, meta));
-    }
-  },
-
-  success: (msg, meta = {}) => {
-    format('SUCCESS', chalk.green, chalk.greenBright, msg);
-    if (process.env.NODE_ENV !== 'test') {
-      writeLog(logFile, formatLog('success', msg, meta));
-    }
-  },
-
-  warn: (msg, meta = {}) => {
-    format('WARN', chalk.yellow, chalk.yellowBright, msg);
-    if (process.env.NODE_ENV !== 'test') {
-      writeLog(logFile, formatLog('warn', msg, meta));
-    }
-  },
-
-  error: (msg, meta = {}) => {
-    format('ERROR', chalk.red, chalk.redBright, msg);
-    if (process.env.NODE_ENV !== 'test') {
-      writeLog(errorLogFile, formatLog('error', msg, meta));
-      writeLog(logFile, formatLog('error', msg, meta));
-    }
-  },
-
-  debug: (msg, meta = {}) => {
+  info: logMethod('INFO', chalk.blue, chalk.cyan, [logFile]),
+  success: logMethod('SUCCESS', chalk.green, chalk.greenBright, [logFile]),
+  warn: logMethod('WARN', chalk.yellow, chalk.yellowBright, [logFile]),
+  error: logMethod('ERROR', chalk.red, chalk.redBright, [logFile, errorLogFile]),
+  debug: (...args) => {
     if (process.env.LOG_LEVEL === 'debug' || process.env.NODE_ENV === 'development') {
-      format('DEBUG', chalk.magenta, chalk.magentaBright, msg);
-      if (process.env.NODE_ENV !== 'test') {
-        writeLog(logFile, formatLog('debug', msg, meta));
-      }
+      logMethod('DEBUG', chalk.magenta, chalk.magentaBright, [logFile])(...args);
     }
   },
-
-  start: (msg, meta = {}) => {
-    format('START', chalk.hex('#9d4edd'), chalk.hex('#9d4edd'), msg);
-    if (process.env.NODE_ENV !== 'test') {
-      writeLog(logFile, formatLog('start', msg, meta));
-    }
-  },
+  start: logMethod('START', chalk.hex('#9d4edd'), chalk.hex('#9d4edd'), [logFile]),
 };
 
 module.exports = logger;
