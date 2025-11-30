@@ -344,7 +344,7 @@ userSchema.methods.removeExpiredPoints = async function () {
     // Update loyalty tier
     this.updateLoyaltyTier();
 
-    logger.info(`Đã xóa ${expiredĐiểm} điểm hết hạn cho người dùng ${this._id}`);
+    logger.info(`Đã xóa ${expiredPoints} điểm hết hạn cho người dùng ${this._id}`);
   }
 
   return expiredPoints;
