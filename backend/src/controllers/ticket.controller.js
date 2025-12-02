@@ -100,7 +100,7 @@ class TicketController {
   /**
    * UC-27: Request OTP for ticket lookup (Step 1)
    * POST /api/tickets/lookup/request-otp
-   * Supports phone or email lookup
+   * Supports phone or email lookup (no ticketCode needed)
    */
   static async requestTicketLookupOTP(req, res) {
     try {
@@ -112,10 +112,10 @@ class TicketController {
         });
       }
 
-      const { ticketCode, phone, email } = req.body;
+      const { phone, email } = req.body;
 
       // Support both phone and email lookup
-      const result = await TicketService.requestTicketLookupOTP(ticketCode || null, phone, email);
+      const result = await TicketService.requestTicketLookupOTP(null, phone, email);
 
       res.json({
         success: true,
@@ -136,7 +136,7 @@ class TicketController {
   /**
    * UC-27: Verify OTP and get tickets (Step 2)
    * POST /api/tickets/lookup/verify-otp
-   * Returns single ticket if ticketCode provided
+   * Returns all tickets for phone or email
    */
   static async verifyTicketLookupOTP(req, res) {
     try {
@@ -148,15 +148,15 @@ class TicketController {
         });
       }
 
-      const { ticketCode, phone, email, otp } = req.body;
+      const { phone, email, otp } = req.body;
 
       // Support both phone and email lookup
-      const result = await TicketService.verifyTicketLookupOTP(ticketCode || null, phone, email, otp);
+      const result = await TicketService.verifyTicketLookupOTP(null, phone, email, otp);
 
       res.json({
         success: true,
         message: 'Xác thực thành công',
-        data: result, // Can be { ticket } or { tickets: [] }
+        data: result, // { tickets: [] }
       });
     } catch (error) {
       logger.error('Lỗi xác mtrtrêngh OTP:', error);
