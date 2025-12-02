@@ -100,7 +100,7 @@ class TicketController {
   /**
    * UC-27: Request OTP for ticket lookup (Step 1)
    * POST /api/tickets/lookup/request-otp
-   * Supports phone-only lookup (returns all tickets for that phone)
+   * Supports phone or email lookup
    */
   static async requestTicketLookupOTP(req, res) {
     try {
@@ -112,10 +112,10 @@ class TicketController {
         });
       }
 
-      const { ticketCode, phone } = req.body;
+      const { ticketCode, phone, email } = req.body;
 
-      // Phone-only lookup support
-      const result = await TicketService.requestTicketLookupOTP(ticketCode || null, phone);
+      // Support both phone and email lookup
+      const result = await TicketService.requestTicketLookupOTP(ticketCode || null, phone, email);
 
       res.json({
         success: true,
@@ -136,7 +136,7 @@ class TicketController {
   /**
    * UC-27: Verify OTP and get tickets (Step 2)
    * POST /api/tickets/lookup/verify-otp
-   * Returns single ticket if ticketCode provided, or all tickets for phone
+   * Returns single ticket if ticketCode provided
    */
   static async verifyTicketLookupOTP(req, res) {
     try {
@@ -148,10 +148,10 @@ class TicketController {
         });
       }
 
-      const { ticketCode, phone, otp } = req.body;
+      const { ticketCode, phone, email, otp } = req.body;
 
-      // Support both single ticket lookup and phone-only (all tickets) lookup
-      const result = await TicketService.verifyTicketLookupOTP(ticketCode || null, phone, otp);
+      // Support both phone and email lookup
+      const result = await TicketService.verifyTicketLookupOTP(ticketCode || null, phone, email, otp);
 
       res.json({
         success: true,

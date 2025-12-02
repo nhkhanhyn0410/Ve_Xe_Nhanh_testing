@@ -212,24 +212,12 @@ const CancelTicketPage = () => {
                 <div className="bg-white rounded-lg p-4 mb-4">
                   <div className="text-center mb-3">
                     <div className="text-2xl font-bold text-green-600">✓ CÓ HOÀN TIỀN</div>
-                    <div className="text-sm text-gray-600 mt-1">Nếu hủy vé TRƯỚC 2 TIẾNG khởi hành</div>
+                    <div className="text-sm text-gray-600 mt-1">Nếu hủy vé TRƯỚC 2 GIỜ khởi hành</div>
                   </div>
                   <ul className="space-y-2 text-sm text-gray-700">
-                    <li className="flex items-center">
-                      <span className="text-green-500 mr-2">✓</span>
-                      <span>Hủy trước <strong>24 giờ</strong>: Hoàn <strong className="text-green-600">100%</strong></span>
-                    </li>
-                    <li className="flex items-center">
-                      <span className="text-green-500 mr-2">✓</span>
-                      <span>Hủy trước <strong>12 giờ</strong>: Hoàn <strong className="text-green-600">80%</strong></span>
-                    </li>
-                    <li className="flex items-center">
-                      <span className="text-green-500 mr-2">✓</span>
-                      <span>Hủy trước <strong>6 giờ</strong>: Hoàn <strong className="text-green-600">50%</strong></span>
-                    </li>
-                    <li className="flex items-center">
-                      <span className="text-green-500 mr-2">✓</span>
-                      <span>Hủy trước <strong>2 giờ</strong>: Hoàn <strong className="text-green-600">20%</strong></span>
+                    <li className="flex items-center justify-center">
+                      <span className="text-green-500 mr-2 text-xl">✓</span>
+                      <span className="text-base">Hủy trước <strong className="text-lg">2 giờ</strong> khởi hành: Hoàn <strong className="text-green-600 text-lg">100%</strong></span>
                     </li>
                   </ul>
                 </div>
@@ -238,7 +226,7 @@ const CancelTicketPage = () => {
                   <div className="text-center">
                     <div className="text-xl font-bold text-red-600">✗ KHÔNG HOÀN TIỀN</div>
                     <div className="text-sm text-gray-700 mt-2">
-                      • Hủy trong vòng <strong className="text-red-600">2 TIẾNG</strong> trước giờ khởi hành<br/>
+                      • Hủy trong vòng <strong className="text-red-600">2 GIỜ</strong> trước giờ khởi hành<br/>
                       • Chuyến xe <strong className="text-red-600">ĐÃ KHỞI HÀNH</strong>
                     </div>
                   </div>

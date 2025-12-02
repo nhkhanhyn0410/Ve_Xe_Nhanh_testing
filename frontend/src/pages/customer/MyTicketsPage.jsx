@@ -470,7 +470,7 @@ const MyTicketsPage = () => {
             <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
               <p className="text-sm text-yellow-800">
                 <strong>Lưu ý:</strong> Tiền sẽ được hoàn lại theo chính sách hoàn tiền.
-                Vé hủy trước 24h sẽ được hoàn 80%, trước 48h sẽ được hoàn 90%.
+                Vé hủy trước 2 giờ khởi hành sẽ được hoàn 100%, sau đó sẽ không được hoàn tiền.
               </p>
             </div>
           </div>

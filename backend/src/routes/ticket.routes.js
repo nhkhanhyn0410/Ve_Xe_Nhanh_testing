@@ -32,19 +32,37 @@ const validateLookupTicket = [
 const validateRequestOTP = [
   body('ticketCode').notEmpty().withMessage('Mã vé là bắt buộc'),
   body('phone')
-    .notEmpty()
-    .withMessage('Số điện thoại là bắt buộc')
+    .optional()
     .matches(/^(0|\+84)[0-9]{9,10}$/)
     .withMessage('Số điện thoại không hợp lệ'),
+  body('email')
+    .optional()
+    .isEmail()
+    .withMessage('Email không hợp lệ'),
+  body().custom((value, { req }) => {
+    if (!req.body.phone && !req.body.email) {
+      throw new Error('Phải cung cấp số điện thoại hoặc email');
+    }
+    return true;
+  }),
 ];
 
 const validateVerifyOTP = [
   body('ticketCode').notEmpty().withMessage('Mã vé là bắt buộc'),
   body('phone')
-    .notEmpty()
-    .withMessage('Số điện thoại là bắt buộc')
+    .optional()
     .matches(/^(0|\+84)[0-9]{9,10}$/)
     .withMessage('Số điện thoại không hợp lệ'),
+  body('email')
+    .optional()
+    .isEmail()
+    .withMessage('Email không hợp lệ'),
+  body().custom((value, { req }) => {
+    if (!req.body.phone && !req.body.email) {
+      throw new Error('Phải cung cấp số điện thoại hoặc email');
+    }
+    return true;
+  }),
   body('otp')
     .notEmpty()
     .withMessage('Mã OTP là bắt buộc')
