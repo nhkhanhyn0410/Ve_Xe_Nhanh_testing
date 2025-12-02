@@ -393,7 +393,7 @@ const GuestTicketLookupPage = () => {
                               icon={<CloseCircleOutlined />}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate('/cancel-ticket', {
+                                navigate('/tickets/cancel', {
                                   state: {
                                     bookingId: ticket.bookingCode,
                                     email: lookupData.email,
