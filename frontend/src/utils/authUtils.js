@@ -69,40 +69,44 @@ export const clearOtherAuthTokens = (keepType) => {
 
 /**
  * Reset Zustand auth stores to prevent persist data conflicts
- * This clears the Zustand persist storage for other auth types
+ * This manually resets the store state without triggering logout side effects
  * @param {string} keepType - The auth type to keep ('customer', 'admin', 'operator', 'trip-manager')
  */
 export const resetOtherAuthStores = (keepType) => {
-  // Clear localStorage first
+  // Clear localStorage tokens and data first
   clearOtherAuthTokens(keepType);
 
-  // Reset other Zustand stores by calling their logout methods
+  // Manually reset Zustand store state (without calling logout to avoid side effects)
   if (keepType !== 'customer') {
-    const customerStore = useAuthStore.getState();
-    if (customerStore.logout) {
-      customerStore.logout();
-    }
+    useAuthStore.setState({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+    });
   }
 
   if (keepType !== 'admin') {
-    const adminStore = useAdminAuthStore.getState();
-    if (adminStore.logout) {
-      adminStore.logout();
-    }
+    useAdminAuthStore.setState({
+      admin: null,
+      token: null,
+      isAuthenticated: false,
+    });
   }
 
   if (keepType !== 'operator') {
-    const operatorStore = useOperatorAuthStore.getState();
-    if (operatorStore.logout) {
-      operatorStore.logout();
-    }
+    useOperatorAuthStore.setState({
+      operator: null,
+      token: null,
+      isAuthenticated: false,
+    });
   }
 
   if (keepType !== 'trip-manager') {
-    const tripManagerStore = useTripManagerAuthStore.getState();
-    if (tripManagerStore.logout) {
-      tripManagerStore.logout();
-    }
+    useTripManagerAuthStore.setState({
+      tripManager: null,
+      token: null,
+      isAuthenticated: false,
+    });
   }
 };
 
