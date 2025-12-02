@@ -82,7 +82,7 @@ const TripManagerLoginPage = () => {
                 <h1 className="text-2xl font-black text-white bg-gradient-to-r from-white via-blue-100 to-indigo-100 bg-clip-text text-transparent">
                   Vé xe nhanh
                 </h1>
-                <p className="text-white/80 text-sm">Quản lý chuyến</p>
+                <p className="text-white/80 text-sm">Nhân viên</p>
               </div>
             </div>
           </div>
