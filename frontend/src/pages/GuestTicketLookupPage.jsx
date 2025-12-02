@@ -23,6 +23,7 @@ import {
   EnvironmentOutlined,
   UserOutlined,
   CheckCircleOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -64,7 +65,7 @@ const GuestTicketLookupPage = () => {
         setLookupData(values);
         setCurrentStep(1);
         const method = values.phone ? 'số điện thoại' : 'email';
-        message.success(`Mã OTP đã được gửi đến ${method} của bạn (Demo: 123456)`);
+        message.success(`Mã OTP đã được gửi đến ${method} của bạn`);
       }
     } catch (error) {
       console.error('Request OTP error:', error);
@@ -97,7 +98,7 @@ const GuestTicketLookupPage = () => {
       }
     } catch (error) {
       console.error('Verify OTP error:', error);
-      message.error(error.response?.data?.message || 'Mã OTP không đúng. Vui lòng thử lại hoặc dùng mã demo: 123456');
+      message.error(error.response?.data?.message || 'Mã OTP không đúng. Vui lòng thử lại');
     } finally {
       setLoading(false);
     }
@@ -245,14 +246,6 @@ const GuestTicketLookupPage = () => {
               </p>
             </div>
 
-            <Alert
-              message="Demo Mode"
-              description="Nhập mã OTP: 123456 để tiếp tục"
-              type="info"
-              showIcon
-              className="mb-4"
-            />
-
             <Form
               form={otpForm}
               layout="vertical"
@@ -272,7 +265,7 @@ const GuestTicketLookupPage = () => {
               >
                 <Input
                   prefix={<SafetyOutlined />}
-                  placeholder="Nhập mã OTP (Demo: 123456)"
+                  placeholder="Nhập mã OTP 6 chữ số"
                   size="large"
                   maxLength={6}
                   style={{ letterSpacing: '0.5em', textAlign: 'center' }}
@@ -318,6 +311,29 @@ const GuestTicketLookupPage = () => {
               <p className="text-gray-600">
                 {lookupData.phone ? `Số điện thoại: ${lookupData.phone}` : `Email: ${lookupData.email}`}
               </p>
+            </div>
+
+            <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <ExclamationCircleOutlined className="text-yellow-600 text-xl mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-yellow-800 mb-1">Muốn hủy vé?</h4>
+                  <p className="text-sm text-yellow-700">
+                    Vui lòng copy <strong>mã vé</strong> bên dưới và truy cập trang{' '}
+                    <a
+                      href="/cancel-ticket"
+                      className="text-blue-600 hover:text-blue-800 underline font-medium"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate('/cancel-ticket');
+                      }}
+                    >
+                      Hủy vé
+                    </a>
+                    {' '}để tiến hành hủy.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {tickets.length === 0 ? (

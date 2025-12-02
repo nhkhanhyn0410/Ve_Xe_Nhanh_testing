@@ -4,7 +4,9 @@ import {
   SearchOutlined,
   ExclamationCircleOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined
+  CloseCircleOutlined,
+  PhoneOutlined,
+  MailOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import bookingApi from '../services/bookingApi';
@@ -141,11 +143,14 @@ const CancelTicketPage = () => {
                 ]}
               >
                 <Input
+                  prefix={<MailOutlined />}
                   placeholder="Nhập email đặt vé"
                   size="large"
                   type="email"
                 />
               </Form.Item>
+
+              <div className="text-center text-gray-500 my-4">HOẶC</div>
 
               <Form.Item
                 label="Số điện thoại"
@@ -158,6 +163,7 @@ const CancelTicketPage = () => {
                 ]}
               >
                 <Input
+                  prefix={<PhoneOutlined />}
                   placeholder="Nhập số điện thoại đặt vé"
                   size="large"
                   maxLength={10}
@@ -166,7 +172,7 @@ const CancelTicketPage = () => {
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-800">
-                  <strong>Lưu ý:</strong> Vui lòng nhập email HOẶC số điện thoại mà bạn đã sử dụng khi đặt vé.
+                  <strong>Lưu ý:</strong> Nhập mã đặt vé và email HOẶC số điện thoại mà bạn đã sử dụng khi đặt vé.
                 </p>
               </div>
 
