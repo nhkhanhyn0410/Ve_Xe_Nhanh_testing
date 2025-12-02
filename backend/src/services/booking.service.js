@@ -266,8 +266,8 @@ class BookingService {
       throw new Error('Thông tin xác thực không chính xác. Vui lòng kiểm tra lại email hoặc số điện thoại.');
     }
 
-    // Use the existing cancelBooking method
-    return await this.cancelBooking(bookingId, reason, 'customer', ipAddress);
+    // Use the existing cancelBooking method with booking._id (ObjectId), not bookingCode
+    return await this.cancelBooking(booking._id, reason, 'customer', ipAddress);
   }
 
   /**
