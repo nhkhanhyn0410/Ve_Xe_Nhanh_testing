@@ -209,9 +209,9 @@ const CancelTicketPage = () => {
                   Chính sách hoàn tiền khi hủy vé
                 </h3>
 
-                <div className="bg-white rounded-lg p-4 mb-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                   <div className="text-center mb-3">
-                    <div className="text-2xl font-bold text-green-600">✓ CÓ HOÀN TIỀN</div>
+                    <div className="text-2xl font-bold text-green-600">✓ HOÀN 100% TIỀN VÉ</div>
                     <div className="text-sm text-gray-600 mt-1">Nếu hủy vé TRƯỚC 2 GIỜ khởi hành</div>
                   </div>
                   <ul className="space-y-2 text-sm text-gray-700">
@@ -222,11 +222,21 @@ const CancelTicketPage = () => {
                   </ul>
                 </div>
 
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-orange-600">⚠ VẪN HỦY ĐƯỢC - KHÔNG HOÀN TIỀN</div>
+                    <div className="text-sm text-gray-700 mt-2">
+                      • Hủy trong vòng <strong className="text-orange-600">2 GIỜ</strong> trước giờ khởi hành<br/>
+                      • Vé sẽ được hủy và ghế được nhả ra<br/>
+                      • <strong className="text-orange-600">KHÔNG được hoàn tiền</strong>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <div className="text-center">
-                    <div className="text-xl font-bold text-red-600">✗ KHÔNG HOÀN TIỀN</div>
+                    <div className="text-xl font-bold text-red-600">✗ KHÔNG THỂ HỦY</div>
                     <div className="text-sm text-gray-700 mt-2">
-                      • Hủy trong vòng <strong className="text-red-600">2 GIỜ</strong> trước giờ khởi hành<br/>
                       • Chuyến xe <strong className="text-red-600">ĐÃ KHỞI HÀNH</strong>
                     </div>
                   </div>
