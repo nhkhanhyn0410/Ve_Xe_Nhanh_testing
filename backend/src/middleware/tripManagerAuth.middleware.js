@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Employee = require('../models/Employee');
+const logger = require('../utils/logger');
 
 /**
  * Trip Manager Authentication Middleware
