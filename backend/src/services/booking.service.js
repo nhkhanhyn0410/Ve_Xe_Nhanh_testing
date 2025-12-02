@@ -289,27 +289,32 @@ class BookingService {
     const logger = require('../utils/logger');
     logger.info(`[DEBUG] Attempting to cancel booking ${booking.bookingCode} with status: ${booking.status}`);
 
-    if (!['pending', 'confirmed'].includes(booking.status)) {
+    // Allow cancellation for pending, confirmed, paid, and completed bookings (before departure)
+    if (!['pending', 'confirmed', 'paid', 'completed'].includes(booking.status)) {
       throw new Error(`Không thể hủy booking này. Trạng thái hiện tại: ${booking.status}`);
     }
 
-    // If booking is confirmed, release seats back to trip
-    if (booking.status === 'confirmed') {
+    // Release seats back to trip (for all valid bookings)
+    if (['pending', 'confirmed', 'paid', 'completed'].includes(booking.status)) {
       const trip = await Trip.findById(booking.tripId);
 
       if (trip) {
         // Remove from booked seats
         const seatNumbers = booking.seats.map((s) => s.seatNumber);
+        logger.info(`[DEBUG] Releasing seats: ${seatNumbers.join(', ')} from trip ${trip._id}`);
+
         trip.bookedSeats = trip.bookedSeats.filter(
           (s) => !seatNumbers.includes(s.seatNumber)
         );
         trip.availableSeats += seatNumbers.length;
         await trip.save();
+
+        logger.success(`[DEBUG] Successfully released ${seatNumbers.length} seats. Available seats: ${trip.availableSeats}`);
       }
     }
 
     // Release voucher usage if voucher was applied
-    if (booking.status === 'confirmed' && booking.voucherId) {
+    if (booking.voucherId) {
       try {
         await VoucherService.releaseFromBooking(booking.voucherId);
       } catch (error) {
@@ -319,7 +324,7 @@ class BookingService {
 
     // Auto-refund if payment was made
     let refundResult = null;
-    if (booking.paymentStatus === 'paid' && booking.status === 'confirmed') {
+    if (booking.paymentStatus === 'paid') {
       try {
         const PaymentServiceClass = getPaymentService();
         refundResult = await PaymentServiceClass.autoRefundOnCancellation(
