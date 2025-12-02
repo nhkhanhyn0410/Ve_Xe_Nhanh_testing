@@ -245,20 +245,22 @@ class BookingService {
     }
 
     // Verify booking ownership using email or phone
-    // Check all possible locations for email and phone
-    const customerEmail = booking.customerId?.email || booking.guestInfo?.email || booking.contactInfo?.email;
-    const customerPhone = booking.customerId?.phone || booking.guestInfo?.phone || booking.contactInfo?.phone;
+    // Check all possible locations for email and phone (contactInfo, guestInfo, customerId)
+    const allEmails = [
+      booking.customerId?.email,
+      booking.guestInfo?.email,
+      booking.contactInfo?.email,
+    ].filter(Boolean);
 
-    // Debug logging
-    const logger = require('../utils/logger');
-    logger.info(`[DEBUG] Verifying booking ${booking.bookingCode}`);
-    logger.info(`[DEBUG] Customer email: ${customerEmail}, Provided email: ${email}`);
-    logger.info(`[DEBUG] Customer phone: ${customerPhone}, Provided phone: ${phone}`);
+    const allPhones = [
+      booking.customerId?.phone,
+      booking.guestInfo?.phone,
+      booking.contactInfo?.phone,
+    ].filter(Boolean);
 
-    const emailMatch = email && customerEmail && email.toLowerCase() === customerEmail.toLowerCase();
-    const phoneMatch = phone && customerPhone && phone === customerPhone;
-
-    logger.info(`[DEBUG] Email match: ${emailMatch}, Phone match: ${phoneMatch}`);
+    // Match if provided email/phone matches ANY of the booking's email/phone fields
+    const emailMatch = email && allEmails.some(e => e.toLowerCase() === email.toLowerCase());
+    const phoneMatch = phone && allPhones.some(p => p === phone);
 
     if (!emailMatch && !phoneMatch) {
       throw new Error('Thông tin xác thực không chính xác. Vui lòng kiểm tra lại email hoặc số điện thoại.');
