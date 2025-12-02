@@ -5,7 +5,7 @@ const QRService = require('./qr.service');
 const { sendEmail, emailTemplates } = require('../config/email');
 const SMSService = require('./sms.service');
 const CancellationService = require('./cancellation.service');
-const redisClient = require('../config/redis');
+const { getRedisClient } = require('../config/redis');
 const moment = require('moment-timezone');
 const logger = require('../utils/logger');
 
@@ -370,7 +370,7 @@ class TicketService {
 
     // Store OTP in Redis with 5 minutes expiry
     const otpKey = `ticket_lookup_otp:${contactValue}`;
-    const redis = await redisClient;
+    const redis = getRedisClient();
     await redis.setEx(otpKey, 300, otp); // 5 minutes
 
     logger.info(`🔐 OTP tra cứu vé cho ${contactMethod} ${contactValue}: ${otp} (Demo: use 123456)`);
@@ -434,7 +434,7 @@ class TicketService {
    */
   static async verifyTicketLookupOTP(ticketCode, phone, email, otp) {
     const Booking = require('../models/Booking');
-    const redis = await redisClient;
+    const redis = getRedisClient();
 
     // Must have either phone or email
     if (!phone && !email) {
