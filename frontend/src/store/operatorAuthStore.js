@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { clearOtherAuthTokens } from '../utils/authUtils';
+import { clearOtherAuthTokens, resetOtherAuthStores } from '../utils/authUtils';
 
 
 /**
@@ -29,8 +29,11 @@ const useOperatorAuthStore = create(
       },
 
       login: (operator, token) => {
-
+        // Clear other auth types to prevent conflicts
         clearOtherAuthTokens('operator');
+
+        // Reset other Zustand stores to prevent persist data issues
+        resetOtherAuthStores('operator');
 
         set({
           operator,
@@ -39,7 +42,6 @@ const useOperatorAuthStore = create(
         });
         localStorage.setItem('operator-token', token);
         localStorage.setItem('operator', JSON.stringify(operator));
-        localStorage.removeItem('operator-auth-storage');
       },
 
       logout: () => {

@@ -3,6 +3,12 @@
  * Handles cross-store token management to prevent multiple tokens
  */
 
+// Import auth stores to reset them
+import useAuthStore from '../store/authStore';
+import useAdminAuthStore from '../store/adminAuthStore';
+import useOperatorAuthStore from '../store/operatorAuthStore';
+import useTripManagerAuthStore from '../store/tripManagerAuthStore';
+
 /**
  * Clear all authentication tokens and data from localStorage
  * This ensures only one user type is authenticated at a time
@@ -58,6 +64,45 @@ export const clearOtherAuthTokens = (keepType) => {
     localStorage.removeItem('trip-manager-token');
     localStorage.removeItem('trip-manager');
     localStorage.removeItem('trip-manager-auth-storage');
+  }
+};
+
+/**
+ * Reset Zustand auth stores to prevent persist data conflicts
+ * This clears the Zustand persist storage for other auth types
+ * @param {string} keepType - The auth type to keep ('customer', 'admin', 'operator', 'trip-manager')
+ */
+export const resetOtherAuthStores = (keepType) => {
+  // Clear localStorage first
+  clearOtherAuthTokens(keepType);
+
+  // Reset other Zustand stores by calling their logout methods
+  if (keepType !== 'customer') {
+    const customerStore = useAuthStore.getState();
+    if (customerStore.logout) {
+      customerStore.logout();
+    }
+  }
+
+  if (keepType !== 'admin') {
+    const adminStore = useAdminAuthStore.getState();
+    if (adminStore.logout) {
+      adminStore.logout();
+    }
+  }
+
+  if (keepType !== 'operator') {
+    const operatorStore = useOperatorAuthStore.getState();
+    if (operatorStore.logout) {
+      operatorStore.logout();
+    }
+  }
+
+  if (keepType !== 'trip-manager') {
+    const tripManagerStore = useTripManagerAuthStore.getState();
+    if (tripManagerStore.logout) {
+      tripManagerStore.logout();
+    }
   }
 };
 
