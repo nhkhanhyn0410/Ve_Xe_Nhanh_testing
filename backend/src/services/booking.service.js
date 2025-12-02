@@ -232,7 +232,13 @@ class BookingService {
    * @returns {Promise<Object>} Cancelled booking with refund result
    */
   static async cancelBookingGuest(bookingId, email, phone, reason, ipAddress) {
-    const booking = await Booking.findById(bookingId).populate('customerId', 'email phone');
+    // Try to find by bookingCode first (for guest users), then by _id (for backward compatibility)
+    let booking = await Booking.findOne({ bookingCode: bookingId }).populate('customerId', 'email phone');
+
+    // If not found by bookingCode, try by _id
+    if (!booking && bookingId.match(/^[0-9a-fA-F]{24}$/)) {
+      booking = await Booking.findById(bookingId).populate('customerId', 'email phone');
+    }
 
     if (!booking) {
       throw new Error('Không tìm thấy mã đặt vé');
