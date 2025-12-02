@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { clearOtherAuthTokens, clearAllAuthTokens } from '../utils/authUtils';
 
 /**
  * Trip Manager Auth Store
@@ -27,6 +28,9 @@ const useTripManagerAuthStore = create(
       },
 
       login: (tripManager, token) => {
+
+        clearOtherAuthTokens('trip-manager')
+
         set({
           tripManager,
           token,
@@ -34,6 +38,7 @@ const useTripManagerAuthStore = create(
         });
         localStorage.setItem('tripmanager-token', token);
         localStorage.setItem('tripManager', JSON.stringify(tripManager));
+        localStorage.removeItem('trip-manager-auth-storage');
       },
 
       logout: () => {

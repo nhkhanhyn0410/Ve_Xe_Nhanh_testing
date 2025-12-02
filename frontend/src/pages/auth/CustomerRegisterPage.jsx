@@ -68,211 +68,210 @@ const CustomerRegisterPage = () => {
         </div>
       </div>
 
-      <div className="relative flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-md">
-          {/* Logo and Title */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-red-600 rounded-3xl mb-6 shadow-2xl">
-              <ThunderboltOutlined className="text-3xl text-white" />
-            </div>
-            <h1 className="text-4xl font-black text-white mb-3 bg-gradient-to-r from-white via-orange-100 to-red-100 bg-clip-text text-transparent">
-              Vé xe nhanh
-            </h1>
-            <p className="text-white/90 text-lg">Tạo tài khoản để bắt đầu đặt vé</p>
-            
-            {/* Feature badges */}
-            <div className="flex justify-center gap-3 mt-6">
-              {[
-                { icon: <ThunderboltOutlined />, text: 'Đặt vé nhanh' },
-                { icon: <SafetyOutlined />, text: 'An toàn' },
-                { icon: <GiftOutlined />, text: 'Ưu đãi' }
-              ].map((badge, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30 shadow-lg"
-                >
-                  <span className="text-white text-sm">{badge.icon}</span>
-                  <span className="text-xs font-semibold tracking-wide text-white">{badge.text}</span>
-                </div>
-              ))}
+      <div className="relative flex items-center justify-center min-h-screen p-4 py-6">
+        <div className="w-full max-w-4xl">
+          {/* Logo and Title - Compact */}
+          <div className="text-center mb-4">
+            <div className="inline-flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-red-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <ThunderboltOutlined className="text-xl text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-black text-white bg-gradient-to-r from-white via-orange-100 to-red-100 bg-clip-text text-transparent">
+                  Vé xe nhanh
+                </h1>
+                <p className="text-white/80 text-sm">Tạo tài khoản để bắt đầu đặt vé</p>
+              </div>
             </div>
           </div>
 
           {/* Register Card */}
           <Card className="backdrop-blur-xl bg-white/95 shadow-2xl border-0 rounded-3xl overflow-hidden">
-            {/* Card Header */}
-            <div className="bg-gradient-to-r from-red-500 via-red-600 to-orange-600 -mx-6 -mt-6 mb-6 px-8 py-6">
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <UserOutlined className="text-xl text-white" />
+            {/* Card Header - Compact */}
+            <div className="bg-gradient-to-r from-red-500 via-red-600 to-orange-600 -mx-6 -mt-6 mb-4 px-6 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <UserOutlined className="text-lg text-white" />
+                  <h2 className="text-xl font-bold text-white mb-0">Đăng Ký</h2>
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-0">
-                  Đăng Ký
-                </h2>
+                {/* Feature badges inline */}
+                <div className="flex gap-2">
+                  {[
+                    { icon: <ThunderboltOutlined />, text: 'Nhanh' },
+                    { icon: <SafetyOutlined />, text: 'An toàn' },
+                    { icon: <GiftOutlined />, text: 'Ưu đãi' }
+                  ].map((badge, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-1 px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30"
+                    >
+                      <span className="text-white text-xs">{badge.icon}</span>
+                      <span className="text-xs font-semibold text-white hidden sm:inline">{badge.text}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="px-8 pb-8">
+            <div className="px-6 pb-6">
 
               <Form
                 form={form}
                 name="customer-register"
                 onFinish={onFinish}
                 layout="vertical"
-                size="large"
+                size="middle"
                 autoComplete="off"
               >
-                <Form.Item
-                  name="name"
-                  label={<span className="text-sm font-semibold text-gray-700">Họ và tên</span>}
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập họ và tên!' },
-                    { min: 2, message: 'Họ và tên phải có ít nhất 2 ký tự!' },
-                  ]}
-                >
-                  <Input
-                    prefix={<UserOutlined className="text-red-500" />}
-                    placeholder="Nguyễn Văn A"
-                    className="h-12 rounded-xl border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all duration-300"
-                  />
-                </Form.Item>
+                {/* Row 1: Name & Email */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Form.Item
+                    name="name"
+                    label={<span className="text-xs font-semibold text-gray-700">Họ và tên</span>}
+                    rules={[
+                      { required: true, message: 'Nhập họ tên!' },
+                      { min: 2, message: 'Tối thiểu 2 ký tự!' },
+                    ]}
+                    className="mb-3"
+                  >
+                    <Input
+                      prefix={<UserOutlined className="text-red-500" />}
+                      placeholder="Nguyễn Văn A"
+                      className="h-10 rounded-lg border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all"
+                    />
+                  </Form.Item>
 
-                <Form.Item
-                  name="email"
-                  label={<span className="text-sm font-semibold text-gray-700">Email</span>}
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập email!' },
-                    { type: 'email', message: 'Email không hợp lệ!' },
-                  ]}
-                >
-                  <Input
-                    prefix={<MailOutlined className="text-red-500" />}
-                    placeholder="example@email.com"
-                    className="h-12 rounded-xl border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all duration-300"
-                  />
-                </Form.Item>
+                  <Form.Item
+                    name="email"
+                    label={<span className="text-xs font-semibold text-gray-700">Email</span>}
+                    rules={[
+                      { required: true, message: 'Nhập email!' },
+                      { type: 'email', message: 'Email không hợp lệ!' },
+                    ]}
+                    className="mb-3"
+                  >
+                    <Input
+                      prefix={<MailOutlined className="text-red-500" />}
+                      placeholder="example@email.com"
+                      className="h-10 rounded-lg border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all"
+                    />
+                  </Form.Item>
+                </div>
 
-                <Form.Item
-                  name="phoneNumber"
-                  label={<span className="text-sm font-semibold text-gray-700">Số điện thoại</span>}
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập số điện thoại!' },
-                    {
-                      pattern: /^[0-9]{10}$/,
-                      message: 'Số điện thoại phải có 10 chữ số!'
-                    },
-                  ]}
-                >
-                  <Input
-                    prefix={<PhoneOutlined className="text-red-500" />}
-                    placeholder="0912345678"
-                    className="h-12 rounded-xl border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all duration-300"
-                  />
-                </Form.Item>
+                {/* Row 2: Phone & Password */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Form.Item
+                    name="phoneNumber"
+                    label={<span className="text-xs font-semibold text-gray-700">Số điện thoại</span>}
+                    rules={[
+                      { required: true, message: 'Nhập SĐT!' },
+                      { pattern: /^[0-9]{10}$/, message: 'SĐT phải 10 chữ số!' }
+                    ]}
+                    className="mb-3"
+                  >
+                    <Input
+                      prefix={<PhoneOutlined className="text-red-500" />}
+                      placeholder="0912345678"
+                      className="h-10 rounded-lg border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all"
+                    />
+                  </Form.Item>
 
-                <Form.Item
-                  name="password"
-                  label={<span className="text-sm font-semibold text-gray-700">Mật khẩu</span>}
-                  rules={[
-                    { required: true, message: 'Vui lòng nhập mật khẩu!' },
-                    { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự!' },
-                    {
-                      pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-                      message: 'Mật khẩu phải chứa ít nhất 1 chữ thường, 1 chữ HOA và 1 số!'
-                    },
-                  ]}
-                  hasFeedback
-                >
-                  <Input.Password
-                    prefix={<LockOutlined className="text-red-500" />}
-                    placeholder="Ví dụ: Password123"
-                    className="h-12 rounded-xl border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all duration-300"
-                  />
-                </Form.Item>
+                  <Form.Item
+                    name="password"
+                    label={<span className="text-xs font-semibold text-gray-700">Mật khẩu</span>}
+                    rules={[
+                      { required: true, message: 'Nhập mật khẩu!' },
+                      { min: 6, message: 'Tối thiểu 6 ký tự!' },
+                      { pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, message: 'Có chữ thường, HOA và số!' }
+                    ]}
+                    hasFeedback
+                    className="mb-3"
+                  >
+                    <Input.Password
+                      prefix={<LockOutlined className="text-red-500" />}
+                      placeholder="Password123"
+                      className="h-10 rounded-lg border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all"
+                    />
+                  </Form.Item>
+                </div>
 
+                {/* Row 3: Confirm Password */}
                 <Form.Item
                   name="confirmPassword"
-                  label={<span className="text-sm font-semibold text-gray-700">Xác nhận mật khẩu</span>}
+                  label={<span className="text-xs font-semibold text-gray-700">Xác nhận mật khẩu</span>}
                   dependencies={['password']}
                   hasFeedback
                   rules={[
-                    { required: true, message: 'Vui lòng xác nhận mật khẩu!' },
+                    { required: true, message: 'Xác nhận mật khẩu!' },
                     ({ getFieldValue }) => ({
                       validator(_, value) {
                         if (!value || getFieldValue('password') === value) {
                           return Promise.resolve();
                         }
-                        return Promise.reject(new Error('Mật khẩu xác nhận không khớp!'));
+                        return Promise.reject(new Error('Mật khẩu không khớp!'));
                       },
                     }),
                   ]}
+                  className="mb-3"
                 >
                   <Input.Password
                     prefix={<LockOutlined className="text-red-500" />}
                     placeholder="Nhập lại mật khẩu"
-                    className="h-12 rounded-xl border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all duration-300"
+                    className="h-10 rounded-lg border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all"
                   />
                 </Form.Item>
 
-                <Form.Item>
+                {/* Submit Button & Social Login */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
                   <Button
                     type="primary"
                     htmlType="submit"
                     loading={loading}
-                    block
                     icon={<ThunderboltOutlined />}
-                    className="h-12 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 border-0 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                    className="h-10 rounded-lg bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 border-0 font-bold shadow-lg hover:shadow-xl transition-all"
                   >
-                    {loading ? 'Đang đăng ký...' : 'Đăng Ký Ngay'}
+                    {loading ? 'Đăng ký...' : 'Đăng Ký'}
                   </Button>
-                </Form.Item>
+
+                  <Button
+                    icon={<GoogleOutlined />}
+                    onClick={handleGoogleRegister}
+                    className="h-10 rounded-lg border-2 border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all"
+                  >
+                    Google
+                  </Button>
+
+                  <Button
+                    icon={<FacebookOutlined />}
+                    onClick={handleFacebookRegister}
+                    className="h-10 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
+                  >
+                    Facebook
+                  </Button>
+                </div>
               </Form>
 
-              <Divider plain className="text-gray-500">Hoặc đăng ký với</Divider>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button
-                  icon={<GoogleOutlined />}
-                  onClick={handleGoogleRegister}
-                  className="h-12 rounded-xl border-2 border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all duration-300"
-                >
-                  Google
-                </Button>
-                <Button
-                  icon={<FacebookOutlined />}
-                  onClick={handleFacebookRegister}
-                  className="h-12 rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-300"
-                >
-                  Facebook
-                </Button>
-              </div>
-
-              <div className="text-center mt-6">
-                <p className="text-sm text-gray-600">
-                  Đã có tài khoản?{' '}
-                  <Link
-                    to="/login"
-                    className="text-red-600 hover:text-red-700 font-bold"
-                  >
-                    Đăng nhập ngay
-                  </Link>
-                </p>
-              </div>
-
-              <div className="text-center mt-4">
+              {/* Footer Links */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
                 <Link
                   to="/"
-                  className="text-sm text-gray-500 hover:text-red-600 transition-colors duration-300"
+                  className="text-sm text-gray-500 hover:text-red-600 transition-colors"
                 >
-                  ← Về trang chủ
+                  ← Trang chủ
                 </Link>
+                <p className="text-sm text-gray-600">
+                  Đã có tài khoản?{' '}
+                  <Link to="/login" className="text-red-600 hover:text-red-700 font-bold">
+                    Đăng nhập
+                  </Link>
+                </p>
               </div>
             </div>
           </Card>
 
-          {/* Footer */}
-          <p className="text-center text-sm text-white/70 mt-8">
-            . All rights reserved.
+          {/* Footer - Compact */}
+          <p className="text-center text-xs text-white/60 mt-3">
+
           </p>
         </div>
       </div>

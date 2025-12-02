@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { clearOtherAuthTokens } from '../utils/authUtils';
+
 
 /**
  * Operator Auth Store
@@ -27,6 +29,9 @@ const useOperatorAuthStore = create(
       },
 
       login: (operator, token) => {
+
+        clearOtherAuthTokens('operator');
+
         set({
           operator,
           token,
@@ -34,6 +39,7 @@ const useOperatorAuthStore = create(
         });
         localStorage.setItem('operator-token', token);
         localStorage.setItem('operator', JSON.stringify(operator));
+        localStorage.removeItem('operator-auth-storage');
       },
 
       logout: () => {

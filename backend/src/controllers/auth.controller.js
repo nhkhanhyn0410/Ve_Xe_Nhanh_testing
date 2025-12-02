@@ -229,7 +229,7 @@ exports.verifyEmail = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Lỗi xác mtrtrêngh email:', error);
+    logger.error('Lỗi xác thực email:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xác thực email thất bại',
@@ -289,7 +289,7 @@ exports.verifyPhone = async (req, res, next) => {
       message: 'Xác thực số điện thoại thành công',
     });
   } catch (error) {
-    logger.error('Lỗi xác mtrtrêngh điện thoại:', error);
+    logger.error('Lỗi xác thực điện thoại:', error);
     res.status(400).json({
       status: 'error',
       message: error.message || 'Xác thực số điện thoại thất bại',
@@ -313,7 +313,7 @@ exports.getMe = async (req, res, next) => {
       },
     });
   } catch (error) {
-    logger.error('Lỗi lấy thông ttrtrêng:', error);
+    logger.error('Lỗi lấy thông tin:', error);
     res.status(500).json({
       status: 'error',
       message: 'Lỗi server',

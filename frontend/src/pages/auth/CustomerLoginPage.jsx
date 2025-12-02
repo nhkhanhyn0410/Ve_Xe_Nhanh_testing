@@ -69,154 +69,142 @@ const CustomerLoginPage = () => {
         </div>
       </div>
 
-      <div className="relative flex items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-md">
-          {/* Logo and Title */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-red-600 rounded-3xl mb-6 shadow-2xl">
-              <ThunderboltOutlined className="text-3xl text-white" />
-            </div>
-            <h1 className="text-4xl font-black text-white mb-3 bg-gradient-to-r from-white via-orange-100 to-red-100 bg-clip-text text-transparent">
-              Vé xe nhanh
-            </h1>
-            <p className="text-white/90 text-lg">Đăng nhập để đặt vé và quản lý chuyến đi</p>
-            
-            {/* Feature badges */}
-            <div className="flex justify-center gap-3 mt-6">
-              {[
-                { icon: <ThunderboltOutlined />, text: 'Đặt vé nhanh' },
-                { icon: <SafetyOutlined />, text: 'An toàn' },
-                { icon: <GiftOutlined />, text: 'Ưu đãi' }
-              ].map((badge, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-sm rounded-xl border border-white/30 shadow-lg"
-                >
-                  <span className="text-white text-sm">{badge.icon}</span>
-                  <span className="text-xs font-semibold tracking-wide text-white">{badge.text}</span>
-                </div>
-              ))}
+      <div className="relative flex items-center justify-center min-h-screen p-4 py-6">
+        <div className="w-full max-w-xl">
+          {/* Logo and Title - Compact */}
+          <div className="text-center mb-4">
+            <div className="inline-flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-red-600 rounded-2xl flex items-center justify-center shadow-xl">
+                <ThunderboltOutlined className="text-xl text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-black text-white bg-gradient-to-r from-white via-orange-100 to-red-100 bg-clip-text text-transparent">
+                  Vé xe nhanh
+                </h1>
+                <p className="text-white/80 text-sm">Đăng nhập khách hàng</p>
+              </div>
             </div>
           </div>
 
           {/* Login Card */}
           <Card className="backdrop-blur-xl bg-white/95 shadow-2xl border-0 rounded-3xl overflow-hidden">
-            {/* Card Header */}
-            <div className="bg-gradient-to-r from-red-500 via-red-600 to-orange-600 -mx-6 -mt-6 mb-6 px-8 py-6">
-              <div className="flex items-center justify-center gap-3">
-                <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <MailOutlined className="text-xl text-white" />
+            {/* Card Header - Compact */}
+            <div className="bg-gradient-to-r from-red-500 via-red-600 to-orange-600 -mx-6 -mt-6 mb-4 px-6 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MailOutlined className="text-lg text-white" />
+                  <h2 className="text-xl font-bold text-white mb-0">Đăng Nhập</h2>
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-0">
-                  Đăng Nhập
-                </h2>
+                {/* Feature badges inline */}
+                <div className="flex gap-2">
+                  {[
+                    { icon: <ThunderboltOutlined />, text: 'Nhanh' },
+                    { icon: <SafetyOutlined />, text: 'An toàn' },
+                    { icon: <GiftOutlined />, text: 'Ưu đãi' }
+                  ].map((badge, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-1 px-2 py-1 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30"
+                    >
+                      <span className="text-white text-xs">{badge.icon}</span>
+                      <span className="text-xs font-semibold text-white hidden sm:inline">{badge.text}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="px-8 pb-8">
+            <div className="px-6 pb-6">
 
               <Form
                 name="customer-login"
                 onFinish={onFinish}
                 layout="vertical"
-                size="large"
+                size="middle"
                 autoComplete="off"
               >
                 <Form.Item
                   name="email"
-                  label={<span className="text-sm font-semibold text-gray-700">Email</span>}
+                  label={<span className="text-xs font-semibold text-gray-700">Email</span>}
                   rules={[
-                    { required: true, message: 'Vui lòng nhập email!' },
+                    { required: true, message: 'Nhập email!' },
                     { type: 'email', message: 'Email không hợp lệ!' },
                   ]}
+                  className="mb-3"
                 >
                   <Input
                     prefix={<MailOutlined className="text-red-500" />}
                     placeholder="example@email.com"
-                    className="h-12 rounded-xl border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all duration-300"
+                    className="h-10 rounded-lg border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all"
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="password"
-                  label={<span className="text-sm font-semibold text-gray-700">Mật khẩu</span>}
-                  rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
+                  label={<span className="text-xs font-semibold text-gray-700">Mật khẩu</span>}
+                  rules={[{ required: true, message: 'Nhập mật khẩu!' }]}
+                  className="mb-2"
                 >
                   <Input.Password
                     prefix={<LockOutlined className="text-red-500" />}
                     placeholder="Nhập mật khẩu"
-                    className="h-12 rounded-xl border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all duration-300"
+                    className="h-10 rounded-lg border-2 border-gray-200 hover:border-red-400 focus:border-red-500 transition-all"
                   />
                 </Form.Item>
 
-                <div className="text-right mb-6">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-red-600 hover:text-red-700 font-medium"
-                  >
+                <div className="text-right mb-4">
+                  <Link to="/forgot-password" className="text-xs text-red-600 hover:text-red-700 font-medium">
                     Quên mật khẩu?
                   </Link>
                 </div>
 
-                <Form.Item>
+                {/* Submit Button & Social Login */}
+                <div className="grid grid-cols-3 gap-3">
                   <Button
                     type="primary"
                     htmlType="submit"
                     loading={loading}
-                    block
                     icon={<ThunderboltOutlined />}
-                    className="h-12 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 border-0 font-bold text-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                    className="h-10 rounded-lg bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 border-0 font-bold shadow-lg hover:shadow-xl transition-all"
                   >
-                    {loading ? 'Đang đăng nhập...' : 'Đăng Nhập Ngay'}
+                    {loading ? 'Đăng nhập...' : 'Đăng Nhập'}
                   </Button>
-                </Form.Item>
+
+                  <Button
+                    icon={<GoogleOutlined />}
+                    onClick={handleGoogleLogin}
+                    className="h-10 rounded-lg border-2 border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all"
+                  >
+                    Google
+                  </Button>
+
+                  <Button
+                    icon={<FacebookOutlined />}
+                    onClick={handleFacebookLogin}
+                    className="h-10 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
+                  >
+                    Facebook
+                  </Button>
+                </div>
               </Form>
 
-              <Divider plain className="text-gray-500">Hoặc đăng nhập với</Divider>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button
-                  icon={<GoogleOutlined />}
-                  onClick={handleGoogleLogin}
-                  className="h-12 rounded-xl border-2 border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all duration-300"
-                >
-                  Google
-                </Button>
-                <Button
-                  icon={<FacebookOutlined />}
-                  onClick={handleFacebookLogin}
-                  className="h-12 rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-300"
-                >
-                  Facebook
-                </Button>
-              </div>
-
-              <div className="text-center mt-6">
+              {/* Footer Links */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                <Link to="/" className="text-sm text-gray-500 hover:text-red-600 transition-colors">
+                  ← Trang chủ
+                </Link>
                 <p className="text-sm text-gray-600">
                   Chưa có tài khoản?{' '}
-                  <Link
-                    to="/register"
-                    className="text-red-600 hover:text-red-700 font-bold"
-                  >
-                    Đăng ký ngay
+                  <Link to="/register" className="text-red-600 hover:text-red-700 font-bold">
+                    Đăng ký
                   </Link>
                 </p>
-              </div>
-
-              <div className="text-center mt-4">
-                <Link
-                  to="/"
-                  className="text-sm text-gray-500 hover:text-red-600 transition-colors duration-300"
-                >
-                  ← Về trang chủ
-                </Link>
               </div>
             </div>
           </Card>
 
-          {/* Footer */}
-          <p className="text-center text-sm text-white/70 mt-8">
-            . All rights reserved.
+          {/* Footer - Compact */}
+          <p className="text-center text-xs text-white/60 mt-3">
           </p>
         </div>
       </div>

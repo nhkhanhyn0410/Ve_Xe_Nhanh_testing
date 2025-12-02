@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { clearOtherAuthTokens } from '../utils/authUtils';
 
 /**
  * Admin Auth Store
@@ -27,6 +28,9 @@ const useAdminAuthStore = create(
       },
 
       login: (admin, token) => {
+
+        clearOtherAuthTokens('admin');
+
         set({
           admin,
           token,
@@ -44,6 +48,7 @@ const useAdminAuthStore = create(
         });
         localStorage.removeItem('admin-token');
         localStorage.removeItem('admin');
+        localStorage.removeItem('admin-auth-storage');
       },
 
       updateAdmin: (adminData) => {

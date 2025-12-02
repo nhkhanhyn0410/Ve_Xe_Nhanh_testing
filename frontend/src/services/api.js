@@ -14,33 +14,66 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // Determine which auth storage to use based on the request URL
-    let storageKey = 'auth-storage'; // Default to customer auth
+    // Determine which auth storage to use based on the request URL or current path
+    let storageKey = null;
+    let tokenKey = null;
+    const currentPath = window.location.pathname;
 
-    if (config.url?.includes('/operators/')) {
-      storageKey = 'operator-auth-storage';
-    } else if (config.url?.includes('/admin/')) {
+    // Priority order: URL-based detection first, then path-based
+    if (config.url?.includes('/admin/')) {
       storageKey = 'admin-auth-storage';
-    } else if (config.url?.includes('/trip-manager/')) {
+      tokenKey = 'admin-token';
+    } else if (config.url?.includes('/operators/')) {
+      storageKey = 'operator-auth-storage';
+      tokenKey = 'operator-token';
+    } else if (config.url?.includes('/trip-manager/') ||
+      (config.url?.includes('/employees/') && currentPath.startsWith('/trip-manager'))) {
       storageKey = 'trip-manager-auth-storage';
+      tokenKey = 'trip-manager-token';
+    } else if (currentPath.startsWith('/admin')) {
+      storageKey = 'admin-auth-storage';
+      tokenKey = 'admin-token';
+    } else if (currentPath.startsWith('/operator')) {
+      storageKey = 'operator-auth-storage';
+      tokenKey = 'operator-token';
+    } else if (currentPath.startsWith('/trip-manager')) {
+      storageKey = 'trip-manager-auth-storage';
+      tokenKey = 'trip-manager-token';
+    } else {
+      // Default to customer auth
+      storageKey = 'auth-storage';
+      tokenKey = 'token';
     }
 
-    // Get token from appropriate Zustand persist storage
+    // Get token from appropriate storage - try Zustand persist storage first
+    let token = null;
+
+    // Try Zustand persist storage
     const authData = localStorage.getItem(storageKey);
     if (authData) {
       try {
         const { state } = JSON.parse(authData);
         if (state?.token) {
-          config.headers.Authorization = `Bearer ${state.token}`;
+          token = state.token;
         }
       } catch (error) {
         console.error(`Error parsing ${storageKey}:`, error);
       }
     }
 
-    // Get guest session token if available (only for customer routes)
+    // Fallback to direct token storage
+    if (!token && tokenKey) {
+      token = localStorage.getItem(tokenKey);
+    }
+
+    // Set Authorization header if token exists
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Get guest session token if available (only for customer routes and no auth token)
     const guestToken = localStorage.getItem('guest-token');
-    if (guestToken && !config.headers.Authorization && storageKey === 'auth-storage') {
+    if (guestToken && !token && storageKey === 'auth-storage') {
       config.headers['x-guest-token'] = guestToken;
     }
 
@@ -65,7 +98,7 @@ api.interceptors.response.use(
       if (status === 401) {
         // Check if this is a login/register request - don't redirect
         const isAuthRequest = error.config.url?.includes('/login') ||
-                              error.config.url?.includes('/register');
+          error.config.url?.includes('/register');
 
         if (!isAuthRequest) {
           // Determine which auth storage to clear based on the request URL
