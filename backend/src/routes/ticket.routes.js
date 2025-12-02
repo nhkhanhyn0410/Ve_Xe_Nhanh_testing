@@ -30,7 +30,6 @@ const validateLookupTicket = [
 ];
 
 const validateRequestOTP = [
-  body('ticketCode').notEmpty().withMessage('Mã vé là bắt buộc'),
   body('phone')
     .optional()
     .matches(/^(0|\+84)[0-9]{9,10}$/)
@@ -48,7 +47,6 @@ const validateRequestOTP = [
 ];
 
 const validateVerifyOTP = [
-  body('ticketCode').notEmpty().withMessage('Mã vé là bắt buộc'),
   body('phone')
     .optional()
     .matches(/^(0|\+84)[0-9]{9,10}$/)

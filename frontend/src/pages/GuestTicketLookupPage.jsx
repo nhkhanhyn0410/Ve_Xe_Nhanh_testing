@@ -41,17 +41,21 @@ const GuestTicketLookupPage = () => {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [lookupData, setLookupData] = useState({ ticketCode: '', phone: '', email: '' });
+  const [lookupData, setLookupData] = useState({ phone: '', email: '' });
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [qrModalVisible, setQrModalVisible] = useState(false);
 
   // Step 1: Request OTP (Phone or Email)
   const handleRequestOTP = async (values) => {
+    if (!values.phone && !values.email) {
+      message.error('Vui lòng nhập số điện thoại hoặc email');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await requestTicketLookupOTP({
-        ticketCode: values.ticketCode,
         phone: values.phone,
         email: values.email,
       });
@@ -70,26 +74,25 @@ const GuestTicketLookupPage = () => {
     }
   };
 
-  // Step 2: Verify OTP and get ticket
+  // Step 2: Verify OTP and get tickets
   const handleVerifyOTP = async (values) => {
     setLoading(true);
     try {
       const response = await verifyTicketLookupOTP({
-        ticketCode: lookupData.ticketCode,
         phone: lookupData.phone,
         email: lookupData.email,
         otp: values.otp,
       });
 
       if (response.status === 'success' || response.success) {
-        const ticket = response.data.ticket;
-        setTickets(ticket ? [ticket] : []);
+        const ticketList = response.data.tickets || [];
+        setTickets(ticketList);
         setCurrentStep(2);
 
-        if (!ticket) {
-          message.info('Không tìm thấy vé');
+        if (ticketList.length === 0) {
+          message.info('Không tìm thấy vé nào');
         } else {
-          message.success('Xác thực thành công');
+          message.success(`Tìm thấy ${ticketList.length} vé`);
         }
       }
     } catch (error) {
@@ -110,7 +113,7 @@ const GuestTicketLookupPage = () => {
     form.resetFields();
     otpForm.resetFields();
     setCurrentStep(0);
-    setLookupData({ ticketCode: '', phone: '', email: '' });
+    setLookupData({ phone: '', email: '' });
     setTickets([]);
     setSelectedTicket(null);
   };
@@ -150,7 +153,7 @@ const GuestTicketLookupPage = () => {
             Tra cứu vé
           </h1>
           <p className="text-gray-600">
-            Nhập mã vé và số điện thoại hoặc email để tra cứu
+            Nhập số điện thoại hoặc email để tra cứu tất cả vé đã đặt
           </p>
         </div>
 
@@ -159,11 +162,11 @@ const GuestTicketLookupPage = () => {
           <Steps current={currentStep}>
             <Step title="Nhập thông tin" icon={<SearchOutlined />} />
             <Step title="Xác thực OTP" icon={<SafetyOutlined />} />
-            <Step title="Thông tin vé" icon={<QrcodeOutlined />} />
+            <Step title="Danh sách vé" icon={<QrcodeOutlined />} />
           </Steps>
         </Card>
 
-        {/* Step 1: Enter ticket info */}
+        {/* Step 1: Enter contact info */}
         {currentStep === 0 && (
           <Card>
             <Form
@@ -172,20 +175,6 @@ const GuestTicketLookupPage = () => {
               onFinish={handleRequestOTP}
               autoComplete="off"
             >
-              <Form.Item
-                label="Mã vé"
-                name="ticketCode"
-                rules={[
-                  { required: true, message: 'Vui lòng nhập mã vé' },
-                ]}
-              >
-                <Input
-                  prefix={<QrcodeOutlined />}
-                  placeholder="Nhập mã vé (VD: TKT-20250101-ABCD1234)"
-                  size="large"
-                />
-              </Form.Item>
-
               <Form.Item
                 label="Số điện thoại"
                 name="phone"
@@ -203,6 +192,8 @@ const GuestTicketLookupPage = () => {
                   maxLength={10}
                 />
               </Form.Item>
+
+              <div className="text-center text-gray-500 my-4">HOẶC</div>
 
               <Form.Item
                 label="Email"
@@ -236,7 +227,7 @@ const GuestTicketLookupPage = () => {
 
               <div className="bg-blue-50 border border-blue-200 p-4 rounded mt-4">
                 <p className="text-sm text-blue-800">
-                  <strong>Lưu ý:</strong> Vui lòng nhập số điện thoại HOẶC email bạn đã sử dụng khi đặt vé. Hệ thống sẽ gửi mã OTP để xác thực.
+                  <strong>Lưu ý:</strong> Chỉ cần nhập số điện thoại HOẶC email bạn đã sử dụng khi đặt vé. Hệ thống sẽ gửi mã OTP và hiển thị tất cả vé của bạn.
                 </p>
               </div>
             </Form>
@@ -323,9 +314,9 @@ const GuestTicketLookupPage = () => {
           <Card>
             <div className="text-center mb-6">
               <QrcodeOutlined className="text-5xl text-green-500 mb-4" />
-              <h2 className="text-2xl font-semibold mb-2">Thông tin vé</h2>
+              <h2 className="text-2xl font-semibold mb-2">Danh sách vé của bạn</h2>
               <p className="text-gray-600">
-                Mã vé: <strong>{lookupData.ticketCode}</strong>
+                {lookupData.phone ? `Số điện thoại: ${lookupData.phone}` : `Email: ${lookupData.email}`}
               </p>
             </div>
 

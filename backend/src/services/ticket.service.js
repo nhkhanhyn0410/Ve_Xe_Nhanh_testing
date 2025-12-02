@@ -334,7 +334,7 @@ class TicketService {
 
   /**
    * Request OTP for guest ticket lookup
-   * @param {string} ticketCode - Ticket code
+   * @param {string} ticketCode - Ticket code (not used, kept for compatibility)
    * @param {string} phone - Contact phone (optional)
    * @param {string} email - Contact email (optional)
    * @returns {Promise<Object>} OTP request result
@@ -347,36 +347,33 @@ class TicketService {
       throw new Error('Phải cung cấp số điện thoại hoặc email');
     }
 
-    // Find ticket
-    const ticket = await Ticket.findByCode(ticketCode);
-    if (!ticket) {
-      throw new Error('Không tìm thấy vé');
+    // Find bookings by phone or email
+    const bookings = await Booking.find({
+      $or: [
+        phone ? { 'contactInfo.phone': phone } : null,
+        phone ? { 'guestInfo.phone': phone } : null,
+        email ? { 'contactInfo.email': email } : null,
+        email ? { 'guestInfo.email': email } : null,
+      ].filter(Boolean),
+    }).select('_id');
+
+    if (bookings.length === 0) {
+      throw new Error('Không tìm thấy vé nào với thông tin này');
     }
 
-    const booking = ticket.bookingId;
-
-    // Verify phone or email matches
-    let contactMethod = null;
-    let contactValue = null;
-    if (phone && booking.contactInfo.phone === phone) {
-      contactMethod = 'phone';
-      contactValue = phone;
-    } else if (email && booking.contactInfo.email === email) {
-      contactMethod = 'email';
-      contactValue = email;
-    } else {
-      throw new Error('Số điện thoại hoặc email không khớp với vé');
-    }
+    // Determine contact method and value
+    const contactMethod = phone ? 'phone' : 'email';
+    const contactValue = phone || email;
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Store OTP in Redis with 5 minutes expiry
-    const otpKey = `ticket_lookup_otp:${ticketCode}:${contactValue}`;
+    const otpKey = `ticket_lookup_otp:${contactValue}`;
     const redis = await redisClient;
     await redis.setEx(otpKey, 300, otp); // 5 minutes
 
-    logger.info(`🔐 OTP cho vé ${ticketCode}: ${otp} (Demo: use 123456)`);
+    logger.info(`🔐 OTP tra cứu vé cho ${contactMethod} ${contactValue}: ${otp} (Demo: use 123456)`);
 
     let sentMethods = [];
 
@@ -400,7 +397,7 @@ class TicketService {
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h1 style="color: #0ea5e9;">Mã OTP tra cứu vé</h1>
-              <p>Mã OTP của bạn để tra cứu vé <strong>${ticketCode}</strong> là:</p>
+              <p>Mã OTP của bạn để tra cứu vé là:</p>
               <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
                 <h2 style="color: #0ea5e9; font-size: 32px; margin: 0; letter-spacing: 5px;">${otp}</h2>
               </div>
@@ -429,11 +426,11 @@ class TicketService {
 
   /**
    * Verify OTP and get ticket(s) (for guests)
-   * @param {string} ticketCode - Ticket code
+   * @param {string} ticketCode - Ticket code (unused, kept for backward compatibility)
    * @param {string} phone - Contact phone (optional)
    * @param {string} email - Contact email (optional)
    * @param {string} otp - OTP code
-   * @returns {Promise<Object>} Ticket details
+   * @returns {Promise<Object>} Object containing tickets array
    */
   static async verifyTicketLookupOTP(ticketCode, phone, email, otp) {
     const Booking = require('../models/Booking');
@@ -446,7 +443,7 @@ class TicketService {
 
     // Get OTP key - use whatever was provided (phone or email)
     const contactValue = phone || email;
-    const otpKey = `ticket_lookup_otp:${ticketCode}:${contactValue}`;
+    const otpKey = `ticket_lookup_otp:${contactValue}`;
 
     // Demo mode: Accept 123456 as valid OTP
     const isDemoOTP = otp === '123456';
@@ -468,14 +465,54 @@ class TicketService {
       logger.warn('Demo OTP (123456) accepted cho kiểm tra');
     }
 
-    // Single ticket lookup
-    const ticket = await Ticket.findByCode(ticketCode);
+    // Find all bookings by phone or email
+    const bookings = await Booking.find({
+      $or: [
+        phone ? { 'contactInfo.phone': phone } : null,
+        phone ? { 'guestInfo.phone': phone } : null,
+        email ? { 'contactInfo.email': email } : null,
+        email ? { 'guestInfo.email': email } : null,
+      ].filter(Boolean),
+    }).select('_id');
 
-    if (!ticket) {
-      throw new Error('Không tìm thấy vé');
+    if (bookings.length === 0) {
+      throw new Error('Không tìm thấy vé nào với thông tin này');
     }
 
-    return { ticket };
+    const bookingIds = bookings.map((b) => b._id);
+
+    // Find all tickets for these bookings
+    const tickets = await Ticket.find({
+      bookingId: { $in: bookingIds },
+    })
+      .populate('bookingId', 'bookingCode')
+      .populate('tripId', 'departureTime route origin destination')
+      .sort({ createdAt: -1 });
+
+    // Format tickets for frontend
+    const formattedTickets = tickets.map((ticket) => ({
+      _id: ticket._id,
+      ticketCode: ticket.ticketCode,
+      status: ticket.status,
+      qrCode: ticket.qrCode,
+      pdfUrl: ticket.pdfUrl,
+      passengers: ticket.passengers,
+      totalPrice: ticket.totalPrice,
+      isUsed: ticket.isUsed,
+      usedAt: ticket.usedAt,
+      tripInfo: {
+        routeName: ticket.tripInfo?.routeName || '',
+        departureTime: ticket.tripInfo?.departureTime || ticket.tripId?.departureTime,
+        origin: ticket.tripInfo?.origin || ticket.tripId?.origin,
+        destination: ticket.tripInfo?.destination || ticket.tripId?.destination,
+        pickupPoint: ticket.tripInfo?.pickupPoint,
+        dropoffPoint: ticket.tripInfo?.dropoffPoint,
+      },
+      bookingCode: ticket.bookingId?.bookingCode,
+      createdAt: ticket.createdAt,
+    }));
+
+    return { tickets: formattedTickets };
   }
 
   /**
