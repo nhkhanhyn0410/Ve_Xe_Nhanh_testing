@@ -286,8 +286,11 @@ class BookingService {
       throw new Error('Không tìm thấy booking');
     }
 
+    const logger = require('../utils/logger');
+    logger.info(`[DEBUG] Attempting to cancel booking ${booking.bookingCode} with status: ${booking.status}`);
+
     if (!['pending', 'confirmed'].includes(booking.status)) {
-      throw new Error('Không thể hủy booking này');
+      throw new Error(`Không thể hủy booking này. Trạng thái hiện tại: ${booking.status}`);
     }
 
     // If booking is confirmed, release seats back to trip
