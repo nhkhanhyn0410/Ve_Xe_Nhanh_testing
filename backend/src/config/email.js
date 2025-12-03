@@ -281,7 +281,7 @@ const emailTemplates = {
           <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
             <p style="color: #94a3b8; font-size: 12px; margin: 5px 0;">
               Vé xe nhanh - Nền tảng đặt vé xe khách trực tuyến<br>
-              Hotline: 1900-xxxx | Email: support@vexenhanh.com
+              Hotline: 1900-0000 | Email: support@vexenhanh.com
             </p>
             <p style="color: #cbd5e1; font-size: 11px; margin: 10px 0;">
               Email này được gửi tự động, vui lòng không reply.
@@ -434,7 +434,7 @@ const emailTemplates = {
               Nếu bạn có bất kỳ thắc mắc nào về việc hủy vé hoặc hoàn tiền, vui lòng liên hệ:
             </p>
             <p style="color: #0ea5e9; margin: 10px 0; font-size: 14px;">
-              📞 Hotline: 1900-xxxx<br>
+              📞 Hotline: 1900-0000<br>
               📧 Email: support@vexenhanh.com
             </p>
           </div>
@@ -595,7 +595,7 @@ const emailTemplates = {
               Nếu bạn có bất kỳ thắc mắc nào về việc đổi vé, vui lòng liên hệ:
             </p>
             <p style="color: #0ea5e9; margin: 10px 0; font-size: 14px;">
-              📞 Hotline: 1900-xxxx<br>
+              📞 Hotline: 1900-0000<br>
               📧 Email: support@vexenhanh.com
             </p>
           </div>

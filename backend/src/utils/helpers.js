@@ -65,12 +65,8 @@ const calculateRefund = (totalAmount, tripDepartureTime) => {
 
   let refundPercentage = 0;
 
-  if (hoursUntilDeparture >= 24) {
-    refundPercentage = 90;
-  } else if (hoursUntilDeparture >= 12) {
-    refundPercentage = 70;
-  } else if (hoursUntilDeparture >= 6) {
-    refundPercentage = 50;
+  if (hoursUntilDeparture >= 2) {
+    refundPercentage = 100;
   } else {
     refundPercentage = 0;
   }

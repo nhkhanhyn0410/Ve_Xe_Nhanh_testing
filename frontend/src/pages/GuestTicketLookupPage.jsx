@@ -16,12 +16,15 @@ import {
 import {
   SearchOutlined,
   PhoneOutlined,
+  MailOutlined,
   SafetyOutlined,
   QrcodeOutlined,
   CalendarOutlined,
   EnvironmentOutlined,
   UserOutlined,
   CheckCircleOutlined,
+  ExclamationCircleOutlined,
+  CloseCircleOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
@@ -40,27 +43,34 @@ const GuestTicketLookupPage = () => {
 
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [lookupData, setLookupData] = useState({ phone: '', email: '' });
   const [tickets, setTickets] = useState([]);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [qrModalVisible, setQrModalVisible] = useState(false);
 
-  // Step 1: Request OTP (Phone only)
+  // Step 1: Request OTP (Phone or Email)
   const handleRequestOTP = async (values) => {
+    if (!values.phone && !values.email) {
+      message.error('Vui lòng nhập số điện thoại hoặc email');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await requestTicketLookupOTP({
         phone: values.phone,
+        email: values.email,
       });
 
       if (response.status === 'success' || response.success) {
-        setPhoneNumber(values.phone);
+        setLookupData(values);
         setCurrentStep(1);
-        message.success('Mã OTP đã được gửi đến số điện thoại của bạn (Demo: 123456)');
+        const method = values.phone ? 'số điện thoại' : 'email';
+        message.success(`Mã OTP đã được gửi đến ${method} của bạn`);
       }
     } catch (error) {
       console.error('Request OTP error:', error);
-      message.error(error.response?.data?.message || 'Không thể gửi mã OTP. Vui lòng kiểm tra lại số điện thoại.');
+      message.error(error.response?.data?.message || 'Không thể gửi mã OTP. Vui lòng kiểm tra lại thông tin.');
     } finally {
       setLoading(false);
     }
@@ -70,11 +80,9 @@ const GuestTicketLookupPage = () => {
   const handleVerifyOTP = async (values) => {
     setLoading(true);
     try {
-      // Demo mode: Accept "123456" as valid OTP
-      const isDemo = values.otp === '123456';
-
       const response = await verifyTicketLookupOTP({
-        phone: phoneNumber,
+        phone: lookupData.phone,
+        email: lookupData.email,
         otp: values.otp,
       });
 
@@ -84,22 +92,14 @@ const GuestTicketLookupPage = () => {
         setCurrentStep(2);
 
         if (ticketList.length === 0) {
-          message.info('Không tìm thấy vé nào với số điện thoại này');
+          message.info('Không tìm thấy vé nào');
         } else {
           message.success(`Tìm thấy ${ticketList.length} vé`);
         }
       }
     } catch (error) {
       console.error('Verify OTP error:', error);
-
-      // Demo mode fallback: If OTP is 123456, proceed anyway
-      if (values.otp === '123456') {
-        message.warning('Demo mode: OTP được chấp nhận nhưng không tìm thấy vé');
-        setTickets([]);
-        setCurrentStep(2);
-      } else {
-        message.error(error.response?.data?.message || 'Mã OTP không đúng. Vui lòng thử lại hoặc dùng mã demo: 123456');
-      }
+      message.error(error.response?.data?.message || 'Mã OTP không đúng. Vui lòng thử lại');
     } finally {
       setLoading(false);
     }
@@ -115,7 +115,7 @@ const GuestTicketLookupPage = () => {
     form.resetFields();
     otpForm.resetFields();
     setCurrentStep(0);
-    setPhoneNumber('');
+    setLookupData({ phone: '', email: '' });
     setTickets([]);
     setSelectedTicket(null);
   };
@@ -140,12 +140,8 @@ const GuestTicketLookupPage = () => {
     const departureTime = dayjs(ticket.tripInfo?.departureTime);
     const now = dayjs();
 
-    // Cannot cancel if already departed
-    if (now.isAfter(departureTime)) return false;
-
-    // Can cancel if more than 2 hours before departure
-    const hoursDiff = departureTime.diff(now, 'hour', true);
-    return hoursDiff > 2;
+    // Can cancel if trip hasn't departed yet
+    return now.isBefore(departureTime);
   };
 
   return (
@@ -159,20 +155,20 @@ const GuestTicketLookupPage = () => {
             Tra cứu vé
           </h1>
           <p className="text-gray-600">
-            Nhập số điện thoại để tra cứu thông tin vé đã đặt
+            Nhập số điện thoại hoặc email để tra cứu tất cả vé đã đặt
           </p>
         </div>
 
         {/* Steps */}
         <Card className="mb-6">
           <Steps current={currentStep}>
-            <Step title="Nhập SĐT" icon={<PhoneOutlined />} />
+            <Step title="Nhập thông tin" icon={<SearchOutlined />} />
             <Step title="Xác thực OTP" icon={<SafetyOutlined />} />
             <Step title="Danh sách vé" icon={<QrcodeOutlined />} />
           </Steps>
         </Card>
 
-        {/* Step 1: Enter phone number */}
+        {/* Step 1: Enter contact info */}
         {currentStep === 0 && (
           <Card>
             <Form
@@ -185,7 +181,6 @@ const GuestTicketLookupPage = () => {
                 label="Số điện thoại"
                 name="phone"
                 rules={[
-                  { required: true, message: 'Vui lòng nhập số điện thoại' },
                   {
                     pattern: /^[0-9]{10}$/,
                     message: 'Số điện thoại phải có 10 chữ số',
@@ -197,6 +192,26 @@ const GuestTicketLookupPage = () => {
                   placeholder="Nhập số điện thoại đã đặt vé"
                   size="large"
                   maxLength={10}
+                />
+              </Form.Item>
+
+              <div className="text-center text-gray-500 my-4">HOẶC</div>
+
+              <Form.Item
+                label="Email"
+                name="email"
+                rules={[
+                  {
+                    type: 'email',
+                    message: 'Email không hợp lệ',
+                  },
+                ]}
+              >
+                <Input
+                  prefix={<MailOutlined />}
+                  placeholder="Nhập email đã đặt vé"
+                  size="large"
+                  type="email"
                 />
               </Form.Item>
 
@@ -214,7 +229,7 @@ const GuestTicketLookupPage = () => {
 
               <div className="bg-blue-50 border border-blue-200 p-4 rounded mt-4">
                 <p className="text-sm text-blue-800">
-                  <strong>Lưu ý:</strong> Hệ thống sẽ gửi mã OTP đến số điện thoại bạn đã sử dụng khi đặt vé để xác thực.
+                  <strong>Lưu ý:</strong> Chỉ cần nhập số điện thoại HOẶC email bạn đã sử dụng khi đặt vé. Hệ thống sẽ gửi mã OTP và hiển thị tất cả vé của bạn.
                 </p>
               </div>
             </Form>
@@ -228,18 +243,9 @@ const GuestTicketLookupPage = () => {
               <SafetyOutlined className="text-5xl text-blue-500 mb-4" />
               <h2 className="text-xl font-semibold mb-2">Xác thực OTP</h2>
               <p className="text-gray-600">
-                Mã OTP đã được gửi đến số điện thoại{' '}
-                <strong>{phoneNumber}</strong>
+                Mã OTP đã được gửi đến {lookupData.phone ? `số điện thoại ${lookupData.phone}` : `email ${lookupData.email}`}
               </p>
             </div>
-
-            <Alert
-              message="Demo Mode"
-              description="Nhập mã OTP: 123456 để tiếp tục"
-              type="info"
-              showIcon
-              className="mb-4"
-            />
 
             <Form
               form={otpForm}
@@ -260,7 +266,7 @@ const GuestTicketLookupPage = () => {
               >
                 <Input
                   prefix={<SafetyOutlined />}
-                  placeholder="Nhập mã OTP (Demo: 123456)"
+                  placeholder="Nhập mã OTP 6 chữ số"
                   size="large"
                   maxLength={6}
                   style={{ letterSpacing: '0.5em', textAlign: 'center' }}
@@ -288,7 +294,7 @@ const GuestTicketLookupPage = () => {
               <div className="text-center">
                 <Button
                   type="link"
-                  onClick={() => handleRequestOTP({ phone: phoneNumber })}
+                  onClick={() => handleRequestOTP(lookupData)}
                 >
                   Gửi lại mã OTP
                 </Button>
@@ -304,12 +310,25 @@ const GuestTicketLookupPage = () => {
               <QrcodeOutlined className="text-5xl text-green-500 mb-4" />
               <h2 className="text-2xl font-semibold mb-2">Danh sách vé của bạn</h2>
               <p className="text-gray-600">
-                Số điện thoại: <strong>{phoneNumber}</strong>
+                {lookupData.phone ? `Số điện thoại: ${lookupData.phone}` : `Email: ${lookupData.email}`}
               </p>
             </div>
 
+            <div className="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-4 mb-6">
+              <div className="flex items-start gap-3">
+                <ExclamationCircleOutlined className="text-yellow-600 text-xl mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-yellow-800 mb-1">Muốn hủy vé?</h4>
+                  <p className="text-sm text-yellow-700">
+                    Nhấn nút <strong className="text-red-600">"Hủy vé"</strong> bên cạnh vé để tiến hành hủy.
+                    Thông tin sẽ được tự động điền sẵn cho bạn.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             {tickets.length === 0 ? (
-              <Empty description="Không tìm thấy vé nào" />
+              <Empty description="Không tìm thấy vé" />
             ) : (
               <List
                 dataSource={tickets}
@@ -331,7 +350,7 @@ const GuestTicketLookupPage = () => {
                           <div className="space-y-1 text-sm">
                             <div className="flex items-center gap-2 text-gray-700">
                               <EnvironmentOutlined />
-                              <span className="font-medium">{ticket.tripInfo?.route}</span>
+                              <span className="font-medium">{ticket.tripInfo?.routeName}</span>
                             </div>
 
                             <div className="flex items-center gap-2 text-gray-600">
@@ -371,9 +390,16 @@ const GuestTicketLookupPage = () => {
                             <Button
                               danger
                               size="small"
+                              icon={<CloseCircleOutlined />}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate('/tickets/cancel');
+                                navigate('/tickets/cancel', {
+                                  state: {
+                                    bookingId: ticket.bookingCode,
+                                    email: lookupData.email,
+                                    phone: lookupData.phone,
+                                  },
+                                });
                               }}
                             >
                               Hủy vé
@@ -389,7 +415,7 @@ const GuestTicketLookupPage = () => {
 
             <div className="mt-6 text-center">
               <Button size="large" onClick={handleReset}>
-                Tra cứu SĐT khác
+                Tra cứu vé khác
               </Button>
             </div>
           </Card>

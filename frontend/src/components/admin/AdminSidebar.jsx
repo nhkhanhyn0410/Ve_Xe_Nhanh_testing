@@ -177,7 +177,6 @@ const AdminSidebar = () => {
            Admin Panel
         </Text>
         <Text className="text-xs text-slate-600 text-center block mt-1">
-          Version 2.1.0
         </Text>
       </div>
     </div>

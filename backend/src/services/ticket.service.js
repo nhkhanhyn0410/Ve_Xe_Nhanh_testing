@@ -5,7 +5,7 @@ const QRService = require('./qr.service');
 const { sendEmail, emailTemplates } = require('../config/email');
 const SMSService = require('./sms.service');
 const CancellationService = require('./cancellation.service');
-const redisClient = require('../config/redis');
+const { getRedisClient } = require('../config/redis');
 const moment = require('moment-timezone');
 const logger = require('../utils/logger');
 
@@ -334,112 +334,116 @@ class TicketService {
 
   /**
    * Request OTP for guest ticket lookup
-   * @param {string} ticketCode - Ticket code (optional, null for phone-only lookup)
-   * @param {string} phone - Contact phone
+   * @param {string} ticketCode - Ticket code (not used, kept for compatibility)
+   * @param {string} phone - Contact phone (optional)
+   * @param {string} email - Contact email (optional)
    * @returns {Promise<Object>} OTP request result
    */
-  static async requestTicketLookupOTP(ticketCode, phone) {
+  static async requestTicketLookupOTP(ticketCode, phone, email) {
     const Booking = require('../models/Booking');
 
-    // Verify based on lookup type
-    if (ticketCode) {
-      // Single ticket lookup
-      const ticket = await Ticket.findByCode(ticketCode);
-      if (!ticket) {
-        throw new Error('Không tìm thấy vé');
-      }
-
-      // Verify phone number
-      const booking = ticket.bookingId;
-      if (booking.contactInfo.phone !== phone) {
-        throw new Error('Số điện thoại không khớp');
-      }
-    } else {
-      // Phone-only lookup - find all bookings with this phone
-      const bookings = await Booking.find({
-        $or: [
-          { 'contactInfo.phone': phone },
-          { 'guestInfo.phone': phone },
-        ],
-      }).select('_id');
-
-      if (bookings.length === 0) {
-        throw new Error('Không tìm thấy vé nào với số điện thoại này');
-      }
+    // Must have either phone or email
+    if (!phone && !email) {
+      throw new Error('Phải cung cấp số điện thoại hoặc email');
     }
+
+    // Find bookings by phone or email
+    const bookings = await Booking.find({
+      $or: [
+        phone ? { 'contactInfo.phone': phone } : null,
+        phone ? { 'guestInfo.phone': phone } : null,
+        email ? { 'contactInfo.email': email } : null,
+        email ? { 'guestInfo.email': email } : null,
+      ].filter(Boolean),
+    }).select('_id');
+
+    if (bookings.length === 0) {
+      throw new Error('Không tìm thấy vé nào với thông tin này');
+    }
+
+    // Determine contact method and value
+    const contactMethod = phone ? 'phone' : 'email';
+    const contactValue = phone || email;
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Store OTP in Redis with 5 minutes expiry
-    const otpKey = ticketCode
-      ? `ticket_lookup_otp:${ticketCode}:${phone}`
-      : `ticket_lookup_otp:phone:${phone}`;
-    const redis = await redisClient;
+    const otpKey = `ticket_lookup_otp:${contactValue}`;
+    const redis = getRedisClient();
     await redis.setEx(otpKey, 300, otp); // 5 minutes
 
-    logger.info(`🔐 OTP cho ${véCode ? 'vé ' + véCode : 'phtrêne ' + phtrêne}: ${OTP} (Demo: use 123456)`);
+    logger.info(`🔐 OTP tra cứu vé cho ${contactMethod} ${contactValue}: ${otp} (Demo: use 123456)`);
 
-    // Send OTP via SMS
-    try {
-      await SMSService.sendOTP(phone, otp);
-    } catch (error) {
-      logger.error('Không thể send OTP SMS: ' + error.message);
-      // Continue anyway - for development, OTP is logged
-    }
+    let sentMethods = [];
 
-    // Also send via email if available (for single ticket lookup)
-    if (ticketCode) {
-      const ticket = await Ticket.findByCode(ticketCode);
-      const booking = ticket.bookingId;
-      if (booking.contactInfo.email) {
-        try {
-          await sendEmail({
-            to: booking.contactInfo.email,
-            subject: 'Mã OTP tra cứu vé - Vé xe nhanh',
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h1 style="color: #0ea5e9;">Mã OTP tra cứu vé</h1>
-                <p>Mã OTP của bạn để tra cứu vé <strong>${ticketCode}</strong> là:</p>
-                <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-                  <h2 style="color: #0ea5e9; font-size: 32px; margin: 0; letter-spacing: 5px;">${otp}</h2>
-                </div>
-                <p style="color: #dc2626;">Mã có hiệu lực trong 5 phút.</p>
-                <p style="color: #666; font-size: 14px;">
-                  Nếu bạn không yêu cầu tra cứu vé, vui lòng bỏ qua email này.
-                </p>
-              </div>
-            `,
-          });
-        } catch (error) {
-          logger.error('Không thể send OTP email: ' + error.message);
-        }
+    // Send OTP via SMS if phone provided
+    if (contactMethod === 'phone') {
+      try {
+        await SMSService.sendOTP(phone, otp);
+        sentMethods.push('SMS');
+      } catch (error) {
+        logger.error('Không thể gửi OTP SMS: ' + error.message);
+        // Continue anyway - for development, OTP is logged
       }
     }
 
+    // Send OTP via email if email provided
+    if (contactMethod === 'email') {
+      try {
+        await sendEmail({
+          to: email,
+          subject: 'Mã OTP tra cứu vé - Vé xe nhanh',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h1 style="color: #0ea5e9;">Mã OTP tra cứu vé</h1>
+              <p>Mã OTP của bạn để tra cứu vé là:</p>
+              <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+                <h2 style="color: #0ea5e9; font-size: 32px; margin: 0; letter-spacing: 5px;">${otp}</h2>
+              </div>
+              <p style="color: #dc2626;">Mã có hiệu lực trong 5 phút.</p>
+              <p style="color: #666; font-size: 14px;">
+                Nếu bạn không yêu cầu tra cứu vé, vui lòng bỏ qua email này.
+              </p>
+            </div>
+          `,
+        });
+        sentMethods.push('email');
+      } catch (error) {
+        logger.error('Không thể gửi OTP email: ' + error.message);
+      }
+    }
+
+    const methodsText = sentMethods.length > 0
+      ? sentMethods.join(' và ')
+      : (phone ? 'SMS' : 'email');
+
     return {
-      message: ticketCode
-        ? 'Mã OTP đã được gửi qua SMS và email'
-        : 'Mã OTP đã được gửi qua SMS',
+      message: `Mã OTP đã được gửi qua ${methodsText}`,
       expiresIn: 300, // 5 minutes
     };
   }
 
   /**
    * Verify OTP and get ticket(s) (for guests)
-   * @param {string} ticketCode - Ticket code (optional, null for phone-only lookup)
-   * @param {string} phone - Contact phone
+   * @param {string} ticketCode - Ticket code (unused, kept for backward compatibility)
+   * @param {string} phone - Contact phone (optional)
+   * @param {string} email - Contact email (optional)
    * @param {string} otp - OTP code
-   * @returns {Promise<Object>} Ticket details or tickets array
+   * @returns {Promise<Object>} Object containing tickets array
    */
-  static async verifyTicketLookupOTP(ticketCode, phone, otp) {
+  static async verifyTicketLookupOTP(ticketCode, phone, email, otp) {
     const Booking = require('../models/Booking');
-    const redis = await redisClient;
+    const redis = getRedisClient();
 
-    // Get OTP key based on lookup type
-    const otpKey = ticketCode
-      ? `ticket_lookup_otp:${ticketCode}:${phone}`
-      : `ticket_lookup_otp:phone:${phone}`;
+    // Must have either phone or email
+    if (!phone && !email) {
+      throw new Error('Phải cung cấp số điện thoại hoặc email');
+    }
+
+    // Get OTP key - use whatever was provided (phone or email)
+    const contactValue = phone || email;
+    const otpKey = `ticket_lookup_otp:${contactValue}`;
 
     // Demo mode: Accept 123456 as valid OTP
     const isDemoOTP = otp === '123456';
@@ -458,79 +462,57 @@ class TicketService {
       // Delete OTP after successful verification
       await redis.del(otpKey);
     } else {
-      logger.warn('Demo OTP (123456) accepted cho kiểm trtạirtrêngg');
+      logger.warn('Demo OTP (123456) accepted cho kiểm tra');
     }
 
-    // Return based on lookup type
-    if (ticketCode) {
-      // Single ticket lookup
-      const ticket = await Ticket.findByCode(ticketCode);
+    // Find all bookings by phone or email
+    const bookings = await Booking.find({
+      $or: [
+        phone ? { 'contactInfo.phone': phone } : null,
+        phone ? { 'guestInfo.phone': phone } : null,
+        email ? { 'contactInfo.email': email } : null,
+        email ? { 'guestInfo.email': email } : null,
+      ].filter(Boolean),
+    }).select('_id');
 
-      if (!ticket) {
-        throw new Error('Không tìm thấy vé');
-      }
-
-      return { ticket };
-    } else {
-      // Phone-only lookup: return all tickets
-      const bookings = await Booking.find({
-        $or: [
-          { 'contactInfo.phone': phone },
-          { 'guestInfo.phone': phone },
-        ],
-      })
-        .populate({
-          path: 'tripId',
-          populate: { path: 'routeId' },
-        })
-        .lean();
-
-      if (bookings.length === 0) {
-        return { tickets: [] };
-      }
-
-      const bookingIds = bookings.map((b) => b._id);
-
-      // Get all tickets for these bookings
-      const tickets = await Ticket.find({
-        bookingId: { $in: bookingIds },
-      })
-        .populate({
-          path: 'bookingId',
-          populate: {
-            path: 'tripId',
-            populate: { path: 'routeId' },
-          },
-        })
-        .lean();
-
-      // Format tickets for frontend
-      const formattedTickets = tickets.map((ticket) => {
-        const booking = ticket.bookingId;
-        const trip = booking.tripId;
-        const route = trip?.routeId;
-
-        return {
-          _id: ticket._id,
-          ticketCode: ticket.ticketCode,
-          status: ticket.status,
-          qrCode: ticket.qrCode,
-          tripInfo: {
-            route: route
-              ? `${route.origin?.city || route.origin} - ${route.destination?.city || route.destination}`
-              : 'N/A',
-            departureTime: trip?.departureTime,
-            arrivalTime: trip?.arrivalTime,
-            pickupPoint: ticket.pickupPoint?.address || booking.pickupPoint?.address,
-            dropoffPoint: ticket.dropoffPoint?.address || booking.dropoffPoint?.address,
-          },
-          passengers: ticket.passengerList || [],
-          bookingId: booking._id,
-        };
-      });
-
-      return { tickets: formattedTickets };
+    if (bookings.length === 0) {
+      throw new Error('Không tìm thấy vé nào với thông tin này');
     }
+
+    const bookingIds = bookings.map((b) => b._id);
+
+    // Find all tickets for these bookings
+    const tickets = await Ticket.find({
+      bookingId: { $in: bookingIds },
+    })
+      .populate('bookingId', 'bookingCode')
+      .populate('tripId', 'departureTime route origin destination')
+      .sort({ createdAt: -1 });
+
+    // Format tickets for frontend
+    const formattedTickets = tickets.map((ticket) => ({
+      _id: ticket._id,
+      ticketCode: ticket.ticketCode,
+      status: ticket.status,
+      qrCode: ticket.qrCode,
+      pdfUrl: ticket.pdfUrl,
+      passengers: ticket.passengers,
+      totalPrice: ticket.totalPrice,
+      isUsed: ticket.isUsed,
+      usedAt: ticket.usedAt,
+      tripInfo: {
+        routeName: ticket.tripInfo?.routeName || '',
+        departureTime: ticket.tripInfo?.departureTime || ticket.tripId?.departureTime,
+        origin: ticket.tripInfo?.origin || ticket.tripId?.origin,
+        destination: ticket.tripInfo?.destination || ticket.tripId?.destination,
+        pickupPoint: ticket.tripInfo?.pickupPoint,
+        dropoffPoint: ticket.tripInfo?.dropoffPoint,
+      },
+      bookingCode: ticket.bookingId?.bookingCode,
+      createdAt: ticket.createdAt,
+    }));
+
+    return { tickets: formattedTickets };
   }
 
   /**

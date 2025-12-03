@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { resetOtherAuthStores } from '../utils/authUtils';
 
 /**
  * Admin Auth Store
@@ -27,6 +28,10 @@ const useAdminAuthStore = create(
       },
 
       login: (admin, token) => {
+        // Reset other Zustand stores to prevent persist data issues
+        // (this also clears other localStorage tokens internally)
+        resetOtherAuthStores('admin');
+
         set({
           admin,
           token,
@@ -44,6 +49,7 @@ const useAdminAuthStore = create(
         });
         localStorage.removeItem('admin-token');
         localStorage.removeItem('admin');
+        localStorage.removeItem('admin-auth-storage');
       },
 
       updateAdmin: (adminData) => {

@@ -1183,7 +1183,7 @@ const ActiveTripPage = () => {
               <ul className="list-disc ml-4 text-sm text-gray-600">
                 <li>Tất cả hành khách đã xuống xe</li>
                 <li>Xe đã đến điểm đến an toàn</li>
-                <li>Hệ thống sẽ gửi email cảm ơn đến hành khách</li>
+                
               </ul>
             </div>
           }

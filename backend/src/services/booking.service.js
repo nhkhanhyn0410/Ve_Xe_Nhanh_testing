@@ -232,25 +232,42 @@ class BookingService {
    * @returns {Promise<Object>} Cancelled booking with refund result
    */
   static async cancelBookingGuest(bookingId, email, phone, reason, ipAddress) {
-    const booking = await Booking.findById(bookingId).populate('customerId', 'email phone');
+    // Try to find by bookingCode first (for guest users), then by _id (for backward compatibility)
+    let booking = await Booking.findOne({ bookingCode: bookingId }).populate('customerId', 'email phone');
+
+    // If not found by bookingCode, try by _id
+    if (!booking && bookingId.match(/^[0-9a-fA-F]{24}$/)) {
+      booking = await Booking.findById(bookingId).populate('customerId', 'email phone');
+    }
 
     if (!booking) {
       throw new Error('Không tìm thấy mã đặt vé');
     }
 
     // Verify booking ownership using email or phone
-    const customerEmail = booking.customerId?.email || booking.guestInfo?.email;
-    const customerPhone = booking.customerId?.phone || booking.guestInfo?.phone;
+    // Check all possible locations for email and phone (contactInfo, guestInfo, customerId)
+    const allEmails = [
+      booking.customerId?.email,
+      booking.guestInfo?.email,
+      booking.contactInfo?.email,
+    ].filter(Boolean);
 
-    const emailMatch = email && customerEmail && email.toLowerCase() === customerEmail.toLowerCase();
-    const phoneMatch = phone && customerPhone && phone === customerPhone;
+    const allPhones = [
+      booking.customerId?.phone,
+      booking.guestInfo?.phone,
+      booking.contactInfo?.phone,
+    ].filter(Boolean);
+
+    // Match if provided email/phone matches ANY of the booking's email/phone fields
+    const emailMatch = email && allEmails.some(e => e.toLowerCase() === email.toLowerCase());
+    const phoneMatch = phone && allPhones.some(p => p === phone);
 
     if (!emailMatch && !phoneMatch) {
       throw new Error('Thông tin xác thực không chính xác. Vui lòng kiểm tra lại email hoặc số điện thoại.');
     }
 
-    // Use the existing cancelBooking method
-    return await this.cancelBooking(bookingId, reason, 'customer', ipAddress);
+    // Use the existing cancelBooking method with booking._id (ObjectId), not bookingCode
+    return await this.cancelBooking(booking._id, reason, 'customer', ipAddress);
   }
 
   /**
@@ -269,27 +286,35 @@ class BookingService {
       throw new Error('Không tìm thấy booking');
     }
 
-    if (!['pending', 'confirmed'].includes(booking.status)) {
-      throw new Error('Không thể hủy booking này');
+    const logger = require('../utils/logger');
+    logger.info(`[DEBUG] Attempting to cancel booking ${booking.bookingCode} with status: ${booking.status}`);
+
+    // Allow cancellation for pending, confirmed, paid, and completed bookings (before departure)
+    if (!['pending', 'confirmed', 'paid', 'completed'].includes(booking.status)) {
+      throw new Error(`Không thể hủy booking này. Trạng thái hiện tại: ${booking.status}`);
     }
 
-    // If booking is confirmed, release seats back to trip
-    if (booking.status === 'confirmed') {
+    // Release seats back to trip (for all valid bookings)
+    if (['pending', 'confirmed', 'paid', 'completed'].includes(booking.status)) {
       const trip = await Trip.findById(booking.tripId);
 
       if (trip) {
         // Remove from booked seats
         const seatNumbers = booking.seats.map((s) => s.seatNumber);
+        logger.info(`[DEBUG] Releasing seats: ${seatNumbers.join(', ')} from trip ${trip._id}`);
+
         trip.bookedSeats = trip.bookedSeats.filter(
           (s) => !seatNumbers.includes(s.seatNumber)
         );
         trip.availableSeats += seatNumbers.length;
         await trip.save();
+
+        logger.success(`[DEBUG] Successfully released ${seatNumbers.length} seats. Available seats: ${trip.availableSeats}`);
       }
     }
 
     // Release voucher usage if voucher was applied
-    if (booking.status === 'confirmed' && booking.voucherId) {
+    if (booking.voucherId) {
       try {
         await VoucherService.releaseFromBooking(booking.voucherId);
       } catch (error) {
@@ -299,7 +324,7 @@ class BookingService {
 
     // Auto-refund if payment was made
     let refundResult = null;
-    if (booking.paymentStatus === 'paid' && booking.status === 'confirmed') {
+    if (booking.paymentStatus === 'paid') {
       try {
         const PaymentServiceClass = getPaymentService();
         refundResult = await PaymentServiceClass.autoRefundOnCancellation(

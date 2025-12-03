@@ -390,7 +390,7 @@ class NotificationService {
               <br>
               📧 Email: support@vexenhanh.com
               <br>
-              📞 Hotline: 1900-xxxx
+              📞 Hotline: 1900-0000
             </p>
           </div>
 

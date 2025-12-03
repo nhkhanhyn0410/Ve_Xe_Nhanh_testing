@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { resetOtherAuthStores } from '../utils/authUtils';
 
 /**
  * Trip Manager Auth Store
@@ -27,6 +28,10 @@ const useTripManagerAuthStore = create(
       },
 
       login: (tripManager, token) => {
+        // Reset other Zustand stores to prevent persist data issues
+        // (this also clears other localStorage tokens internally)
+        resetOtherAuthStores('trip-manager');
+
         set({
           tripManager,
           token,

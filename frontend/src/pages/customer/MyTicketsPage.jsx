@@ -164,10 +164,9 @@ const MyTicketsPage = () => {
 
     const departureTime = dayjs(ticket.tripInfo?.departureTime);
     const now = dayjs();
-    const hoursDiff = departureTime.diff(now, 'hour');
 
-    // Can cancel if more than 24 hours before departure
-    return hoursDiff > 24;
+    // Can cancel if trip hasn't departed yet
+    return now.isBefore(departureTime);
   };
 
   // Table columns
@@ -469,9 +468,13 @@ const MyTicketsPage = () => {
 
             <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
               <p className="text-sm text-yellow-800">
-                <strong>Lưu ý:</strong> Tiền sẽ được hoàn lại theo chính sách hoàn tiền.
-                Vé hủy trước 24h sẽ được hoàn 80%, trước 48h sẽ được hoàn 90%.
+                <strong>Chính sách hủy vé:</strong>
               </p>
+              <ul className="text-sm text-yellow-800 mt-2 ml-4 list-disc">
+                <li>Hủy trước 2 giờ khởi hành: Hoàn 100% giá vé</li>
+                <li>Hủy trong vòng 2 giờ trước khởi hành: Vẫn hủy được nhưng KHÔNG hoàn tiền</li>
+                <li>Sau khi xe khởi hành: Không thể hủy vé</li>
+              </ul>
             </div>
           </div>
         </Modal>

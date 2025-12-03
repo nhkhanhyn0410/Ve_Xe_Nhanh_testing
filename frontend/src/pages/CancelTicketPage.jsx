@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, Input, Button, Card, message, Result, Steps, Modal } from 'antd';
 import {
   SearchOutlined,
   ExclamationCircleOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined
+  CloseCircleOutlined,
+  PhoneOutlined,
+  MailOutlined
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import bookingApi from '../services/bookingApi';
 import CustomerLayout from '../components/layouts/CustomerLayout';
 
@@ -19,6 +21,21 @@ const CancelTicketPage = () => {
   const [bookingInfo, setBookingInfo] = useState(null);
   const [cancellationSuccess, setCancellationSuccess] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Auto-fill form if data is passed from ticket lookup page
+  useEffect(() => {
+    if (location.state) {
+      const { bookingId, email, phone } = location.state;
+      if (bookingId || email || phone) {
+        form.setFieldsValue({
+          bookingId: bookingId || '',
+          email: email || '',
+          phone: phone || '',
+        });
+      }
+    }
+  }, [location.state, form]);
 
   const handleSearchBooking = async (values) => {
     setLoading(true);
@@ -120,13 +137,12 @@ const CancelTicketPage = () => {
                 name="bookingId"
                 rules={[
                   { required: true, message: 'Vui lòng nhập mã đặt vé' },
-                  { len: 24, message: 'Mã đặt vé không hợp lệ' },
+                  { min: 6, message: 'Mã đặt vé không hợp lệ' },
                 ]}
               >
                 <Input
-                  placeholder="Nhập mã đặt vé (24 ký tự)"
+                  placeholder="Nhập mã đặt vé"
                   size="large"
-                  maxLength={24}
                 />
               </Form.Item>
 
@@ -141,11 +157,14 @@ const CancelTicketPage = () => {
                 ]}
               >
                 <Input
+                  prefix={<MailOutlined />}
                   placeholder="Nhập email đặt vé"
                   size="large"
                   type="email"
                 />
               </Form.Item>
+
+              <div className="text-center text-gray-500 my-4">HOẶC</div>
 
               <Form.Item
                 label="Số điện thoại"
@@ -158,6 +177,7 @@ const CancelTicketPage = () => {
                 ]}
               >
                 <Input
+                  prefix={<PhoneOutlined />}
                   placeholder="Nhập số điện thoại đặt vé"
                   size="large"
                   maxLength={10}
@@ -166,7 +186,7 @@ const CancelTicketPage = () => {
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-800">
-                  <strong>Lưu ý:</strong> Vui lòng nhập email HOẶC số điện thoại mà bạn đã sử dụng khi đặt vé.
+                  <strong>Lưu ý:</strong> Nhập mã đặt vé và email HOẶC số điện thoại mà bạn đã sử dụng khi đặt vé.
                 </p>
               </div>
 
@@ -209,36 +229,34 @@ const CancelTicketPage = () => {
                   Chính sách hoàn tiền khi hủy vé
                 </h3>
 
-                <div className="bg-white rounded-lg p-4 mb-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                   <div className="text-center mb-3">
-                    <div className="text-2xl font-bold text-green-600">✓ CÓ HOÀN TIỀN</div>
-                    <div className="text-sm text-gray-600 mt-1">Nếu hủy vé TRƯỚC 2 TIẾNG khởi hành</div>
+                    <div className="text-2xl font-bold text-green-600">✓ HOÀN 100% TIỀN VÉ</div>
+                    <div className="text-sm text-gray-600 mt-1">Nếu hủy vé TRƯỚC 2 GIỜ khởi hành</div>
                   </div>
                   <ul className="space-y-2 text-sm text-gray-700">
-                    <li className="flex items-center">
-                      <span className="text-green-500 mr-2">✓</span>
-                      <span>Hủy trước <strong>24 giờ</strong>: Hoàn <strong className="text-green-600">100%</strong></span>
-                    </li>
-                    <li className="flex items-center">
-                      <span className="text-green-500 mr-2">✓</span>
-                      <span>Hủy trước <strong>12 giờ</strong>: Hoàn <strong className="text-green-600">80%</strong></span>
-                    </li>
-                    <li className="flex items-center">
-                      <span className="text-green-500 mr-2">✓</span>
-                      <span>Hủy trước <strong>6 giờ</strong>: Hoàn <strong className="text-green-600">50%</strong></span>
-                    </li>
-                    <li className="flex items-center">
-                      <span className="text-green-500 mr-2">✓</span>
-                      <span>Hủy trước <strong>2 giờ</strong>: Hoàn <strong className="text-green-600">20%</strong></span>
+                    <li className="flex items-center justify-center">
+                      <span className="text-green-500 mr-2 text-xl">✓</span>
+                      <span className="text-base">Hủy trước <strong className="text-lg">2 giờ</strong> khởi hành: Hoàn <strong className="text-green-600 text-lg">100%</strong></span>
                     </li>
                   </ul>
                 </div>
 
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-orange-600">⚠ VẪN HỦY ĐƯỢC - KHÔNG HOÀN TIỀN</div>
+                    <div className="text-sm text-gray-700 mt-2">
+                      • Hủy trong vòng <strong className="text-orange-600">2 GIỜ</strong> trước giờ khởi hành<br/>
+                      • Vé sẽ được hủy và ghế được nhả ra<br/>
+                      • <strong className="text-orange-600">KHÔNG được hoàn tiền</strong>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <div className="text-center">
-                    <div className="text-xl font-bold text-red-600">✗ KHÔNG HOÀN TIỀN</div>
+                    <div className="text-xl font-bold text-red-600">✗ KHÔNG THỂ HỦY</div>
                     <div className="text-sm text-gray-700 mt-2">
-                      • Hủy trong vòng <strong className="text-red-600">2 TIẾNG</strong> trước giờ khởi hành<br/>
                       • Chuyến xe <strong className="text-red-600">ĐÃ KHỞI HÀNH</strong>
                     </div>
                   </div>
@@ -314,7 +332,7 @@ const CancelTicketPage = () => {
         </Card>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Cần hỗ trợ? Liên hệ hotline: <strong>1900-xxxx</strong></p>
+          <p>Cần hỗ trợ? Liên hệ hotline: <strong>1900-0000</strong></p>
           <p>Email: support@vexenhanh.vn</p>
         </div>
         </div>

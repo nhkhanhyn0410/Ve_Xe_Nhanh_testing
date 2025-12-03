@@ -180,7 +180,7 @@ Tuyen: ${routeName}
 Gio di: ${departureTime}
 Ghe: ${seatNumbers}
 Tai ve: ${ticketUrl}
-Lien he: 1900-xxxx`;
+Lien he: 1900-0000`;
 
     return await this.sendSMS(phone, message);
   }
@@ -224,7 +224,7 @@ Vui long co mat truoc 15 phut!`;
     const { phone, bookingCode, routeName, refundAmount } = cancellationData;
 
     const message = `Ve xe nhanh: Ve ${bookingCode} (${routeName}) da duoc huy.${refundAmount > 0 ? ` Tien hoan: ${refundAmount.toLocaleString('vi-VN')} VND.` : ''
-      } Lien he: 1900-xxxx`;
+      } Lien he: 1900-0000`;
 
     return await this.sendSMS(phone, message);
   }

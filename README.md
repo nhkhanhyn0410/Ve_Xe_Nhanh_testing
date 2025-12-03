@@ -1194,7 +1194,7 @@ Cảm ơn tất cả contributors đã giúp Vé Xe Nhanh trở nên tốt hơn!
 
 - Email: support@vexenhanh.com
 - Website: https://vexenhanh.com
-- Hotline: 1900-xxxx (8:00 - 22:00 hàng ngày)
+- Hotline: 1900-0000 (8:00 - 22:00 hàng ngày)
 - Báo Lỗi: [GitHub Issues](https://github.com/yourusername/Ve_Xe_Nhanh/issues)
 
 ### Mạng Xã Hội

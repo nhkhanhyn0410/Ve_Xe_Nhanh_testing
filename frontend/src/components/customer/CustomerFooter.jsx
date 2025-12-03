@@ -168,7 +168,7 @@ const CustomerFooter = () => {
                 </div>
                 <div>
                   <Text className="text-slate-800 text-xs block">Hotline 24/7</Text>
-                  <Text className="text-black font-medium">1900 xxxx</Text>
+                  <Text className="text-black font-medium">1900 0000</Text>
                 </div>
               </div>
 

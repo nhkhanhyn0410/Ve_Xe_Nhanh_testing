@@ -264,7 +264,7 @@ class SchedulerService {
               <ul style="margin: 10px 0 0 0;">
                 <li>Vui lòng có mặt trước giờ khởi hành 15 phút</li>
                 <li>Mang theo CMND/CCCD và vé điện tử</li>
-                <li>Liên hệ hotline nếu có vấn đề: 1900-xxxx</li>
+                <li>Liên hệ hotline nếu có vấn đề: 1900-0000</li>
               </ul>
             </div>
 

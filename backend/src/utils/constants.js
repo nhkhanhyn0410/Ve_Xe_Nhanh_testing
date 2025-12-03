@@ -132,20 +132,12 @@ const BUS_AMENITIES = [
 
 // Cancellation Policy
 const CANCELLATION_POLICY = {
-  MORE_THAN_24H: {
-    hours: 24,
-    refundPercentage: 90,
+  MORE_THAN_2H: {
+    hours: 2,
+    refundPercentage: 100,
   },
-  MORE_THAN_12H: {
-    hours: 12,
-    refundPercentage: 70,
-  },
-  MORE_THAN_6H: {
-    hours: 6,
-    refundPercentage: 50,
-  },
-  LESS_THAN_6H: {
-    hours: 6,
+  LESS_THAN_2H: {
+    hours: 2,
     refundPercentage: 0,
   },
 };

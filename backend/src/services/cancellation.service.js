@@ -13,24 +13,9 @@ class CancellationService {
   static DEFAULT_POLICY = {
     rules: [
       {
-        hoursBeforeDeparture: 24,
-        refundPercentage: 100,
-        description: 'Hoàn 100% nếu hủy trước 24 giờ',
-      },
-      {
-        hoursBeforeDeparture: 12,
-        refundPercentage: 80,
-        description: 'Hoàn 80% nếu hủy trước 12 giờ',
-      },
-      {
-        hoursBeforeDeparture: 6,
-        refundPercentage: 50,
-        description: 'Hoàn 50% nếu hủy trước 6 giờ',
-      },
-      {
         hoursBeforeDeparture: 2,
-        refundPercentage: 20,
-        description: 'Hoàn 20% nếu hủy trước 2 giờ',
+        refundPercentage: 100,
+        description: 'Hoàn 100% nếu hủy trước 2 giờ khởi hành',
       },
       {
         hoursBeforeDeparture: 0,

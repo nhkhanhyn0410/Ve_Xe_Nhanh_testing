@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { resetOtherAuthStores } from '../utils/authUtils';
 
 /**
  * Auth Store
@@ -27,6 +28,10 @@ const useAuthStore = create(
       },
 
       login: (user, token) => {
+        // Reset other Zustand stores to prevent persist data issues
+        // (this also clears other localStorage tokens internally)
+        resetOtherAuthStores('customer');
+
         set({
           user,
           token,
