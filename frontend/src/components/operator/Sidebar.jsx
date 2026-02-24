@@ -12,7 +12,7 @@ import {
   TrophyOutlined,
 } from '@ant-design/icons';
 
-import Icon from "../../components/icon";
+import Icon from "../Icon";
 
 const Sidebar = () => {
   const location = useLocation();
