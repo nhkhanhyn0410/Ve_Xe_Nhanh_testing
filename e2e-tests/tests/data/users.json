@@ -1,0 +1,23 @@
+{
+  "customer": {
+    "valid": {
+      "email": "nhkyn.0410@gmail.com",
+      "password": "Nhkhanh@0410",
+      "phone": "0901234567",
+      "fullName": "Nguyen Van Khanh"
+    },
+    "invalid": {
+      "email": "kang@gmail.com",
+      "password": "NNNNNNN"
+    }
+  },
+  "booking": {
+    "routes": {
+      "default": {
+        "from": "TP. Hồ Chí Minh",
+        "to": "Vũng Tàu"
+      }
+    },
+    "daysFromNow": "24/02/2026"
+  }
+}

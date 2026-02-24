@@ -1,0 +1,31 @@
+{
+  "name": "e2e-tests",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "codeceptjs run --steps && allure generate ./output/allure-results --clean -o ./output/allure-report",
+    "test:headless": "set HEADLESS=true && codeceptjs run && allure generate ./output/allure-results --clean -o ./output/allure-report",
+    "test:smoke": "codeceptjs run --grep @smoke && allure generate ./output/allure-results --clean -o ./output/allure-report",
+    "test:critical": "codeceptjs run --grep @critical && allure generate ./output/allure-results --clean -o ./output/allure-report",
+    "test:debug": "codeceptjs run --debug",
+    "test:verbose": "codeceptjs run --verbose",
+    "shell": "codeceptjs shell",
+    "allure:generate": "allure generate ./output/allure-results --clean -o ./output/allure-report",
+    "allure:open": "allure open ./output/allure-report",
+    "allure:serve": "allure serve ./output/allure-results"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@codeceptjs/allure-legacy": "^1.0.2",
+    "@codeceptjs/configure": "^1.0.6",
+    "@faker-js/faker": "^10.2.0",
+    "allure-commandline": "^2.36.0",
+    "codeceptjs": "^3.7.6",
+    "codeceptjs-chai": "^2.3.5",
+    "mochawesome": "^7.1.4",
+    "playwright": "^1.57.0"
+  }
+}
