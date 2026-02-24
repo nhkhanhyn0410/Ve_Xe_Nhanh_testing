@@ -59,6 +59,12 @@ const createTransporter = () => {
  */
 const sendEmail = async ({ to, subject, html, text, attachments = [], qrCodeDataUrl = null }) => {
   try {
+    // Skip email if disabled
+    if (process.env.EMAIL_ENABLED === 'false') {
+      logger.info('Email disabled, bỏ qua gửi email tới:', to);
+      return { messageId: 'skipped', skipped: true };
+    }
+
     if (!transporter) {
       transporter = createTransporter();
     }
