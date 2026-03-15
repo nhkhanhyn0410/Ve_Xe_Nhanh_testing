@@ -525,15 +525,13 @@ class TripService {
       };
       logger.debug('Ngày phạm vi: ' + JSON.stringify({ startOfDay, endOfDay }));
     } else {
-      // If no date specified (browse all mode), show trips from last 7 days to future
-      // This helps with demo/testing and allows users to see recent trips
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      // If no date specified (browse all mode), show only future trips
+      const now = new Date();
 
       query.departureTime = {
-        $gte: sevenDaysAgo, // Include trips from last 7 days
+        $gte: now,
       };
-      logger.debug('Browse chế độ:  ' + JSON.stringify({ sevenDaysAgo }));
+      logger.debug('Browse chế độ:  ' + JSON.stringify({ from: now }));
     }
 
     // Price range filter
