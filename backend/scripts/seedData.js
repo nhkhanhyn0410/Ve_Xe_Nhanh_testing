@@ -2,12 +2,19 @@
  * Enhanced Seed Script for QuikRide Database
  * Creates comprehensive sample data with journey tracking and stops
  *
+ * FIXES:
+ * - Removed bcrypt.hash() in seed → models have pre-save hooks that auto-hash
+ * - Added future trips (+3, +7, +14, +30 days) so trips are always available
+ * - Added Vouchers for testing
+ * - Added sample Bookings + Tickets for guest lookup & cancel testing
+ * - Added sample Complaints for admin testing
+ *
  * Usage: node scripts/seedData.js
  */
 
 require('dotenv').config();
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const logger = require('../utils/logger');
 
 // Import models
@@ -19,6 +26,8 @@ const Bus = require('../src/models/Bus');
 const Trip = require('../src/models/Trip');
 const Booking = require('../src/models/Booking');
 const Ticket = require('../src/models/Ticket');
+const Voucher = require('../src/models/Voucher');
+const Complaint = require('../src/models/Complaint');
 
 // Import seat layout utilities
 const {
@@ -26,6 +35,13 @@ const {
   generateAisleLayout,
   generateDoubleDecker,
 } = require('../src/utils/seatLayout');
+
+// Helper: date offset from today
+const daysFromNow = (days, hours = 0) => {
+  const now = new Date();
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return new Date(d.getTime() + days * 24 * 60 * 60 * 1000 + hours * 60 * 60 * 1000);
+};
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -48,18 +64,21 @@ const seedData = async () => {
 
     // ==================== CLEAR ALL EXISTING DATA ====================
     logger.log('Clearing ALL existing data...');
-    await User.deleteMany({});
-    await BusOperator.deleteMany({});
-    await Employee.deleteMany({});
-    await Route.deleteMany({});
-    await Bus.deleteMany({});
-    await Trip.deleteMany({});
-    await Booking.deleteMany({});
-    await Ticket.deleteMany({});
+    const collections = [User, BusOperator, Employee, Route, Bus, Trip, Booking, Ticket];
+    // Conditionally clear Voucher and Complaint if models loaded
+    if (Voucher) collections.push(Voucher);
+    if (Complaint) collections.push(Complaint);
+    for (const Model of collections) {
+      await Model.deleteMany({});
+    }
     logger.log('Cleared all existing data\n');
 
     // ==================== USERS ====================
     logger.log('Creating Users...');
+
+    // NOTE: DO NOT use bcrypt.hash() here. All models have pre-save hooks
+    // that auto-hash passwords. Passing hashed passwords causes DOUBLE-HASHING
+    // and users cannot log in.
 
     const users = await User.create([
       // Admin
@@ -178,6 +197,7 @@ const seedData = async () => {
     logger.log(`Created ${operators.length} bus operators\n`);
 
     // ==================== EMPLOYEES ====================
+    // IMPORTANT: Pass plain-text passwords! Employee model has pre-save hook that auto-hashes.
     console.log('Creating Employees (Drivers & Trip Managers)...');
 
     const employees = await Employee.create([
@@ -188,7 +208,7 @@ const seedData = async () => {
         fullName: 'Nguyễn Văn Long',
         phone: '0901234567',
         email: 'long.driver@phuongtrang.com',
-        password: await bcrypt.hash('driver123', 10),
+        password: 'driver123',
         role: 'driver',
         status: 'active',
         licenseNumber: 'B2-123456',
@@ -200,7 +220,7 @@ const seedData = async () => {
         fullName: 'Trần Minh Tâm',
         phone: '0902345678',
         email: 'tam.driver@phuongtrang.com',
-        password: await bcrypt.hash('driver123', 10),
+        password: 'driver123',
         role: 'driver',
         status: 'active',
         licenseNumber: 'B2-234567',
@@ -223,7 +243,7 @@ const seedData = async () => {
         fullName: 'Phạm Văn Nam',
         phone: '0904567890',
         email: 'nam.manager@phuongtrang.com',
-        password: await bcrypt.hash('manager123', 10),
+        password: 'manager123',
         role: 'trip_manager',
         status: 'active',
       },
@@ -234,7 +254,7 @@ const seedData = async () => {
         fullName: 'Võ Văn Thắng',
         phone: '0905678901',
         email: 'thang.driver@thanhbuoi.com',
-        password: await bcrypt.hash('driver123', 10),
+        password: 'driver123',
         role: 'driver',
         status: 'active',
         licenseNumber: 'B2-345678',
@@ -246,7 +266,7 @@ const seedData = async () => {
         fullName: 'Đặng Văn Tuấn',
         phone: '0906789012',
         email: 'tuan.driver@thanhbuoi.com',
-        password: await bcrypt.hash('driver123', 10),
+        password: 'driver123',
         role: 'driver',
         status: 'active',
         licenseNumber: 'B2-456789',
@@ -259,7 +279,7 @@ const seedData = async () => {
         fullName: 'Nguyễn Thị Lan',
         phone: '0907890123',
         email: 'lan.manager@thanhbuoi.com',
-        password: await bcrypt.hash('manager123', 10),
+        password: 'manager123',
         role: 'trip_manager',
         status: 'active',
       },
@@ -270,7 +290,7 @@ const seedData = async () => {
         fullName: 'Huỳnh Văn Hùng',
         phone: '0908901234',
         email: 'hung.driver@haiau.com',
-        password: await bcrypt.hash('driver123', 10),
+        password: 'driver123',
         role: 'driver',
         status: 'active',
         licenseNumber: 'B2-567890',
@@ -283,7 +303,7 @@ const seedData = async () => {
         fullName: 'Trương Thị Mai',
         phone: '0909012345',
         email: 'mai.manager@haiau.com',
-        password: await bcrypt.hash('manager123', 10),
+        password: 'manager123',
         role: 'trip_manager',
         status: 'active',
       },
@@ -295,7 +315,7 @@ const seedData = async () => {
     console.log('Creating Buses with Seat Layouts...');
 
     const buses = await Bus.create([
-      // Phương Trang - Limousine 24 ghế
+      // Phương Trang - Limousine
       {
         operatorId: operators[0]._id,
         busNumber: 'PT-001',
@@ -318,7 +338,7 @@ const seedData = async () => {
         seatLayout: generateLimousineLayout(),
         status: 'active',
       },
-      // Phương Trang - Giường nằm 40 ghế
+      // Phương Trang - Giường nằm
       {
         operatorId: operators[0]._id,
         busNumber: 'PT-003',
@@ -330,7 +350,7 @@ const seedData = async () => {
         seatLayout: generateAisleLayout(40),
         status: 'active',
       },
-      // Thành Bưởi - Limousine 22 ghế
+      // Thành Bưởi - Limousine
       {
         operatorId: operators[1]._id,
         busNumber: 'TB-001',
@@ -353,7 +373,7 @@ const seedData = async () => {
         seatLayout: generateLimousineLayout(),
         status: 'active',
       },
-      // Hải Âu - Xe 2 tầng 45 ghế
+      // Hải Âu - Xe 2 tầng
       {
         operatorId: operators[2]._id,
         busNumber: 'HA-001',
@@ -373,7 +393,7 @@ const seedData = async () => {
     console.log('Creating Routes with Stops...');
 
     const routes = await Route.create([
-      // Route 1: TP.HCM → Đà Lạt (có 3 điểm dừng)
+      // Route 1: TP.HCM → Đà Lạt
       {
         operatorId: operators[0]._id,
         routeCode: 'HCM-DL-001',
@@ -398,7 +418,7 @@ const seedData = async () => {
             address: 'KM 50 QL1A, Dầu Giây, Đồng Nai',
             coordinates: { lat: 10.9876, lng: 107.1234 },
             order: 1,
-            estimatedArrivalMinutes: 90, // 1.5 giờ từ xuất phát
+            estimatedArrivalMinutes: 90,
             stopDuration: 15,
           },
           {
@@ -406,7 +426,7 @@ const seedData = async () => {
             address: 'QL20, TP. Bảo Lộc, Lâm Đồng',
             coordinates: { lat: 11.5480, lng: 107.8065 },
             order: 2,
-            estimatedArrivalMinutes: 240, // 4 giờ từ xuất phát
+            estimatedArrivalMinutes: 240,
             stopDuration: 20,
           },
           {
@@ -414,15 +434,15 @@ const seedData = async () => {
             address: 'Ngã ba Liên Khương, Đức Trọng, Lâm Đồng',
             coordinates: { lat: 11.7500, lng: 108.3670 },
             order: 3,
-            estimatedArrivalMinutes: 330, // 5.5 giờ từ xuất phát
+            estimatedArrivalMinutes: 330,
             stopDuration: 10,
           },
         ],
         distance: 308,
-        estimatedDuration: 420, // 7 giờ
+        estimatedDuration: 420,
         isActive: true,
       },
-      // Route 2: TP.HCM → Vũng Tàu (có 2 điểm dừng)
+      // Route 2: TP.HCM → Vũng Tàu
       {
         operatorId: operators[0]._id,
         routeCode: 'HCM-VT-001',
@@ -460,10 +480,10 @@ const seedData = async () => {
           },
         ],
         distance: 125,
-        estimatedDuration: 150, // 2.5 giờ
+        estimatedDuration: 150,
         isActive: true,
       },
-      // Route 3: TP.HCM → Nha Trang (có 4 điểm dừng)
+      // Route 3: TP.HCM → Nha Trang
       {
         operatorId: operators[1]._id,
         routeCode: 'HCM-NT-001',
@@ -517,10 +537,10 @@ const seedData = async () => {
           },
         ],
         distance: 448,
-        estimatedDuration: 480, // 8 giờ
+        estimatedDuration: 480,
         isActive: true,
       },
-      // Route 4: TP.HCM → Đà Nẵng (có 5 điểm dừng)
+      // Route 4: TP.HCM → Đà Nẵng
       {
         operatorId: operators[1]._id,
         routeCode: 'HCM-DN-001',
@@ -582,10 +602,10 @@ const seedData = async () => {
           },
         ],
         distance: 964,
-        estimatedDuration: 960, // 16 giờ
+        estimatedDuration: 960,
         isActive: true,
       },
-      // Route 5: TP.HCM → Phan Thiết (có 1 điểm dừng)
+      // Route 5: TP.HCM → Phan Thiết
       {
         operatorId: operators[2]._id,
         routeCode: 'HCM-PT-001',
@@ -615,7 +635,7 @@ const seedData = async () => {
           },
         ],
         distance: 200,
-        estimatedDuration: 180, // 3 giờ
+        estimatedDuration: 180,
         isActive: true,
       },
     ]);
@@ -628,86 +648,58 @@ const seedData = async () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
+    // Helper for trip dates
+    const tripTime = (dayOffset, hour) => {
+      return new Date(today.getTime() + dayOffset * 24 * 60 * 60 * 1000 + hour * 60 * 60 * 1000);
+    };
+
     const trips = await Trip.create([
-      // Trip 1: HCM → Đà Lạt - Hôm nay 6:00 (đang di chuyển)
+      // ===== TODAY =====
+      // Trip 1: HCM → Đà Lạt - Hôm nay 6:00 (ongoing)
       {
         routeId: routes[0]._id,
         busId: buses[0]._id,
         operatorId: operators[0]._id,
-        driverId: employees[0]._id, // Nguyễn Văn Long
-        tripManagerId: employees[2]._id, // Lê Thị Hoa
-        departureTime: new Date(today.getTime() + 6 * 60 * 60 * 1000), // 6:00 AM today
-        arrivalTime: new Date(today.getTime() + 13 * 60 * 60 * 1000), // 1:00 PM today
+        driverId: employees[0]._id,
+        tripManagerId: employees[2]._id,
+        departureTime: tripTime(0, 6),
+        arrivalTime: tripTime(0, 13),
         basePrice: 250000,
         finalPrice: 250000,
         totalSeats: buses[0].seatLayout.totalSeats,
         availableSeats: buses[0].seatLayout.totalSeats - 18,
         status: 'ongoing',
         journey: {
-          currentStopIndex: 1, // Đang ở điểm dừng thứ 2
+          currentStopIndex: 1,
           currentStatus: 'at_stop',
-          actualDepartureTime: new Date(today.getTime() + 6 * 60 * 60 * 1000),
+          actualDepartureTime: tripTime(0, 6),
           statusHistory: [
             {
               status: 'preparing',
               stopIndex: -1,
-              timestamp: new Date(today.getTime() + 5 * 60 * 60 * 1000 + 30 * 60 * 1000), // 5:30 AM
+              timestamp: tripTime(0, 5.5),
               notes: 'Chuẩn bị xe và kiểm tra hành khách',
-              updatedBy: employees[2]._id,
-            },
-            {
-              status: 'checking_tickets',
-              stopIndex: 0,
-              timestamp: new Date(today.getTime() + 5 * 60 * 60 * 1000 + 45 * 60 * 1000), // 5:45 AM
-              notes: 'Bắt đầu soát vé',
               updatedBy: employees[2]._id,
             },
             {
               status: 'in_transit',
               stopIndex: 0,
-              timestamp: new Date(today.getTime() + 6 * 60 * 60 * 1000), // 6:00 AM
+              timestamp: tripTime(0, 6),
               notes: 'Khởi hành đúng giờ',
-              updatedBy: employees[2]._id,
-            },
-            {
-              status: 'at_stop',
-              stopIndex: 1,
-              timestamp: new Date(today.getTime() + 7 * 60 * 60 * 1000 + 30 * 60 * 1000), // 7:30 AM
-              notes: 'Dừng chân tại Dầu Giây',
               updatedBy: employees[2]._id,
             },
           ],
         },
       },
-      // Trip 2: HCM → Đà Lạt - Hôm nay 14:00 (scheduled)
-      {
-        routeId: routes[0]._id,
-        busId: buses[1]._id,
-        operatorId: operators[0]._id,
-        driverId: employees[1]._id, // Trần Minh Tâm
-        tripManagerId: employees[3]._id, // Phạm Văn Nam
-        departureTime: new Date(today.getTime() + 14 * 60 * 60 * 1000), // 2:00 PM today
-        arrivalTime: new Date(today.getTime() + 21 * 60 * 60 * 1000), // 9:00 PM today
-        basePrice: 250000,
-        finalPrice: 250000,
-        totalSeats: buses[1].seatLayout.totalSeats,
-        availableSeats: buses[1].seatLayout.totalSeats - 12,
-        status: 'scheduled',
-        journey: {
-          currentStopIndex: -1,
-          currentStatus: 'preparing',
-          statusHistory: [],
-        },
-      },
-      // Trip 3: HCM → Vũng Tàu - Hôm nay 8:00 (ongoing)
+      // Trip 2: HCM → Vũng Tàu - Hôm nay 8:00 (ongoing)
       {
         routeId: routes[1]._id,
         busId: buses[2]._id,
         operatorId: operators[0]._id,
         driverId: employees[0]._id,
         tripManagerId: employees[2]._id,
-        departureTime: new Date(today.getTime() + 8 * 60 * 60 * 1000), // 8:00 AM
-        arrivalTime: new Date(today.getTime() + 10 * 60 * 60 * 1000 + 30 * 60 * 1000), // 10:30 AM
+        departureTime: tripTime(0, 8),
+        arrivalTime: tripTime(0, 10.5),
         basePrice: 120000,
         finalPrice: 120000,
         totalSeats: buses[2].seatLayout.totalSeats,
@@ -716,121 +708,671 @@ const seedData = async () => {
         journey: {
           currentStopIndex: 0,
           currentStatus: 'in_transit',
-          actualDepartureTime: new Date(today.getTime() + 8 * 60 * 60 * 1000),
+          actualDepartureTime: tripTime(0, 8),
           statusHistory: [
-            {
-              status: 'preparing',
-              stopIndex: -1,
-              timestamp: new Date(today.getTime() + 7 * 60 * 60 * 1000 + 30 * 60 * 1000),
-              notes: 'Chuẩn bị khởi hành',
-              updatedBy: employees[2]._id,
-            },
-            {
-              status: 'checking_tickets',
-              stopIndex: 0,
-              timestamp: new Date(today.getTime() + 7 * 60 * 60 * 1000 + 50 * 60 * 1000),
-              notes: 'Soát vé',
-              updatedBy: employees[2]._id,
-            },
             {
               status: 'in_transit',
               stopIndex: 0,
-              timestamp: new Date(today.getTime() + 8 * 60 * 60 * 1000),
+              timestamp: tripTime(0, 8),
               notes: 'Đã khởi hành',
               updatedBy: employees[2]._id,
             },
           ],
         },
       },
-      // Trip 4: HCM → Nha Trang - Ngày mai 6:00
+      // Trip 3: HCM → Đà Lạt - Hôm nay 14:00 (scheduled)
       {
-        routeId: routes[2]._id,
-        busId: buses[3]._id,
-        operatorId: operators[1]._id,
-        driverId: employees[4]._id, // Võ Văn Thắng
-        tripManagerId: employees[6]._id, // Nguyễn Thị Lan
-        departureTime: new Date(today.getTime() + 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000), // Tomorrow 6:00 AM
-        arrivalTime: new Date(today.getTime() + 24 * 60 * 60 * 1000 + 14 * 60 * 60 * 1000), // Tomorrow 2:00 PM
-        basePrice: 350000,
-        finalPrice: 350000,
-        totalSeats: buses[3].seatLayout.totalSeats,
-        availableSeats: buses[3].seatLayout.totalSeats - 15,
+        routeId: routes[0]._id,
+        busId: buses[1]._id,
+        operatorId: operators[0]._id,
+        driverId: employees[1]._id,
+        tripManagerId: employees[3]._id,
+        departureTime: tripTime(0, 14),
+        arrivalTime: tripTime(0, 21),
+        basePrice: 250000,
+        finalPrice: 250000,
+        totalSeats: buses[1].seatLayout.totalSeats,
+        availableSeats: buses[1].seatLayout.totalSeats - 12,
         status: 'scheduled',
-        journey: {
-          currentStopIndex: -1,
-          currentStatus: 'preparing',
-          statusHistory: [],
-        },
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
       },
-      // Trip 5: HCM → Đà Nẵng - Ngày mai 18:00
-      {
-        routeId: routes[3]._id,
-        busId: buses[4]._id,
-        operatorId: operators[1]._id,
-        driverId: employees[5]._id, // Đặng Văn Tuấn
-        tripManagerId: employees[6]._id, // Nguyễn Thị Lan
-        departureTime: new Date(today.getTime() + 24 * 60 * 60 * 1000 + 18 * 60 * 60 * 1000), // Tomorrow 6:00 PM
-        arrivalTime: new Date(today.getTime() + 48 * 60 * 60 * 1000 + 10 * 60 * 60 * 1000), // Day after 10:00 AM
-        basePrice: 450000,
-        finalPrice: 450000,
-        totalSeats: buses[4].seatLayout.totalSeats,
-        availableSeats: buses[4].seatLayout.totalSeats - 10,
-        status: 'scheduled',
-        journey: {
-          currentStopIndex: -1,
-          currentStatus: 'preparing',
-          statusHistory: [],
-        },
-      },
-      // Trip 6: HCM → Phan Thiết - Hôm nay 16:00
+      // Trip 4: HCM → Phan Thiết - Hôm nay 16:00 (scheduled)
       {
         routeId: routes[4]._id,
         busId: buses[5]._id,
         operatorId: operators[2]._id,
-        driverId: employees[7]._id, // Huỳnh Văn Hùng
-        tripManagerId: employees[8]._id, // Trương Thị Mai
-        departureTime: new Date(today.getTime() + 16 * 60 * 60 * 1000), // 4:00 PM today
-        arrivalTime: new Date(today.getTime() + 19 * 60 * 60 * 1000), // 7:00 PM today
+        driverId: employees[7]._id,
+        tripManagerId: employees[8]._id,
+        departureTime: tripTime(0, 16),
+        arrivalTime: tripTime(0, 19),
         basePrice: 150000,
         finalPrice: 150000,
         totalSeats: buses[5].seatLayout.totalSeats,
         availableSeats: buses[5].seatLayout.totalSeats - 20,
         status: 'scheduled',
-        journey: {
-          currentStopIndex: -1,
-          currentStatus: 'preparing',
-          statusHistory: [],
-        },
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+
+      // ===== TOMORROW (+1 day) =====
+      // Trip 5: HCM → Nha Trang
+      {
+        routeId: routes[2]._id,
+        busId: buses[3]._id,
+        operatorId: operators[1]._id,
+        driverId: employees[4]._id,
+        tripManagerId: employees[6]._id,
+        departureTime: tripTime(1, 6),
+        arrivalTime: tripTime(1, 14),
+        basePrice: 350000,
+        finalPrice: 350000,
+        totalSeats: buses[3].seatLayout.totalSeats,
+        availableSeats: buses[3].seatLayout.totalSeats - 5,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+      // Trip 6: HCM → Đà Nẵng
+      {
+        routeId: routes[3]._id,
+        busId: buses[4]._id,
+        operatorId: operators[1]._id,
+        driverId: employees[5]._id,
+        tripManagerId: employees[6]._id,
+        departureTime: tripTime(1, 18),
+        arrivalTime: tripTime(2, 10),
+        basePrice: 450000,
+        finalPrice: 450000,
+        totalSeats: buses[4].seatLayout.totalSeats,
+        availableSeats: buses[4].seatLayout.totalSeats - 3,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+      // Trip 7: HCM → Vũng Tàu - Ngày mai 7:00
+      {
+        routeId: routes[1]._id,
+        busId: buses[2]._id,
+        operatorId: operators[0]._id,
+        driverId: employees[1]._id,
+        tripManagerId: employees[3]._id,
+        departureTime: tripTime(1, 7),
+        arrivalTime: tripTime(1, 9.5),
+        basePrice: 120000,
+        finalPrice: 120000,
+        totalSeats: buses[2].seatLayout.totalSeats,
+        availableSeats: buses[2].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+
+      // ===== +3 DAYS =====
+      {
+        routeId: routes[0]._id,
+        busId: buses[0]._id,
+        operatorId: operators[0]._id,
+        driverId: employees[0]._id,
+        tripManagerId: employees[2]._id,
+        departureTime: tripTime(3, 6),
+        arrivalTime: tripTime(3, 13),
+        basePrice: 250000,
+        finalPrice: 250000,
+        totalSeats: buses[0].seatLayout.totalSeats,
+        availableSeats: buses[0].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+      {
+        routeId: routes[1]._id,
+        busId: buses[2]._id,
+        operatorId: operators[0]._id,
+        driverId: employees[1]._id,
+        tripManagerId: employees[3]._id,
+        departureTime: tripTime(3, 8),
+        arrivalTime: tripTime(3, 10.5),
+        basePrice: 120000,
+        finalPrice: 120000,
+        totalSeats: buses[2].seatLayout.totalSeats,
+        availableSeats: buses[2].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+
+      // ===== +7 DAYS =====
+      {
+        routeId: routes[0]._id,
+        busId: buses[0]._id,
+        operatorId: operators[0]._id,
+        driverId: employees[0]._id,
+        tripManagerId: employees[2]._id,
+        departureTime: tripTime(7, 6),
+        arrivalTime: tripTime(7, 13),
+        basePrice: 250000,
+        finalPrice: 250000,
+        totalSeats: buses[0].seatLayout.totalSeats,
+        availableSeats: buses[0].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+      {
+        routeId: routes[1]._id,
+        busId: buses[2]._id,
+        operatorId: operators[0]._id,
+        driverId: employees[1]._id,
+        tripManagerId: employees[3]._id,
+        departureTime: tripTime(7, 7),
+        arrivalTime: tripTime(7, 9.5),
+        basePrice: 120000,
+        finalPrice: 120000,
+        totalSeats: buses[2].seatLayout.totalSeats,
+        availableSeats: buses[2].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+      {
+        routeId: routes[2]._id,
+        busId: buses[3]._id,
+        operatorId: operators[1]._id,
+        driverId: employees[4]._id,
+        tripManagerId: employees[6]._id,
+        departureTime: tripTime(7, 18),
+        arrivalTime: tripTime(8, 2),
+        basePrice: 350000,
+        finalPrice: 350000,
+        totalSeats: buses[3].seatLayout.totalSeats,
+        availableSeats: buses[3].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+
+      // ===== +14 DAYS =====
+      {
+        routeId: routes[0]._id,
+        busId: buses[1]._id,
+        operatorId: operators[0]._id,
+        driverId: employees[1]._id,
+        tripManagerId: employees[3]._id,
+        departureTime: tripTime(14, 6),
+        arrivalTime: tripTime(14, 13),
+        basePrice: 250000,
+        finalPrice: 250000,
+        totalSeats: buses[1].seatLayout.totalSeats,
+        availableSeats: buses[1].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+      {
+        routeId: routes[1]._id,
+        busId: buses[2]._id,
+        operatorId: operators[0]._id,
+        driverId: employees[0]._id,
+        tripManagerId: employees[2]._id,
+        departureTime: tripTime(14, 8),
+        arrivalTime: tripTime(14, 10.5),
+        basePrice: 120000,
+        finalPrice: 120000,
+        totalSeats: buses[2].seatLayout.totalSeats,
+        availableSeats: buses[2].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+      {
+        routeId: routes[4]._id,
+        busId: buses[5]._id,
+        operatorId: operators[2]._id,
+        driverId: employees[7]._id,
+        tripManagerId: employees[8]._id,
+        departureTime: tripTime(14, 15),
+        arrivalTime: tripTime(14, 18),
+        basePrice: 150000,
+        finalPrice: 150000,
+        totalSeats: buses[5].seatLayout.totalSeats,
+        availableSeats: buses[5].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+
+      // ===== +30 DAYS =====
+      {
+        routeId: routes[0]._id,
+        busId: buses[0]._id,
+        operatorId: operators[0]._id,
+        driverId: employees[0]._id,
+        tripManagerId: employees[2]._id,
+        departureTime: tripTime(30, 6),
+        arrivalTime: tripTime(30, 13),
+        basePrice: 260000,
+        finalPrice: 260000,
+        totalSeats: buses[0].seatLayout.totalSeats,
+        availableSeats: buses[0].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+      {
+        routeId: routes[1]._id,
+        busId: buses[2]._id,
+        operatorId: operators[0]._id,
+        driverId: employees[1]._id,
+        tripManagerId: employees[3]._id,
+        departureTime: tripTime(30, 7),
+        arrivalTime: tripTime(30, 9.5),
+        basePrice: 130000,
+        finalPrice: 130000,
+        totalSeats: buses[2].seatLayout.totalSeats,
+        availableSeats: buses[2].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+      {
+        routeId: routes[2]._id,
+        busId: buses[3]._id,
+        operatorId: operators[1]._id,
+        driverId: employees[4]._id,
+        tripManagerId: employees[6]._id,
+        departureTime: tripTime(30, 6),
+        arrivalTime: tripTime(30, 14),
+        basePrice: 360000,
+        finalPrice: 360000,
+        totalSeats: buses[3].seatLayout.totalSeats,
+        availableSeats: buses[3].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
+      },
+      {
+        routeId: routes[3]._id,
+        busId: buses[4]._id,
+        operatorId: operators[1]._id,
+        driverId: employees[5]._id,
+        tripManagerId: employees[6]._id,
+        departureTime: tripTime(30, 18),
+        arrivalTime: tripTime(31, 10),
+        basePrice: 460000,
+        finalPrice: 460000,
+        totalSeats: buses[4].seatLayout.totalSeats,
+        availableSeats: buses[4].seatLayout.totalSeats,
+        status: 'scheduled',
+        journey: { currentStopIndex: -1, currentStatus: 'preparing', statusHistory: [] },
       },
     ]);
 
     logger.log(`Created ${trips.length} trips with journey tracking\n`);
 
+    // ==================== VOUCHERS ====================
+    console.log('Creating Vouchers...');
+
+    const vouchers = await Voucher.create([
+      {
+        code: 'WELCOME50',
+        name: 'Chào mừng khách hàng mới',
+        description: 'Giảm 50.000đ cho khách hàng mới đăng ký',
+        discountType: 'fixed',
+        discountValue: 50000,
+        minBookingAmount: 100000,
+        maxUsageTotal: 1000,
+        maxUsagePerCustomer: 1,
+        currentUsageCount: 45,
+        validFrom: daysFromNow(-30),
+        validUntil: daysFromNow(90),
+        isActive: true,
+        operatorId: null,
+      },
+      {
+        code: 'PHUONGTRANG10',
+        name: 'Phương Trang giảm 10%',
+        description: 'Giảm 10% tối đa 100.000đ cho Phương Trang',
+        discountType: 'percentage',
+        discountValue: 10,
+        maxDiscountAmount: 100000,
+        minBookingAmount: 150000,
+        maxUsageTotal: 500,
+        maxUsagePerCustomer: 3,
+        currentUsageCount: 120,
+        validFrom: daysFromNow(-15),
+        validUntil: daysFromNow(60),
+        isActive: true,
+        operatorId: operators[0]._id,
+        createdBy: operators[0]._id,
+        createdByModel: 'BusOperator',
+      },
+      {
+        code: 'GOLD20',
+        name: 'Ưu đãi Gold Member',
+        description: 'Giảm 20% cho khách hàng Gold',
+        discountType: 'percentage',
+        discountValue: 20,
+        maxDiscountAmount: 200000,
+        minBookingAmount: 200000,
+        maxUsageTotal: 200,
+        maxUsagePerCustomer: 5,
+        currentUsageCount: 30,
+        validFrom: daysFromNow(-10),
+        validUntil: daysFromNow(120),
+        isActive: true,
+        operatorId: null,
+        applicableCustomerTiers: ['gold'],
+      },
+      {
+        code: 'VUNGTAU30K',
+        name: 'Giảm 30K tuyến Vũng Tàu',
+        description: 'Giảm 30.000đ cho tuyến HCM - Vũng Tàu',
+        discountType: 'fixed',
+        discountValue: 30000,
+        minBookingAmount: 80000,
+        maxUsageTotal: 300,
+        maxUsagePerCustomer: 2,
+        currentUsageCount: 88,
+        validFrom: daysFromNow(-5),
+        validUntil: daysFromNow(45),
+        isActive: true,
+        operatorId: operators[0]._id,
+        applicableRoutes: [routes[1]._id],
+        createdBy: operators[0]._id,
+        createdByModel: 'BusOperator',
+      },
+      {
+        code: 'EXPIRED2025',
+        name: 'Voucher hết hạn',
+        description: 'Voucher đã hết hạn - dùng để test',
+        discountType: 'fixed',
+        discountValue: 100000,
+        maxUsageTotal: 100,
+        maxUsagePerCustomer: 1,
+        currentUsageCount: 100,
+        validFrom: daysFromNow(-90),
+        validUntil: daysFromNow(-1),
+        isActive: false,
+        operatorId: null,
+      },
+    ]);
+
+    console.log(`Created ${vouchers.length} vouchers\n`);
+
+    // ==================== BOOKINGS & TICKETS ====================
+    console.log('Creating sample Bookings & Tickets...');
+
+    // Booking 1: Customer 1 booked trip HCM → Đà Lạt (confirmed, paid)
+    const booking1 = await Booking.create({
+      bookingCode: 'BK000001',
+      customerId: users[1]._id,
+      tripId: trips[0]._id,
+      operatorId: operators[0]._id,
+      seats: [
+        { seatNumber: 'A1', price: 250000, passengerName: 'Nguyễn Văn An' },
+      ],
+      contactInfo: {
+        name: 'Nguyễn Văn An',
+        phone: '0912345678',
+        email: 'customer1@gmail.com',
+      },
+      pickupPoint: {
+        name: 'Bến xe Miền Đông',
+        address: '292 Đinh Bộ Lĩnh, P.26, Q. Bình Thạnh',
+        time: tripTime(0, 5.5),
+      },
+      dropoffPoint: {
+        name: 'Bến xe Đà Lạt',
+        address: '1 Tô Hiến Thành, P.3, TP. Đà Lạt',
+        time: tripTime(0, 13),
+      },
+      totalPrice: 250000,
+      discount: 0,
+      finalPrice: 250000,
+      paymentMethod: 'cash',
+      paymentStatus: 'paid',
+      paidAt: daysFromNow(-1),
+      status: 'confirmed',
+      isGuestBooking: false,
+    });
+
+    const qrData1 = JSON.stringify({ bookingCode: 'BK000001', tripId: trips[0]._id.toString() });
+    const ticket1 = await Ticket.create({
+      ticketCode: 'TK000001',
+      bookingId: booking1._id,
+      tripId: trips[0]._id,
+      operatorId: operators[0]._id,
+      customerId: users[1]._id,
+      qrCode: Buffer.from(qrData1).toString('base64'),
+      qrCodeData: crypto.createHash('sha256').update(qrData1).digest('hex'),
+      totalPrice: 250000,
+      passengers: [
+        { seatNumber: 'A1', fullName: 'Nguyễn Văn An' },
+      ],
+      tripInfo: {
+        routeName: 'TP. Hồ Chí Minh - Đà Lạt',
+        departureTime: tripTime(0, 6),
+        arrivalTime: tripTime(0, 13),
+        origin: 'Bến xe Miền Đông',
+        destination: 'Bến xe Đà Lạt',
+        busNumber: 'PT-001',
+        busType: 'limousine',
+      },
+      status: 'valid',
+    });
+
+    // Booking 2: Customer 2 booked trip HCM → Vũng Tàu (confirmed)
+    const booking2 = await Booking.create({
+      bookingCode: 'BK000002',
+      customerId: users[2]._id,
+      tripId: trips[1]._id,
+      operatorId: operators[0]._id,
+      seats: [
+        { seatNumber: 'B2', price: 120000, passengerName: 'Trần Thị Bình' },
+        { seatNumber: 'B3', price: 120000, passengerName: 'Trần Văn Cúc' },
+      ],
+      contactInfo: {
+        name: 'Trần Thị Bình',
+        phone: '0923456789',
+        email: 'customer2@gmail.com',
+      },
+      pickupPoint: {
+        name: 'Bến xe Miền Đông',
+        address: '292 Đinh Bộ Lĩnh, P.26, Q. Bình Thạnh',
+        time: tripTime(0, 7.5),
+      },
+      dropoffPoint: {
+        name: 'Bến xe Vũng Tàu',
+        address: '192 Nam Kỳ Khởi Nghĩa, P.9, TP. Vũng Tàu',
+        time: tripTime(0, 10.5),
+      },
+      totalPrice: 240000,
+      discount: 0,
+      finalPrice: 240000,
+      paymentMethod: 'vnpay',
+      paymentStatus: 'paid',
+      paidAt: daysFromNow(-1),
+      status: 'confirmed',
+      isGuestBooking: false,
+    });
+
+    const qrData2 = JSON.stringify({ bookingCode: 'BK000002', tripId: trips[1]._id.toString() });
+    const ticket2 = await Ticket.create({
+      ticketCode: 'TK000002',
+      bookingId: booking2._id,
+      tripId: trips[1]._id,
+      operatorId: operators[0]._id,
+      customerId: users[2]._id,
+      qrCode: Buffer.from(qrData2).toString('base64'),
+      qrCodeData: crypto.createHash('sha256').update(qrData2).digest('hex'),
+      totalPrice: 240000,
+      passengers: [
+        { seatNumber: 'B2', fullName: 'Trần Thị Bình' },
+        { seatNumber: 'B3', fullName: 'Trần Văn Cúc' },
+      ],
+      tripInfo: {
+        routeName: 'TP. Hồ Chí Minh - Vũng Tàu',
+        departureTime: tripTime(0, 8),
+        arrivalTime: tripTime(0, 10.5),
+        origin: 'Bến xe Miền Đông',
+        destination: 'Bến xe Vũng Tàu',
+        busNumber: 'PT-003',
+        busType: 'sleeper',
+      },
+      status: 'valid',
+    });
+
+    // Booking 3: Guest booking on future trip (for cancel testing)
+    const booking3 = await Booking.create({
+      bookingCode: 'BK000003',
+      tripId: trips[4]._id,
+      operatorId: operators[1]._id,
+      seats: [
+        { seatNumber: 'C1', price: 350000, passengerName: 'Lê Văn Guest' },
+      ],
+      contactInfo: {
+        name: 'Lê Văn Guest',
+        phone: '0912345678',
+        email: 'customer1@gmail.com',
+      },
+      pickupPoint: {
+        name: 'Bến xe Miền Đông',
+        address: '292 Đinh Bộ Lĩnh, P.26, Q. Bình Thạnh',
+        time: tripTime(1, 5.5),
+      },
+      dropoffPoint: {
+        name: 'Bến xe Phía Nam Nha Trang',
+        address: '23 Tháng 10, Nha Trang',
+        time: tripTime(1, 14),
+      },
+      totalPrice: 350000,
+      discount: 0,
+      finalPrice: 350000,
+      paymentMethod: 'cash',
+      paymentStatus: 'pending',
+      status: 'pending',
+      isGuestBooking: true,
+    });
+
+    const qrData3 = JSON.stringify({ bookingCode: 'BK000003', tripId: trips[4]._id.toString() });
+    const ticket3 = await Ticket.create({
+      ticketCode: 'TK000003',
+      bookingId: booking3._id,
+      tripId: trips[4]._id,
+      operatorId: operators[1]._id,
+      qrCode: Buffer.from(qrData3).toString('base64'),
+      qrCodeData: crypto.createHash('sha256').update(qrData3).digest('hex'),
+      totalPrice: 350000,
+      passengers: [
+        { seatNumber: 'C1', fullName: 'Lê Văn Guest' },
+      ],
+      tripInfo: {
+        routeName: 'TP. Hồ Chí Minh - Nha Trang',
+        departureTime: tripTime(1, 6),
+        arrivalTime: tripTime(1, 14),
+        origin: 'Bến xe Miền Đông',
+        destination: 'Bến xe Phía Nam',
+        busNumber: 'TB-001',
+        busType: 'limousine',
+      },
+      status: 'valid',
+    });
+
+    console.log(`Created 3 bookings & 3 tickets\n`);
+
+    // ==================== COMPLAINTS ====================
+    console.log('Creating sample Complaints...');
+
+    const complaints = await Complaint.create([
+      {
+        subject: 'Xe khởi hành trễ 30 phút',
+        description: 'Chuyến HCM - Đà Lạt ngày hôm nay khởi hành trễ 30 phút so với lịch, không có thông báo trước.',
+        category: 'service',
+        priority: 'medium',
+        status: 'open',
+        userId: users[1]._id,
+        userEmail: 'customer1@gmail.com',
+        userPhone: '0912345678',
+        bookingId: booking1._id,
+        operatorId: operators[0]._id,
+        tripId: trips[0]._id,
+      },
+      {
+        subject: 'Thanh toán VNPay bị trừ tiền nhưng không nhận vé',
+        description: 'Tôi đã thanh toán qua VNPay cho chuyến HCM - Vũng Tàu, tiền đã bị trừ nhưng hệ thống báo lỗi và không cấp vé.',
+        category: 'payment',
+        priority: 'high',
+        status: 'in_progress',
+        userId: users[2]._id,
+        userEmail: 'customer2@gmail.com',
+        userPhone: '0923456789',
+        bookingId: booking2._id,
+        operatorId: operators[0]._id,
+        tripId: trips[1]._id,
+        assignedTo: users[0]._id,
+        assignedAt: daysFromNow(-1),
+        notes: [
+          {
+            content: 'Đã liên hệ VNPay để xác minh giao dịch',
+            addedBy: users[0]._id,
+            addedByRole: 'admin',
+            isInternal: true,
+          },
+        ],
+      },
+      {
+        subject: 'Tài xế lái xe không an toàn',
+        description: 'Tài xế chuyến HCM - Nha Trang lái xe quá tốc độ, vượt ẩu nhiều lần. Hành khách rất lo sợ.',
+        category: 'driver',
+        priority: 'urgent',
+        status: 'open',
+        userId: users[3]._id,
+        userEmail: 'customer3@gmail.com',
+        userPhone: '0934567890',
+        operatorId: operators[1]._id,
+      },
+      {
+        subject: 'Ghế bị hỏng không ngồi được',
+        description: 'Ghế A3 trên chuyến HCM - Phan Thiết bị hỏng, không thể ngả lưng. Phải đổi ghế khác.',
+        category: 'vehicle',
+        priority: 'low',
+        status: 'resolved',
+        userId: users[4]._id,
+        userEmail: 'customer4@gmail.com',
+        userPhone: '0945678901',
+        operatorId: operators[2]._id,
+        resolution: 'Đã hoàn tiền chênh lệch ghế và ghi nhận để sửa chữa.',
+        resolvedBy: users[0]._id,
+        resolvedAt: daysFromNow(-2),
+        satisfactionRating: 4,
+        satisfactionFeedback: 'Xử lý khá nhanh, cảm ơn.',
+      },
+    ]);
+
+    console.log(`Created ${complaints.length} complaints\n`);
+
     // ==================== SUMMARY ====================
     logger.log('\n==================== SEED SUMMARY ====================');
-    logger.log(`Users: ${users.length}`);
+    logger.log(`Users: ${users.length} (1 admin + ${users.length - 1} customers)`);
     logger.log(`Bus Operators: ${operators.length}`);
     console.log(`Employees: ${employees.length}`);
     console.log(`   - Drivers: ${employees.filter(e => e.role === 'driver').length}`);
     console.log(`   - Trip Managers: ${employees.filter(e => e.role === 'trip_manager').length}`);
     console.log(`Buses: ${buses.length}`);
-    console.log(`Routes: ${routes.length}`);
-    console.log(`   - Total Stops Configured: ${routes.reduce((sum, r) => sum + r.stops.length, 0)}`);
+    console.log(`Routes: ${routes.length} (${routes.reduce((sum, r) => sum + r.stops.length, 0)} stops total)`);
     console.log(`Trips: ${trips.length}`);
-    console.log(`   - Scheduled: ${trips.filter(t => t.status === 'scheduled').length}`);
     console.log(`   - Ongoing: ${trips.filter(t => t.status === 'ongoing').length}`);
+    console.log(`   - Scheduled: ${trips.filter(t => t.status === 'scheduled').length}`);
+    console.log(`   - Future trips (>1 day): ${trips.filter(t => t.departureTime > tripTime(1, 0)).length}`);
+    console.log(`Vouchers: ${vouchers.length}`);
+    console.log(`Bookings: 3 (2 confirmed + 1 pending guest)`);
+    console.log(`Tickets: 3`);
+    console.log(`Complaints: ${complaints.length}`);
     console.log('========================================================\n');
 
-    console.log('🎉 Database seeding completed successfully!\n');
-    console.log('📝 Login Credentials:');
-    console.log('   Admin: admin@quikride.com / admin123');
-    console.log('   Operator: operator1@quikride.com / operator123');
-    console.log('   Trip Manager: hoa.manager@phuongtrang.com / manager123');
-    console.log('   Driver: long.driver@phuongtrang.com / driver123');
-    console.log('   Customer: customer1@gmail.com / 123456\n');
+    console.log('Database seeding completed successfully!\n');
+    console.log('Login Credentials:');
+    console.log('   Admin:        admin@quikride.com / admin123');
+    console.log('   Operator 1:   operator1@quikride.com / operator123');
+    console.log('   Operator 2:   operator2@quikride.com / operator123');
+    console.log('   Operator 3:   operator3@quikride.com / operator123');
+    console.log('   Trip Manager: TM-PT-001 / manager123 (or email: hoa.manager@phuongtrang.com)');
+    console.log('   Driver:       DRV-PT-001 / driver123 (or email: long.driver@phuongtrang.com)');
+    console.log('   Customer 1:   customer1@gmail.com / 123456 (Gold)');
+    console.log('   Customer 2:   customer2@gmail.com / 123456 (Silver)');
+    console.log('   Customer 3:   customer3@gmail.com / 123456 (Bronze)');
+    console.log('   Customer 4:   customer4@gmail.com / 123456 (Bronze)\n');
+    console.log('Voucher Codes: WELCOME50, PHUONGTRANG10, GOLD20, VUNGTAU30K, EXPIRED2025\n');
+    console.log('Booking Codes: BK000001, BK000002, BK000003\n');
+    console.log('Guest Ticket Lookup: phone 0912345678, demo OTP: 123456\n');
 
   } catch (error) {
-    console.error(' Error seeding database:', error);
+    console.error('Error seeding database:', error);
     console.error(error.stack);
     process.exit(1);
   }
