@@ -1,8 +1,9 @@
+const { v4: uuidv4 } = require('uuid');
 const Trip = require('../models/Trip');
 const Route = require('../models/Route');
 const Bus = require('../models/Bus');
 const Employee = require('../models/Employee');
-const { v4: uuidv4 } = require('uuid');
+
 const logger = require('../utils/logger');
 
 /**

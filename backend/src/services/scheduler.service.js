@@ -79,15 +79,11 @@ class SchedulerService {
         .populate('routeId')
         .lean();
 
-      // Send 24-hour reminders
-      for (const trip of trips24h) {
-        await this.sendTripRemindersForTrip(trip, '24h');
-      }
+      // Send 24-hour reminders in parallel
+      await Promise.all(trips24h.map((trip) => this.sendTripRemindersForTrip(trip, '24h')));
 
-      // Send 2-hour reminders
-      for (const trip of trips2h) {
-        await this.sendTripRemindersForTrip(trip, '2h');
-      }
+      // Send 2-hour reminders in parallel
+      await Promise.all(trips2h.map((trip) => this.sendTripRemindersForTrip(trip, '2h')));
 
       logger.info(
         `Sent reminders for ${trips24h.length} trips (24h) and ${trips2h.length} trips (2h)`
@@ -124,13 +120,12 @@ class SchedulerService {
         timeStyle: 'short',
       });
 
-      for (const booking of bookings) {
+      const sendTasks = bookings.map(async (booking) => {
         const email = booking.contactInfo?.email;
         const phone = booking.contactInfo?.phone;
 
-        if (!email && !phone) continue;
+        if (!email && !phone) return { skipped: true };
 
-        // Send email
         if (email) {
           const emailSubject =
             timeframe === '24h'
@@ -148,7 +143,6 @@ class SchedulerService {
           await notificationService.sendEmail(email, emailSubject, emailHtml);
         }
 
-        // Send SMS
         if (phone) {
           const pickupPoint = booking.pickupPoint?.name || 'Điểm đón';
           const seatNumbers = booking.seats.join(', ');
@@ -162,9 +156,10 @@ class SchedulerService {
           });
         }
 
-        // Small delay to avoid rate limiting
-        await this.delay(100);
-      }
+        return { skipped: false };
+      });
+
+      await Promise.all(sendTasks);
 
       logger.info(`Sent ${timeframe} reminders for trip ${trip._id}`);
     } catch (error) {
@@ -299,29 +294,22 @@ class SchedulerService {
       let sent = 0;
       let skipped = 0;
 
-      for (const booking of completedBookings) {
-        if (!booking.userId) {
-          skipped++;
-          continue; // Skip guest bookings
-        }
-
+      const tasks = completedBookings.map(async (booking) => {
+        if (!booking.userId) return { skipped: true };
         try {
           const result = await reviewService.sendReviewInvitation(booking.userId, booking._id);
-          if (result.success && !result.skipped) {
-            sent++;
-          } else {
-            skipped++;
-          }
+          return { success: result.success && !result.skipped };
         } catch (error) {
           logger.error(`Lỗi gửi lời mời đánh giá để đặt chỗ ${booking._id}:`, error.message);
-          skipped++;
+          return { success: false };
         }
+      });
 
-        // Small delay
-        await this.delay(200);
-      }
+      const results = await Promise.all(tasks);
+      const sentCount = results.filter((r) => r.success).length;
+      const skippedCount = results.length - sentCount;
 
-      logger.info(`Sent ${sent} review invitations (${skipped} skipped)`);
+      logger.info(`Sent ${sentCount} review invitations (${skippedCount} skipped)`);
     } catch (error) {
       logger.error(' Lỗi gửi lời mời đánh giá:', error);
     }
