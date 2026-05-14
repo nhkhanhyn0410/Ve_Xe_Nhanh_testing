@@ -4,13 +4,22 @@ const adminController = require('../controllers/admin.controller');
 const complaintController = require('../controllers/complaint.controller');
 const adminContentController = require('../controllers/adminContent.controller');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
+const {
+  validateLogin,
+  validateCreateAdmin,
+  validateBootstrapAdmin,
+} = require('../middleware/validate.middleware');
 
 /**
  * Admin Routes
  * /api/v1/admin
  */
 
-// All routes require admin authentication
+// Public admin auth routes
+router.post('/bootstrap', validateBootstrapAdmin, adminController.bootstrapFirstAdmin);
+router.post('/login', validateLogin, adminController.login);
+
+// All remaining routes require admin authentication
 router.use(authenticate);
 router.use(authorize('admin'));
 
@@ -23,6 +32,7 @@ router.put('/operators/:id/suspend', adminController.suspendOperator);
 router.put('/operators/:id/resume', adminController.resumeOperator);
 
 // User management routes (UC-22)
+router.post('/users', validateCreateAdmin, adminController.createAdminAccount);
 router.get('/users/statistics', adminController.getUserStatistics);
 router.get('/users', adminController.getUsers);
 router.get('/users/:id', adminController.getUserById);

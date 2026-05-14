@@ -25,7 +25,7 @@ const handleValidationErrors = (req, res, next) => {
 /**
  * Validation rules cho đăng ký
  */
-const validateRegister = [
+const buildAccountValidationRules = () => [
   body('email')
     .trim()
     .isEmail()
@@ -47,6 +47,31 @@ const validateRegister = [
     .withMessage('Họ tên là bắt buộc')
     .isLength({ min: 2, max: 100 })
     .withMessage('Họ tên phải từ 2-100 ký tự'),
+];
+
+const validateRegister = [
+  ...buildAccountValidationRules(),
+  handleValidationErrors,
+];
+
+/**
+ * Validation rules cho tạo tài khoản admin
+ */
+const validateCreateAdmin = [
+  ...buildAccountValidationRules(),
+  handleValidationErrors,
+];
+
+/**
+ * Validation rules cho bootstrap admin đầu tiên
+ */
+const validateBootstrapAdmin = [
+  ...buildAccountValidationRules(),
+  body('bootstrapSecret')
+    .optional()
+    .trim()
+    .isString()
+    .withMessage('Bootstrap secret không hợp lệ'),
   handleValidationErrors,
 ];
 
@@ -172,6 +197,8 @@ const validateChangePassword = [
 
 module.exports = {
   validateRegister,
+  validateCreateAdmin,
+  validateBootstrapAdmin,
   validateLogin,
   validateRefreshToken,
   validateForgotPassword,

@@ -10,17 +10,15 @@ import api from './api';
 export const adminAuth = {
   /**
    * Admin login
-   * POST /api/v1/auth/login
-   * Uses the same endpoint as other users, backend checks role
+   * POST /api/v1/admin/login
    */
   login: async (credentials) => {
-    // Convert email to identifier for backend
     const loginData = {
       identifier: credentials.email,
       password: credentials.password,
       rememberMe: credentials.rememberMe || false,
     };
-    return await api.post('/auth/login', loginData);
+    return await api.post('/admin/login', loginData);
   },
 
   /**

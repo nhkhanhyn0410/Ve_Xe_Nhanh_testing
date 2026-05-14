@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const logger = require('../utils/logger');
 
 /**
  * CSRF Protection Middleware
@@ -87,13 +88,20 @@ const validateOrigin = (req, res, next) => {
     return next();
   }
 
-  // Allowed origins from environment variable
-  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+  // Allowed origins from environment variable + current backend origin for Swagger UI
+  const allowedOrigins = [
+    ...(process.env.ALLOWED_ORIGINS?.split(',') || []),
+    process.env.FRONTEND_URL,
+    `${req.protocol}://${req.get('host')}`,
+  ]
+    .filter(Boolean)
+    .map((value) => value.replace(/\/+$/, ''));
 
   // Check if request is from an allowed origin
   if (origin) {
+    const normalizedOrigin = origin.replace(/\/+$/, '');
     const isAllowed = allowedOrigins.some(allowed =>
-      origin === allowed || origin.startsWith(allowed)
+      normalizedOrigin === allowed || normalizedOrigin.startsWith(`${allowed}/`)
     );
 
     if (!isAllowed && process.env.NODE_ENV === 'production') {

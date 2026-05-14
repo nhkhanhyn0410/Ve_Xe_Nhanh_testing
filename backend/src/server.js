@@ -7,6 +7,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const http = require('http');
 const logger = require('./utils/logger');
+const { setupSwagger } = require('./docs/swagger');
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +35,7 @@ const tripManagerRoutes = require('./routes/tripManager.routes');
 const complaintRoutes = require('./routes/complaint.routes');
 const contentRoutes = require('./routes/content.routes');
 const reviewRoutes = require('./routes/review.routes');
+const guestRoutes = require('./routes/guest.routes');
 
 // Import middleware
 const errorHandler = require('./middleware/error.middleware');
@@ -151,6 +153,8 @@ app.get(`/api/${API_VERSION}`, (req, res) => {
   });
 });
 
+setupSwagger(app, API_VERSION);
+
 // Mount routes
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
 app.use(`/api/${API_VERSION}/users`, userRoutes);
@@ -168,6 +172,7 @@ app.use(`/api/${API_VERSION}/trip-manager`, tripManagerRoutes);
 app.use(`/api/${API_VERSION}/complaints`, complaintRoutes);
 app.use(`/api/${API_VERSION}/content`, contentRoutes);
 app.use(`/api/${API_VERSION}/reviews`, reviewRoutes);
+app.use(`/api/${API_VERSION}/guest`, guestRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

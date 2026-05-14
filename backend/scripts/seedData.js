@@ -57,6 +57,19 @@ const connectDB = async () => {
   }
 };
 
+// Save documents one by one so password hooks are applied reliably.
+const createWithHooks = async (Model, docs) => {
+  const createdDocs = [];
+
+  for (const doc of docs) {
+    const record = new Model(doc);
+    await record.save();
+    createdDocs.push(record);
+  }
+
+  return createdDocs;
+};
+
 // Enhanced seed data with full journey tracking
 const seedData = async () => {
   try {
@@ -80,7 +93,7 @@ const seedData = async () => {
     // that auto-hash passwords. Passing hashed passwords causes DOUBLE-HASHING
     // and users cannot log in.
 
-    const users = await User.create([
+    const users = await createWithHooks(User, [
       // Admin
       {
         email: 'admin@quikride.com',
@@ -143,7 +156,7 @@ const seedData = async () => {
     // ==================== BUS OPERATORS ====================
     console.log('Creating Bus Operators...');
 
-    const operators = await BusOperator.create([
+    const operators = await createWithHooks(BusOperator, [
       {
         email: 'operator1@quikride.com',
         phone: '0281234567',
@@ -200,7 +213,7 @@ const seedData = async () => {
     // IMPORTANT: Pass plain-text passwords! Employee model has pre-save hook that auto-hashes.
     console.log('Creating Employees (Drivers & Trip Managers)...');
 
-    const employees = await Employee.create([
+    const employees = await createWithHooks(Employee, [
       // Phương Trang - Drivers
       {
         operatorId: operators[0]._id,
