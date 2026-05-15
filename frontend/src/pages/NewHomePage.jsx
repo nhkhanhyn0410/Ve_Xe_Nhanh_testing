@@ -193,7 +193,7 @@ const SearchOverlayCard = ({ form, initialValues, loading, onSearch, onSwap, onT
               filterOption={(inputValue, option) =>
                 option.value.toLowerCase().includes(inputValue.toLowerCase())
               }
-              placeholder="Hà Nội"
+              placeholder="Chọn điểm đi"
             />
           </Form.Item>
         </SearchFieldShell>
@@ -216,7 +216,7 @@ const SearchOverlayCard = ({ form, initialValues, loading, onSearch, onSwap, onT
               filterOption={(inputValue, option) =>
                 option.value.toLowerCase().includes(inputValue.toLowerCase())
               }
-              placeholder="Sapa"
+              placeholder="Chọn điểm đến"
             />
           </Form.Item>
         </SearchFieldShell>
@@ -232,7 +232,7 @@ const SearchOverlayCard = ({ form, initialValues, loading, onSearch, onSwap, onT
           </Form.Item>
         </SearchFieldShell>
 
-        <SearchFieldShell icon={UserOutlined} label="Số khách" hint="Tối đa 6 vé/đặt" last>
+        <SearchFieldShell icon={UserOutlined} label="Số khách" hint="Tối đa 10 vé/đặt" last>
           <Form.Item
             name="passengers"
             rules={[{ required: true, message: 'Vui lòng chọn số khách!' }]}
@@ -458,8 +458,6 @@ const NewHomePage = () => {
 
   const initialValues = useMemo(
     () => ({
-      fromCity: searchCriteria.fromCity || 'Hà Nội',
-      toCity: searchCriteria.toCity || 'Sapa',
       date: searchCriteria.date ? dayjs(searchCriteria.date) : dayjs(),
       passengers: searchCriteria.passengers || 2,
     }),
@@ -563,7 +561,7 @@ const NewHomePage = () => {
     <CustomerShell activeKey="buy" mainClassName="bg-white">
       <section className="relative isolate overflow-x-clip bg-vxn-ink">
         <div
-          className="absolute inset-0 bg-cover bg-[50%_65%] [@media(min-width:1920px)]:bg-[50%_88%]"
+          className="absolute inset-0 bg-cover bg-[10%_58%] [@media(min-width:1920px)]:bg-[40%_58%]"
           style={{ backgroundImage: `url(${heroImage})` }}
           aria-hidden="true"
         />
@@ -577,16 +575,16 @@ const NewHomePage = () => {
         />
         <UtilityPills />
 
-        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pb-14 pt-20 sm:px-6 lg:h-[820px] lg:px-14 lg:pb-0 lg:pt-36">
+        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pb-14 pt-20 sm:px-6 lg:h-[100svh] lg:px-14 lg:pb-6 lg:pt-[clamp(4.5rem,12vh,8.5rem)]">
           <div className="max-w-[780px] text-white">
-            <div className="mb-3 mt-20 inline-flex items-center gap-2 rounded-full bg-vxn-teal-600/95 px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.08em] text-white">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-vxn-teal-600/95 px-5 py-3.5 text-xs font-medium uppercase tracking-[0.08em] text-white ">
               <TagsOutlined className="text-[13px]" />
               Ưu đãi hè · Giảm đến 35% tuyến miền Bắc
             </div>
             <h1 className="m-0 text-[42px] font-bold leading-[1.05] tracking-normal text-white drop-shadow-[0_4px_24px_rgba(0,40,60,.40)] sm:text-[56px]">
               Đi Việt Nam.
               <br />
-              <span className="text-vxn-teal-500">Nhanh hơn, gọn hơn.</span>
+              <span className="text-vxn-saffron-500">Nhanh hơn, gọn hơn.</span>
             </h1>
             <p className="mt-3 max-w-[580px] text-base font-normal leading-7 text-white/[0.92] drop-shadow-[0_2px_12px_rgba(0,40,60,.40)] sm:text-lg">
               5,400+ chuyến mỗi ngày · 218 nhà xe đối tác · Tích điểm sau mỗi chuyến đi
@@ -595,7 +593,7 @@ const NewHomePage = () => {
 
           <div
             ref={searchCardRef}
-            className="mt-8 lg:absolute lg:bottom-[-96px] lg:left-1/2 lg:right-auto lg:mt-0 lg:w-[calc(100%-7rem)] lg:max-w-[1040px] lg:-translate-x-1/2"
+            className="mt-8 lg:absolute lg:bottom-6 lg:left-1/2 lg:right-auto lg:mt-0 lg:w-[calc(100%-7rem)] lg:max-w-[1040px] lg:-translate-x-1/2"
           >
             <SearchOverlayCard
               form={form}
@@ -608,8 +606,6 @@ const NewHomePage = () => {
           </div>
         </div>
       </section>
-
-      <div className="hidden h-[128px] bg-white lg:block" />
 
       <section className="bg-white px-4 pb-12 pt-8 lg:px-14 lg:pt-6">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

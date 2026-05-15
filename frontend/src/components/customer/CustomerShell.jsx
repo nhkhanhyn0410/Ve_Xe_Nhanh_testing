@@ -17,17 +17,17 @@ import logoText from '../../assets/brand/Logo_text.svg';
 import useAuthStore from '../../store/authStore';
 
 const sidebarNav = [
-  { key: 'explore', label: 'Khám phá', icon: GlobalOutlined, path: '/' },
+  { key: 'explore', label: 'Khám phá', icon: GlobalOutlined, path: '/kham-pha' },
   { key: 'buy', label: 'Mua vé', icon: FileTextOutlined, path: '/' },
-  { key: 'addons', label: 'Dịch vụ bổ trợ', icon: PlusSquareOutlined, path: '/loyalty' },
+  { key: 'addons', label: 'Dịch vụ bổ trợ', icon: PlusSquareOutlined, path: '/dich-vu-bo-tro' },
   { key: 'trips', label: 'Hành trình', icon: EnvironmentOutlined, path: '/trips' },
   { key: 'member', label: 'Thành viên', icon: StarOutlined, path: '/loyalty' },
 ];
 
 const sidebarSupport = [
-  { key: 'lookup', label: 'Tra cứu vé', icon: QrcodeOutlined, path: '/tickets/lookup' },
-  { key: 'complaints', label: 'Khiếu nại', icon: QuestionCircleOutlined, path: '/complaints' },
-  { key: 'news', label: 'Tin tức', icon: FileTextOutlined, path: '/news' },
+  { key: 'lookup', label: 'Tra cứu vé', icon: QrcodeOutlined, path: '/tra-cuu-ve' },
+  { key: 'complaints', label: 'Khiếu nại', icon: QuestionCircleOutlined, path: '/khieu-nai' },
+  { key: 'news', label: 'Tin tức', icon: FileTextOutlined, path: '/tin-tuc' },
 ];
 
 const getInitials = (user) => {
@@ -43,20 +43,29 @@ const getInitials = (user) => {
 
 const resolveActiveKey = (pathname, activeKey) => {
   if (activeKey) return activeKey;
-  if (pathname.startsWith('/tickets')) return 'lookup';
-  if (pathname.startsWith('/news')) return 'news';
-  if (pathname.startsWith('/complaints')) return 'complaints';
+  if (pathname.startsWith('/tickets') || pathname.startsWith('/tra-cuu-ve')) return 'lookup';
+  if (pathname.startsWith('/news') || pathname.startsWith('/tin-tuc')) return 'news';
+  if (pathname.startsWith('/complaints') || pathname.startsWith('/khieu-nai')) return 'complaints';
+  if (pathname.startsWith('/dich-vu-bo-tro')) return 'addons';
+  if (pathname.startsWith('/kham-pha') || pathname.startsWith('/explore')) return 'explore';
+  if (pathname === '/trips' || pathname.startsWith('/my-tickets') || pathname.startsWith('/hanh-trinh')) return 'trips';
   if (
     pathname.startsWith('/profile') ||
     pathname.startsWith('/settings') ||
     pathname.startsWith('/loyalty') ||
     pathname.startsWith('/my-reviews') ||
-    pathname.startsWith('/my-tickets')
+    pathname.startsWith('/thanh-vien')
   ) {
     return 'member';
   }
-  if (pathname.startsWith('/trips')) return 'trips';
-  if (pathname.startsWith('/search-results') || pathname.startsWith('/booking') || pathname.startsWith('/payment')) return 'buy';
+  if (
+    pathname.startsWith('/trips') ||
+    pathname.startsWith('/search-results') ||
+    pathname.startsWith('/mua-ve') ||
+    pathname.startsWith('/booking') ||
+    pathname.startsWith('/payment')
+  )
+    return 'buy';
   return pathname === '/' ? 'buy' : 'explore';
 };
 
@@ -79,7 +88,7 @@ export const CustomerSidebarContent = ({ activeKey, signedIn, user, onLogout, on
           onClick={() => goTo('/')}
           aria-label="Về trang chủ Vé Xe Nhanh"
         >
-          <img src={logoText} alt="Vé Xe Nhanh" className="h-9 w-auto max-w-[138px]" />
+          <img src={logoText} alt="Vé Xe Nhanh" className="h-auto w-auto max-w-[138px]" />
         </button>
 
         <div className="px-4">
@@ -96,7 +105,9 @@ export const CustomerSidebarContent = ({ activeKey, signedIn, user, onLogout, on
                 key={item.key}
                 type="button"
                 className={`flex h-[42px] items-center gap-3 rounded-lg border-0 px-3.5 text-left text-[15px] transition ${
-                  active ? 'bg-white/[0.13] font-medium text-white' : 'bg-transparent font-normal text-white/[0.86] hover:bg-white/10 hover:text-white'
+                  active
+                    ? 'bg-white/[0.13] font-medium text-white'
+                    : 'bg-transparent font-normal text-white/[0.86] hover:bg-white/10 hover:text-white'
                 }`}
                 onClick={() => goTo(item.path)}
               >
@@ -122,7 +133,9 @@ export const CustomerSidebarContent = ({ activeKey, signedIn, user, onLogout, on
                 key={item.key}
                 type="button"
                 className={`flex h-10 items-center gap-3 rounded-lg border-0 px-3 text-left text-[14px] font-normal transition ${
-                  active ? 'bg-white/[0.10] text-white' : 'bg-transparent text-white/[0.78] hover:bg-white/10 hover:text-white'
+                  active
+                    ? 'bg-white/[0.10] text-white'
+                    : 'bg-transparent text-white/[0.78] hover:bg-white/10 hover:text-white'
                 }`}
                 onClick={() => goTo(item.path)}
               >
@@ -185,7 +198,9 @@ export const CustomerSidebarContent = ({ activeKey, signedIn, user, onLogout, on
         <div className="flex items-center justify-between px-1 pt-2 text-xs text-white/[0.60]">
           <span>v.2026 · vexenhanh.vn</span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white">
-            <span className="grid h-[11px] w-4 place-items-center rounded-[1px] bg-[#DA251D] text-[8px] text-[#FFCD00]">★</span>
+            <span className="grid h-[11px] w-4 place-items-center rounded-[1px] bg-[#DA251D] text-[8px] text-[#FFCD00]">
+              ★
+            </span>
             VI
           </span>
         </div>
@@ -201,7 +216,12 @@ export const CustomerMobileTopBar = ({ activeKey, signedIn, user, onLogout }) =>
   return (
     <>
       <div className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-white/10 bg-vxn-teal-700 px-4 text-white lg:hidden">
-        <button type="button" className="border-0 bg-transparent p-0" onClick={() => navigate('/')} aria-label="Trang chủ">
+        <button
+          type="button"
+          className="border-0 bg-transparent p-0"
+          onClick={() => navigate('/')}
+          aria-label="Trang chủ"
+        >
           <img src={logoText} alt="Vé Xe Nhanh" className="h-8 w-auto max-w-[132px]" />
         </button>
         <button
@@ -243,7 +263,12 @@ export const CustomerMobileTopBar = ({ activeKey, signedIn, user, onLogout }) =>
   );
 };
 
-const CustomerShell = ({ children, activeKey, className = '', mainClassName = 'bg-vxn-bg-soft' }) => {
+const CustomerShell = ({
+  children,
+  activeKey,
+  className = '',
+  mainClassName = 'bg-vxn-bg-soft',
+}) => {
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
 
@@ -256,10 +281,20 @@ const CustomerShell = ({ children, activeKey, className = '', mainClassName = 'b
   return (
     <div className={`min-h-screen bg-vxn-bg-soft font-sans text-vxn-fg-1 lg:flex ${className}`}>
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 self-start lg:flex">
-        <CustomerSidebarContent activeKey={activeKey} signedIn={isAuthenticated} user={user} onLogout={handleLogout} />
+        <CustomerSidebarContent
+          activeKey={activeKey}
+          signedIn={isAuthenticated}
+          user={user}
+          onLogout={handleLogout}
+        />
       </aside>
 
-      <CustomerMobileTopBar activeKey={activeKey} signedIn={isAuthenticated} user={user} onLogout={handleLogout} />
+      <CustomerMobileTopBar
+        activeKey={activeKey}
+        signedIn={isAuthenticated}
+        user={user}
+        onLogout={handleLogout}
+      />
 
       <main className={`min-w-0 flex-1 ${mainClassName}`}>{children}</main>
     </div>

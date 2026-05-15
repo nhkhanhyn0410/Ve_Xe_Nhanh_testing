@@ -44,6 +44,8 @@ const passengerOptions = Array.from({ length: 6 }, (_, index) => ({
   label: `${index + 1} người lớn`,
 }));
 
+const { RangePicker } = DatePicker;
+
 const timeSlots = [
   { key: 'early', label: '00:00 — 06:00', start: 0, end: 6 },
   { key: 'morning', label: '06:00 — 12:00', start: 6, end: 12 },
@@ -59,6 +61,49 @@ const amenityOptions = [
 ];
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
+
+const getDateRangeLabel = ({ fromDate, toDate }) => {
+  if (!fromDate && !toDate) return '';
+
+  if (fromDate && toDate) {
+    const from = dayjs(fromDate);
+    const to = dayjs(toDate);
+
+    if (from.isSame(to, 'day')) {
+      return from.format('DD/MM/YYYY');
+    }
+
+    return `${from.format('DD/MM/YYYY')} - ${to.format('DD/MM/YYYY')}`;
+  }
+
+  if (fromDate) return `Từ ${dayjs(fromDate).format('DD/MM/YYYY')}`;
+  return `Đến ${dayjs(toDate).format('DD/MM/YYYY')}`;
+};
+
+const getRouteLabel = ({ fromCity, toCity }) => {
+  if (fromCity && toCity) return `${fromCity} → ${toCity}`;
+  if (fromCity) return `từ ${fromCity}`;
+  if (toCity) return `đến ${toCity}`;
+  return 'đang mở bán';
+};
+
+const matchesCity = (value, keyword) => {
+  if (!keyword) return true;
+  return String(value || '').toLowerCase().includes(String(keyword).trim().toLowerCase());
+};
+
+const isInDateRange = (departureTime, fromDate, toDate) => {
+  if (!fromDate && !toDate) return true;
+  if (!departureTime) return false;
+
+  const departure = dayjs(departureTime);
+  const start = fromDate ? dayjs(fromDate).startOf('day') : null;
+  const end = toDate ? dayjs(toDate).endOf('day') : null;
+
+  if (start && departure.isBefore(start)) return false;
+  if (end && departure.isAfter(end)) return false;
+  return true;
+};
 
 const formatDuration = (departureTime, arrivalTime) => {
   if (!departureTime || !arrivalTime) return 'Đang cập nhật';
@@ -139,18 +184,19 @@ const CompactField = ({ icon: Icon, label, children, last = false }) => (
   </div>
 );
 
-const SearchSummaryBar = ({ form, initialValues, loading, onSearch, onSwap }) => (
-  <div className="border-b border-vxn-border bg-white px-4 py-5 lg:px-8">
+const SearchSummaryBar = ({ form, initialValues, loading, onSearch, onSwap, browseMode }) => (
+  <div className="sticky top-16 z-30 border-b border-vxn-border bg-white px-4 py-5 shadow-sm lg:top-0 lg:px-8">
     <Form form={form} initialValues={initialValues} onFinish={onSearch}>
       <div className="flex flex-col gap-3 xl:flex-row xl:items-stretch">
-        <div className="grid flex-1 overflow-hidden rounded-xl border border-vxn-border bg-white lg:grid-cols-[1fr_44px_1fr_1fr_1fr]">
+        <div className="grid flex-1 overflow-hidden rounded-xl border border-vxn-border bg-white lg:grid-cols-[1fr_44px_1fr_1.35fr_0.9fr]">
           <CompactField icon={EnvironmentOutlined} label="Điểm đi">
-            <Form.Item name="fromCity" rules={[{ required: true, message: 'Vui lòng nhập điểm đi!' }]} style={{ marginBottom: 0 }}>
+            <Form.Item name="fromCity" style={{ marginBottom: 0 }}>
               <AutoComplete
                 options={cityOptions.map((city) => ({ value: city }))}
                 filterOption={(inputValue, option) => option.value.toLowerCase().includes(inputValue.toLowerCase())}
-                placeholder="Hà Nội"
+                placeholder="Tất cả điểm đi"
                 className="vxn-compact-input"
+                allowClear
               />
             </Form.Item>
           </CompactField>
@@ -167,24 +213,26 @@ const SearchSummaryBar = ({ form, initialValues, loading, onSearch, onSwap }) =>
           </div>
 
           <CompactField icon={EnvironmentOutlined} label="Điểm đến">
-            <Form.Item name="toCity" rules={[{ required: true, message: 'Vui lòng nhập điểm đến!' }]} style={{ marginBottom: 0 }}>
+            <Form.Item name="toCity" style={{ marginBottom: 0 }}>
               <AutoComplete
                 options={cityOptions.map((city) => ({ value: city }))}
                 filterOption={(inputValue, option) => option.value.toLowerCase().includes(inputValue.toLowerCase())}
-                placeholder="Sapa"
+                placeholder="Tất cả điểm đến"
                 className="vxn-compact-input"
+                allowClear
               />
             </Form.Item>
           </CompactField>
 
-          <CompactField icon={CalendarOutlined} label="Ngày đi">
-            <Form.Item name="date" rules={[{ required: true, message: 'Vui lòng chọn ngày!' }]} style={{ marginBottom: 0 }}>
-              <DatePicker
+          <CompactField icon={CalendarOutlined} label="Khoảng ngày">
+            <Form.Item name="dateRange" style={{ marginBottom: 0 }}>
+              <RangePicker
                 format="DD/MM/YYYY"
                 disabledDate={(current) => current && current < dayjs().startOf('day')}
-                allowClear={false}
+                allowClear
                 suffixIcon={null}
                 className="w-full"
+                placeholder={['Từ ngày', 'Đến ngày']}
               />
             </Form.Item>
           </CompactField>
@@ -203,7 +251,7 @@ const SearchSummaryBar = ({ form, initialValues, loading, onSearch, onSwap }) =>
           icon={<SearchOutlined />}
           className="h-[74px] rounded-md border-0 bg-vxn-teal-700 px-8 text-base font-semibold hover:!bg-vxn-teal-800 xl:min-w-[132px]"
         >
-          Tìm lại
+          {browseMode ? 'Lọc chuyến' : 'Tìm lại'}
         </Button>
       </div>
     </Form>
@@ -348,8 +396,8 @@ const SortRow = ({ total, criteria, sortBy, onSortChange }) => (
   <div className="flex flex-col gap-3 rounded-xl border border-vxn-border bg-white px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
     <div className="text-sm font-medium text-vxn-ink">
       <strong className="text-vxn-teal-700">{total} chuyến</strong>{' '}
-      {criteria.fromCity && criteria.toCity ? `${criteria.fromCity} → ${criteria.toCity}` : 'đang mở bán'}
-      {criteria.date ? ` · ${dayjs(criteria.date).format('DD/MM/YYYY')}` : ''}
+      {getRouteLabel(criteria)}
+      {getDateRangeLabel(criteria) ? ` · ${getDateRangeLabel(criteria)}` : ''}
     </div>
     <div className="flex flex-wrap gap-1 rounded-lg bg-vxn-bg-soft p-1">
       {[
@@ -501,10 +549,18 @@ const TripsPage = () => {
   const location = useLocation();
   const { searchCriteria, setSelectedTrip, setSearchCriteria } = useBookingStore();
   const [form] = Form.useForm();
+  const isSearchResultsPage = location.pathname === '/search-results';
 
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [activeCriteria, setActiveCriteria] = useState({
+    fromCity: '',
+    toCity: '',
+    fromDate: null,
+    toDate: null,
+    passengers: 1,
+  });
   const [priceRange, setPriceRange] = useState([0, 1000000]);
   const [maxPrice, setMaxPrice] = useState(1000000);
   const [sortBy, setSortBy] = useState('time');
@@ -516,17 +572,34 @@ const TripsPage = () => {
   const params = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const operatorIdFromUrl = params.get('operatorId');
 
-  const initialValues = useMemo(() => ({
-    fromCity: searchCriteria.fromCity || 'Hà Nội',
-    toCity: searchCriteria.toCity || 'Sapa',
-    date: searchCriteria.date ? dayjs(searchCriteria.date) : dayjs(),
-    passengers: searchCriteria.passengers || 2,
-  }), [searchCriteria]);
+  const initialValues = useMemo(() => {
+    if (!isSearchResultsPage) {
+      return {
+        fromCity: undefined,
+        toCity: undefined,
+        dateRange: undefined,
+        passengers: 1,
+      };
+    }
+
+    const fromDate = searchCriteria.fromDate || searchCriteria.date || null;
+    const toDate = searchCriteria.toDate || searchCriteria.date || null;
+
+    return {
+      fromCity: searchCriteria.fromCity || undefined,
+      toCity: searchCriteria.toCity || undefined,
+      dateRange: fromDate && toDate ? [dayjs(fromDate), dayjs(toDate)] : undefined,
+      passengers: searchCriteria.passengers || 1,
+    };
+  }, [isSearchResultsPage, searchCriteria]);
 
   const fetchTrips = async (criteria = {}) => {
     try {
       setLoading(true);
-      const response = await searchTrips(criteria);
+      const query = Object.fromEntries(
+        Object.entries(criteria).filter(([, value]) => value !== undefined && value !== null && value !== '')
+      );
+      const response = await searchTrips(query);
       const nextTrips = response.status === 'success' ? (response.data?.trips || []).map(normalizeTrip) : [];
 
       setTrips(nextTrips);
@@ -535,6 +608,9 @@ const TripsPage = () => {
         const nextMaxPrice = Math.ceil(Math.max(...nextTrips.map((trip) => trip.finalPrice), 1000000) / 10000) * 10000;
         setMaxPrice(nextMaxPrice);
         setPriceRange([0, nextMaxPrice]);
+      } else {
+        setMaxPrice(1000000);
+        setPriceRange([0, 1000000]);
       }
     } catch (error) {
       setTrips([]);
@@ -545,15 +621,40 @@ const TripsPage = () => {
   };
 
   useEffect(() => {
-    const criteria = operatorIdFromUrl
-      ? { passengers: searchCriteria.passengers || 1, operatorId: operatorIdFromUrl }
-      : searchCriteria.fromCity && searchCriteria.toCity && searchCriteria.date
-        ? searchCriteria
-        : { passengers: 1 };
+    const fromDate = isSearchResultsPage
+      ? searchCriteria.fromDate || searchCriteria.date || null
+      : null;
+    const toDate = isSearchResultsPage
+      ? searchCriteria.toDate || searchCriteria.date || null
+      : null;
+    const nextCriteria = isSearchResultsPage
+      ? {
+          fromCity: searchCriteria.fromCity || '',
+          toCity: searchCriteria.toCity || '',
+          fromDate,
+          toDate,
+          passengers: searchCriteria.passengers || 1,
+        }
+      : {
+          fromCity: '',
+          toCity: '',
+          fromDate: null,
+          toDate: null,
+          passengers: 1,
+        };
+    const apiCriteria = {
+      passengers: nextCriteria.passengers,
+      operatorId: operatorIdFromUrl,
+    };
 
+    if (isSearchResultsPage && fromDate && toDate && dayjs(fromDate).isSame(dayjs(toDate), 'day')) {
+      apiCriteria.date = fromDate;
+    }
+
+    setActiveCriteria(nextCriteria);
     form.setFieldsValue(initialValues);
-    fetchTrips(criteria);
-  }, [location.pathname, location.search]);
+    fetchTrips(apiCriteria);
+  }, [form, initialValues, isSearchResultsPage, location.search, operatorIdFromUrl, searchCriteria]);
 
   const busTypes = useMemo(() => Array.from(new Set(trips.map((trip) => trip.busType).filter(Boolean))), [trips]);
 
@@ -574,6 +675,9 @@ const TripsPage = () => {
     const selectedSlot = timeSlots.find((slot) => slot.key === timeSlot);
 
     return trips
+      .filter((trip) => matchesCity(trip.fromCity, activeCriteria.fromCity))
+      .filter((trip) => matchesCity(trip.toCity, activeCriteria.toCity))
+      .filter((trip) => isInDateRange(trip.departureTime, activeCriteria.fromDate, activeCriteria.toDate))
       .filter((trip) => trip.finalPrice >= priceRange[0] && trip.finalPrice <= priceRange[1])
       .filter((trip) => !selectedSlot || (dayjs(trip.departureTime).hour() >= selectedSlot.start && dayjs(trip.departureTime).hour() < selectedSlot.end))
       .filter((trip) => selectedBusTypes.length === 0 || selectedBusTypes.includes(trip.busType))
@@ -585,27 +689,43 @@ const TripsPage = () => {
         if (sortBy === 'seats') return b.availableSeats - a.availableSeats;
         return new Date(a.departureTime) - new Date(b.departureTime);
       });
-  }, [trips, priceRange, timeSlot, selectedBusTypes, selectedOperators, selectedAmenities, sortBy]);
+  }, [trips, activeCriteria, priceRange, timeSlot, selectedBusTypes, selectedOperators, selectedAmenities, sortBy]);
 
   const handleSearch = async (values) => {
     try {
       setSearchLoading(true);
+      const [rangeStart, rangeEnd] = values.dateRange || [];
+      const fromDate = rangeStart ? dayjs(rangeStart).format('YYYY-MM-DD') : null;
+      const toDate = rangeEnd ? dayjs(rangeEnd).format('YYYY-MM-DD') : null;
       const nextCriteria = {
-        fromCity: values.fromCity,
-        toCity: values.toCity,
-        date: values.date ? dayjs(values.date).format('YYYY-MM-DD') : null,
+        fromCity: values.fromCity || '',
+        toCity: values.toCity || '',
+        fromDate,
+        toDate,
+        date: fromDate && toDate && fromDate === toDate ? fromDate : null,
         passengers: values.passengers || 1,
       };
+      const apiCriteria = {
+        passengers: nextCriteria.passengers,
+        operatorId: operatorIdFromUrl,
+      };
 
-      setSearchCriteria(nextCriteria);
+      if (nextCriteria.date) {
+        apiCriteria.date = nextCriteria.date;
+      }
+
+      if (isSearchResultsPage) {
+        setSearchCriteria(nextCriteria);
+      }
+      setActiveCriteria(nextCriteria);
       setTimeSlot('');
       setSelectedBusTypes([]);
       setSelectedOperators([]);
       setSelectedAmenities([]);
       setSortBy('time');
-      await fetchTrips(nextCriteria);
+      await fetchTrips(apiCriteria);
 
-      if (location.pathname !== '/search-results') {
+      if (isSearchResultsPage && location.pathname !== '/search-results') {
         navigate('/search-results');
       }
     } catch (error) {
@@ -625,11 +745,31 @@ const TripsPage = () => {
   };
 
   const resetFilters = () => {
+    const nextCriteria = {
+      fromCity: '',
+      toCity: '',
+      fromDate: null,
+      toDate: null,
+      date: null,
+      passengers: activeCriteria.passengers || 1,
+    };
+
+    form.setFieldsValue({
+      fromCity: undefined,
+      toCity: undefined,
+      dateRange: undefined,
+      passengers: nextCriteria.passengers,
+    });
+    setActiveCriteria(nextCriteria);
+    if (isSearchResultsPage) {
+      setSearchCriteria(nextCriteria);
+    }
     setPriceRange([0, maxPrice]);
     setTimeSlot('');
     setSelectedBusTypes([]);
     setSelectedOperators([]);
     setSelectedAmenities([]);
+    fetchTrips({ passengers: nextCriteria.passengers, operatorId: operatorIdFromUrl });
   };
 
   const handleTripSelect = (trip) => {
@@ -638,13 +778,14 @@ const TripsPage = () => {
   };
 
   return (
-    <CustomerShell activeKey="buy" mainClassName="bg-vxn-bg-soft">
+    <CustomerShell activeKey={isSearchResultsPage ? 'buy' : 'trips'} mainClassName="bg-vxn-bg-soft">
       <SearchSummaryBar
         form={form}
         initialValues={initialValues}
         loading={searchLoading}
         onSearch={handleSearch}
         onSwap={handleSwapCities}
+        browseMode={!isSearchResultsPage}
       />
 
       <div className="grid lg:grid-cols-[280px_1fr]">
@@ -667,7 +808,7 @@ const TripsPage = () => {
 
         <section className="min-w-0 px-4 py-6 lg:px-8">
           <div className="mx-auto flex max-w-[1180px] flex-col gap-4">
-            <SortRow total={filteredTrips.length} criteria={searchCriteria} sortBy={sortBy} onSortChange={setSortBy} />
+            <SortRow total={filteredTrips.length} criteria={activeCriteria} sortBy={sortBy} onSortChange={setSortBy} />
 
             {loading ? (
               <div className="grid min-h-[360px] place-items-center rounded-xl border border-vxn-border bg-white">

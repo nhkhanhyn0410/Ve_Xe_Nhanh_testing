@@ -47,6 +47,7 @@ Nguồn tham chiếu chính:
 - [x] Dùng icon library hiện có thay vì nhúng global SVG từ prototype khi phù hợp - dùng Ant Design Icons trong header, footer và home.
 - [~] Bảo đảm header/footer không che nội dung ở mobile - đã dùng responsive classes và drawer, cần kiểm tra trực quan trên Chrome/mobile viewport.
 - [x] Bảo đảm các trang customer vẫn giữ route hiện có - giữ `/`, `/trips`, `/search-results`, `/tickets/lookup`, auth/user routes; `npm run build` thành công.
+- [~] Tách sidebar customer theo route mới: `/kham-pha` cho Khám phá, `/` và `/mua-ve` cho Mua vé, `/dich-vu-bo-tro` cho Dịch vụ bổ trợ, `/my-tickets` cho Hành trình; build chưa xác nhận được do lỗi Node/WSL 1 trong môi trường hiện tại.
 - [~] Kiểm chứng trạng thái đăng nhập/đăng xuất và user menu - logic `authStore`/logout được giữ, cần click test với session thật.
 
 ## 3. Trang chủ và tìm kiếm
@@ -54,7 +55,8 @@ Nguồn tham chiếu chính:
 - [x] Fetch bundle từ Claude Design URL, đọc `README.md`, `chats/chat1.md`, `project/Vé Xe Nhanh.html` và các imports chính trước khi implement.
 - [x] Nâng cấp `NewHomePage.jsx` theo prototype `HomeScreen` - đã đổi sang page frame có sidebar trái, hero top utility, search card nổi và các section đúng cấu trúc prototype.
 - [x] Dùng hero image thật từ prototype thay cho nền gradient/orb - dùng `frontend/src/assets/brand/hero-landscape.jpg` cho hero và route card nổi bật.
-- [x] Tăng chiều cao và hạ vị trí hero trang chủ để ảnh/search card thoáng hơn - `NewHomePage.jsx` dùng `lg:h-[820px]`, `lg:pt-36`, search card `lg:bottom-[-96px]`; `docker compose up -d --build frontend` build thành công.
+- [x] Cố định hero theo chiều cao viewport để search card không bị cắt trên màn hình thấp - `NewHomePage.jsx` dùng `lg:h-[100svh]`, search card `lg:bottom-6` nằm trong hero và không lấn section Tuyến phổ biến; `docker compose up -d --build frontend` build thành công.
+- [x] Bỏ tự động nhập sẵn điểm đi/điểm đến trong search card - `initialValues` không còn set `fromCity/toCity`; chỉ giữ placeholder và validation bắt buộc.
 - [x] Port search overlay card: điểm đi, điểm đến, ngày đi, đổi chiều, số khách, submit - giữ Ant Design Form/AutoComplete/DatePicker/Select nhưng style lại theo field shell của prototype.
 - [x] Giữ logic `setSearchCriteria` và navigate `/search-results` - submit map về `{ fromCity, toCity, date, passengers }`, giới hạn khách theo rule hiện có.
 - [x] Thêm tuyến phổ biến, lý do chọn VXN, nhà xe đối tác theo UI mới - thêm layout route card lớn/nhỏ, value props, operators và promo/blog strip.
@@ -64,13 +66,13 @@ Nguồn tham chiếu chính:
 
 ## 4. Danh sách chuyến
 
-- [ ] Nâng cấp `TripsPage.jsx` theo prototype `SearchResultsScreen`.
+- [~] Nâng cấp `TripsPage.jsx` theo prototype `SearchResultsScreen` - đã tách `/trips` thành trang bộ lọc tổng hiển thị toàn bộ chuyến tương lai, chưa hoàn tất visual full prototype.
 - [ ] Giữ API `searchTrips`, filter, sort, pagination hiện có.
-- [ ] Tách trip normalization ra helper để tránh lặp và dễ test.
+- [~] Tách trip normalization ra helper để tránh lặp và dễ test - hiện vẫn là helper nội bộ trong `TripsPage.jsx`, chưa tách file riêng.
 - [ ] Port trip result card: timeline, operator, rating, amenities, seat left, price, CTA.
-- [ ] Thiết kế lại filter panel: khoảng giá, loại xe, nhà xe, giờ đi, tiện ích.
+- [~] Thiết kế lại filter panel: khoảng giá, loại xe, nhà xe, giờ đi, tiện ích - thêm bộ lọc tổng điểm đi/điểm đến/khoảng ngày và sticky heading ở `TripsPage.jsx`.
 - [ ] Hiển thị loading/empty/error theo style VXN.
-- [ ] Không làm mất route `/trips` và `/search-results`.
+- [~] Không làm mất route `/trips` và `/search-results` - `/trips` browse all, `/search-results` vẫn đọc search từ booking store; build chưa xác nhận được do lỗi Node/WSL 1.
 - [ ] Kiểm tra chọn chuyến dẫn đúng `/trips/:tripId`.
 
 ## 5. Chi tiết chuyến và chọn ghế
@@ -121,6 +123,8 @@ Nguồn tham chiếu chính:
 
 ## 9. Content và auth customer
 
+- [~] Tạo skeleton `ExplorePage.jsx` cho `/kham-pha` với TODO cho tin tức, chuyến phổ biến, nhà xe nổi bật và chương trình; chưa có thiết kế/data contract chính thức.
+- [~] Tạo skeleton `AddonsPage.jsx` cho `/dich-vu-bo-tro` để sidebar không trỏ nhầm sang Thành viên; chưa kích hoạt mua add-on ngoài booking flow.
 - [ ] Nâng cấp `NewsPage.jsx` theo prototype blog list/detail/FAQ.
 - [ ] Nếu chưa có route FAQ/blog-detail, tạo route rõ ràng hoặc giữ trong NewsPage theo scope.
 - [ ] Nâng cấp `CustomerLoginPage.jsx` theo prototype `LoginScreen`.
@@ -139,7 +143,7 @@ Nguồn tham chiếu chính:
 
 ## 11. Kiểm thử và chất lượng
 
-- [ ] Chạy `npm run build` trong `frontend/`.
+- [~] Chạy `npm run build` trong `frontend/` - bị chặn bởi môi trường: WSL báo `WSL 1 is not supported. Please upgrade to WSL 2 or above. Could not determine Node.js install directory`; thử qua `cmd.exe` cũng lỗi WSL socket.
 - [ ] Chạy `npm run lint` trong `frontend/` nếu dependency đã cài.
 - [ ] Chạy test frontend nếu có test liên quan.
 - [ ] Chạy e2e smoke cho customer booking flow nếu môi trường sẵn sàng.

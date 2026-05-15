@@ -27,6 +27,8 @@ import OperatorReviewsPage from './pages/OperatorReviewsPage';
 
 // Customer Pages
 import NewHomePage from './pages/NewHomePage';
+import ExplorePage from './pages/ExplorePage';
+import AddonsPage from './pages/AddonsPage';
 import NewsPage from './pages/NewsPage';
 import TripsPage from './pages/TripsPage';
 import TripDetailPage from './pages/TripDetailPage';
@@ -117,8 +119,14 @@ function App() {
 
         {/* Customer Booking Flow */}
         <Route path="/" element={<NewHomePage />} />
+        <Route path="/mua-ve" element={<NewHomePage />} />
+        <Route path="/kham-pha" element={<ExplorePage />} />
+        <Route path="/explore" element={<Navigate to="/kham-pha" replace />} />
+        <Route path="/dich-vu-bo-tro" element={<AddonsPage />} />
         <Route path="/news" element={<NewsPage />} />
+        <Route path="/tin-tuc" element={<NewsPage />} />
         <Route path="/trips" element={<TripsPage />} />
+        <Route path="/hanh-trinh" element={<Navigate to="/trips" replace />} />
         <Route path="/search-results" element={<TripsPage />} />
         <Route path="/trips/:tripId" element={<TripDetailPage />} />
         <Route path="/booking/seats/:tripId" element={<SeatSelectionPage />} />
@@ -129,6 +137,7 @@ function App() {
         {/* Customer Ticket Management */}
         <Route path="/my-tickets" element={<MyTicketsPage />} />
         <Route path="/tickets/lookup" element={<GuestTicketLookupPage />} />
+        <Route path="/tra-cuu-ve" element={<GuestTicketLookupPage />} />
         <Route path="/tickets/cancel" element={<CancelTicketPage />} />
 
         {/* Customer Profile */}
@@ -140,6 +149,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/thanh-vien" element={<Navigate to="/loyalty" replace />} />
         <Route
           path="/settings"
           element={
@@ -168,6 +178,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/khieu-nai" element={<Navigate to="/complaints" replace />} />
         <Route
           path="/complaints/:id"
           element={
