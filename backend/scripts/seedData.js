@@ -37,6 +37,8 @@ const {
 } = require('../src/utils/seatLayout');
 
 // Helper: date offset from today
+const SEED_TRIP_START_OFFSET_DAYS = 3;
+
 const daysFromNow = (days, hours = 0) => {
   const now = new Date();
   const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -448,7 +450,7 @@ const seedData = async () => {
           {
             name: 'Trạm Bảo Lộc',
             address: 'QL20, TP. Bảo Lộc, Lâm Đồng',
-            coordinates: { lat: 11.5480, lng: 107.8065 },
+            coordinates: { lat: 11.548, lng: 107.8065 },
             order: 2,
             estimatedArrivalMinutes: 240,
             stopDuration: 20,
@@ -456,7 +458,7 @@ const seedData = async () => {
           {
             name: 'Ngã ba Liên Khương',
             address: 'Ngã ba Liên Khương, Đức Trọng, Lâm Đồng',
-            coordinates: { lat: 11.7500, lng: 108.3670 },
+            coordinates: { lat: 11.75, lng: 108.367 },
             order: 3,
             estimatedArrivalMinutes: 330,
             stopDuration: 10,
@@ -483,13 +485,13 @@ const seedData = async () => {
           province: 'Bà Rịa - Vũng Tàu',
           station: 'Bến xe Vũng Tàu',
           address: '192 Nam Kỳ Khởi Nghĩa, P.9, TP. Vũng Tàu',
-          coordinates: { lat: 10.3460, lng: 107.0844 },
+          coordinates: { lat: 10.346, lng: 107.0844 },
         },
         stops: [
           {
             name: 'Trạm dừng Long Thành',
             address: 'QL51, Long Thành, Đồng Nai',
-            coordinates: { lat: 10.7300, lng: 106.9500 },
+            coordinates: { lat: 10.73, lng: 106.95 },
             order: 1,
             estimatedArrivalMinutes: 45,
             stopDuration: 10,
@@ -497,7 +499,7 @@ const seedData = async () => {
           {
             name: 'Ngã tư Bà Rịa',
             address: 'Ngã tư Bà Rịa, TP. Bà Rịa',
-            coordinates: { lat: 10.5050, lng: 107.1700 },
+            coordinates: { lat: 10.505, lng: 107.17 },
             order: 2,
             estimatedArrivalMinutes: 90,
             stopDuration: 10,
@@ -538,7 +540,7 @@ const seedData = async () => {
           {
             name: 'Phan Rang',
             address: 'QL1A, TP. Phan Rang, Ninh Thuận',
-            coordinates: { lat: 11.5657, lng: 108.9890 },
+            coordinates: { lat: 11.5657, lng: 108.989 },
             order: 2,
             estimatedArrivalMinutes: 300,
             stopDuration: 20,
@@ -554,7 +556,7 @@ const seedData = async () => {
           {
             name: 'Ngã ba Đại Lãnh',
             address: 'Đại Lãnh, Cam Lâm, Khánh Hòa',
-            coordinates: { lat: 12.0500, lng: 109.1800 },
+            coordinates: { lat: 12.05, lng: 109.18 },
             order: 4,
             estimatedArrivalMinutes: 420,
             stopDuration: 10,
@@ -652,7 +654,7 @@ const seedData = async () => {
           {
             name: 'Trạm nghỉ Hàm Thuận Nam',
             address: 'QL1A, Hàm Thuận Nam, Bình Thuận',
-            coordinates: { lat: 10.8000, lng: 107.7000 },
+            coordinates: { lat: 10.8, lng: 107.7 },
             order: 1,
             estimatedArrivalMinutes: 120,
             stopDuration: 15,
@@ -672,9 +674,15 @@ const seedData = async () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Helper for trip dates
-    const tripTime = (dayOffset, hour) => new Date(today.getTime() + dayOffset * 24 * 60 * 60 * 1000 + hour * 60 * 60 * 1000);
+    // Keep seeded trips safely in the future so Trip validation passes on every run.
+    const tripTime = (dayOffset, hour) => {
+      const date = new Date(today);
 
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() + SEED_TRIP_START_OFFSET_DAYS + dayOffset);
+
+      return new Date(date.getTime() + hour * 60 * 60 * 1000);
+    };
     const trips = await Trip.create([
       // ===== TODAY =====
       // Trip 1: HCM → Đà Lạt - Hôm nay 6:00 (ongoing)
@@ -1115,9 +1123,7 @@ const seedData = async () => {
       customerId: users[1]._id,
       tripId: trips[0]._id,
       operatorId: operators[0]._id,
-      seats: [
-        { seatNumber: 'A1', price: 250000, passengerName: 'Nguyễn Văn An' },
-      ],
+      seats: [{ seatNumber: 'A1', price: 250000, passengerName: 'Nguyễn Văn An' }],
       contactInfo: {
         name: 'Nguyễn Văn An',
         phone: '0912345678',
@@ -1153,9 +1159,7 @@ const seedData = async () => {
       qrCode: Buffer.from(qrData1).toString('base64'),
       qrCodeData: crypto.createHash('sha256').update(qrData1).digest('hex'),
       totalPrice: 250000,
-      passengers: [
-        { seatNumber: 'A1', fullName: 'Nguyễn Văn An' },
-      ],
+      passengers: [{ seatNumber: 'A1', fullName: 'Nguyễn Văn An' }],
       tripInfo: {
         routeName: 'TP. Hồ Chí Minh - Đà Lạt',
         departureTime: tripTime(0, 6),
@@ -1238,9 +1242,7 @@ const seedData = async () => {
       bookingCode: 'BK000003',
       tripId: trips[4]._id,
       operatorId: operators[1]._id,
-      seats: [
-        { seatNumber: 'C1', price: 350000, passengerName: 'Lê Văn Guest' },
-      ],
+      seats: [{ seatNumber: 'C1', price: 350000, passengerName: 'Lê Văn Guest' }],
       contactInfo: {
         name: 'Lê Văn Guest',
         phone: '0912345678',
@@ -1274,9 +1276,7 @@ const seedData = async () => {
       qrCode: Buffer.from(qrData3).toString('base64'),
       qrCodeData: crypto.createHash('sha256').update(qrData3).digest('hex'),
       totalPrice: 350000,
-      passengers: [
-        { seatNumber: 'C1', fullName: 'Lê Văn Guest' },
-      ],
+      passengers: [{ seatNumber: 'C1', fullName: 'Lê Văn Guest' }],
       tripInfo: {
         routeName: 'TP. Hồ Chí Minh - Nha Trang',
         departureTime: tripTime(1, 6),
@@ -1299,7 +1299,8 @@ const seedData = async () => {
     const complaints = await createWithHooks(Complaint, [
       {
         subject: 'Xe khởi hành trễ 30 phút',
-        description: 'Chuyến HCM - Đà Lạt ngày hôm nay khởi hành trễ 30 phút so với lịch, không có thông báo trước.',
+        description:
+          'Chuyến HCM - Đà Lạt ngày hôm nay khởi hành trễ 30 phút so với lịch, không có thông báo trước.',
         category: 'service',
         priority: 'medium',
         status: 'open',
@@ -1312,7 +1313,8 @@ const seedData = async () => {
       },
       {
         subject: 'Thanh toán VNPay bị trừ tiền nhưng không nhận vé',
-        description: 'Tôi đã thanh toán qua VNPay cho chuyến HCM - Vũng Tàu, tiền đã bị trừ nhưng hệ thống báo lỗi và không cấp vé.',
+        description:
+          'Tôi đã thanh toán qua VNPay cho chuyến HCM - Vũng Tàu, tiền đã bị trừ nhưng hệ thống báo lỗi và không cấp vé.',
         category: 'payment',
         priority: 'high',
         status: 'in_progress',
@@ -1335,7 +1337,8 @@ const seedData = async () => {
       },
       {
         subject: 'Tài xế lái xe không an toàn',
-        description: 'Tài xế chuyến HCM - Nha Trang lái xe quá tốc độ, vượt ẩu nhiều lần. Hành khách rất lo sợ.',
+        description:
+          'Tài xế chuyến HCM - Nha Trang lái xe quá tốc độ, vượt ẩu nhiều lần. Hành khách rất lo sợ.',
         category: 'driver',
         priority: 'urgent',
         status: 'open',
@@ -1346,7 +1349,8 @@ const seedData = async () => {
       },
       {
         subject: 'Ghế bị hỏng không ngồi được',
-        description: 'Ghế A3 trên chuyến HCM - Phan Thiết bị hỏng, không thể ngả lưng. Phải đổi ghế khác.',
+        description:
+          'Ghế A3 trên chuyến HCM - Phan Thiết bị hỏng, không thể ngả lưng. Phải đổi ghế khác.',
         category: 'vehicle',
         priority: 'low',
         status: 'resolved',
@@ -1369,14 +1373,18 @@ const seedData = async () => {
     logger.info(`Users: ${users.length} (1 admin + ${users.length - 1} customers)`);
     logger.info(`Bus Operators: ${operators.length}`);
     console.log(`Employees: ${employees.length}`);
-    console.log(`   - Drivers: ${employees.filter(e => e.role === 'driver').length}`);
-    console.log(`   - Trip Managers: ${employees.filter(e => e.role === 'trip_manager').length}`);
+    console.log(`   - Drivers: ${employees.filter((e) => e.role === 'driver').length}`);
+    console.log(`   - Trip Managers: ${employees.filter((e) => e.role === 'trip_manager').length}`);
     console.log(`Buses: ${buses.length}`);
-    console.log(`Routes: ${routes.length} (${routes.reduce((sum, r) => sum + r.stops.length, 0)} stops total)`);
+    console.log(
+      `Routes: ${routes.length} (${routes.reduce((sum, r) => sum + r.stops.length, 0)} stops total)`
+    );
     console.log(`Trips: ${trips.length}`);
-    console.log(`   - Ongoing: ${trips.filter(t => t.status === 'ongoing').length}`);
-    console.log(`   - Scheduled: ${trips.filter(t => t.status === 'scheduled').length}`);
-    console.log(`   - Future trips (>1 day): ${trips.filter(t => t.departureTime > tripTime(1, 0)).length}`);
+    console.log(`   - Ongoing: ${trips.filter((t) => t.status === 'ongoing').length}`);
+    console.log(`   - Scheduled: ${trips.filter((t) => t.status === 'scheduled').length}`);
+    console.log(
+      `   - Future trips (>1 day): ${trips.filter((t) => t.departureTime > tripTime(1, 0)).length}`
+    );
     console.log(`Vouchers: ${vouchers.length}`);
     console.log(`Bookings: 3 (2 confirmed + 1 pending guest)`);
     console.log(`Tickets: 3`);
@@ -1398,7 +1406,6 @@ const seedData = async () => {
     console.log('Voucher Codes: WELCOME50, PHUONGTRANG10, GOLD20, VUNGTAU30K, EXPIRED2025\n');
     console.log('Booking Codes: BK000001, BK000002, BK000003\n');
     console.log('Guest Ticket Lookup: phone 0912345678, demo OTP: 123456\n');
-
   } catch (error) {
     console.error('Error seeding database:', error);
     console.error(error.stack);

@@ -134,7 +134,7 @@ const UtilityPills = () => (
 
 const SearchFieldShell = ({ icon: Icon, label, hint, children, last = false }) => (
   <div
-    className={`flex min-h-[88px] flex-col justify-center gap-1 bg-white px-5 py-3 ${
+    className={`flex min-h-[92px] flex-col justify-center gap-1 bg-white px-5 py-3 lg:min-h-[112px] ${
       last ? '' : 'border-b border-vxn-border lg:border-b-0 lg:border-r'
     }`}
   >
@@ -148,8 +148,8 @@ const SearchFieldShell = ({ icon: Icon, label, hint, children, last = false }) =
 );
 
 const SearchOverlayCard = ({ form, initialValues, loading, onSearch, onSwap, onTabAction }) => (
-  <div className="vxn-home-search rounded-2xl border border-white/60 bg-white/[0.98] p-2 shadow-[0_30px_60px_-20px_rgba(0,40,60,0.40)] backdrop-blur">
-    <div className="flex border-b border-vxn-border">
+  <div className="vxn-home-search flex flex-col rounded-2xl border border-white/60 bg-white/[0.98] p-2 shadow-[0_30px_60px_-20px_rgba(0,40,60,0.40)] backdrop-blur lg:min-h-[312px]">
+    <div className="flex border-b border-vxn-border lg:min-h-[58px]">
       {[
         { key: 'buy', label: 'Mua vé', icon: FileTextOutlined },
         { key: 'lookup', label: 'Tra cứu vé', icon: QrcodeOutlined },
@@ -162,7 +162,7 @@ const SearchOverlayCard = ({ form, initialValues, loading, onSearch, onSwap, onT
           <button
             key={item.key}
             type="button"
-            className={`mb-[-1px] inline-flex items-center gap-2 border-0 border-b-2 bg-transparent px-4 py-3 text-[14px] transition sm:px-6 ${
+            className={`mb-[-1px] inline-flex items-center gap-2 border-0 border-b-2 bg-transparent px-4 py-3 text-[14px] transition sm:px-6 lg:px-7 ${
               active
                 ? 'border-vxn-teal-700 font-semibold text-vxn-teal-800'
                 : 'border-transparent font-medium text-vxn-fg-3 hover:text-vxn-teal-800'
@@ -180,7 +180,7 @@ const SearchOverlayCard = ({ form, initialValues, loading, onSearch, onSwap, onT
       form={form}
       initialValues={initialValues}
       onFinish={onSearch}
-      className="p-4 sm:p-5 lg:p-6"
+      className="flex flex-1 flex-col p-4 sm:p-5 lg:p-7"
     >
       <div className="grid overflow-hidden rounded-xl border border-vxn-border bg-white lg:grid-cols-[1fr_56px_1fr_1fr_1fr]">
         <SearchFieldShell icon={EnvironmentOutlined} label="Điểm đi">
@@ -198,7 +198,7 @@ const SearchOverlayCard = ({ form, initialValues, loading, onSearch, onSwap, onT
           </Form.Item>
         </SearchFieldShell>
 
-        <div className="grid min-h-[56px] place-items-center border-b border-vxn-border bg-white lg:min-h-0 lg:border-b-0 lg:border-r">
+        <div className="grid min-h-[56px] place-items-center border-b border-vxn-border bg-white lg:min-h-[112px] lg:border-b-0 lg:border-r">
           <button
             type="button"
             className="grid h-[38px] w-[38px] place-items-center rounded-full border border-vxn-border bg-white text-vxn-fg-2 transition hover:border-vxn-teal-600 hover:text-vxn-teal-800"
@@ -242,7 +242,7 @@ const SearchOverlayCard = ({ form, initialValues, loading, onSearch, onSwap, onT
         </SearchFieldShell>
       </div>
 
-      <div className="mt-[18px] flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mt-[18px] flex flex-col gap-4 lg:mt-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFE9C4] px-3 py-1.5 text-xs font-medium text-vxn-saffron-700">
             <GiftOutlined />
@@ -577,16 +577,16 @@ const NewHomePage = () => {
         />
         <UtilityPills />
 
-        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pb-8 pt-14 sm:px-6 lg:h-[620px] lg:px-14 lg:pb-0 lg:pt-20">
+        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-4 pb-14 pt-20 sm:px-6 lg:h-[820px] lg:px-14 lg:pb-0 lg:pt-36">
           <div className="max-w-[780px] text-white">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-vxn-saffron-600/95 px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.08em] text-white">
+            <div className="mb-3 mt-20 inline-flex items-center gap-2 rounded-full bg-vxn-teal-600/95 px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.08em] text-white">
               <TagsOutlined className="text-[13px]" />
               Ưu đãi hè · Giảm đến 35% tuyến miền Bắc
             </div>
             <h1 className="m-0 text-[42px] font-bold leading-[1.05] tracking-normal text-white drop-shadow-[0_4px_24px_rgba(0,40,60,.40)] sm:text-[56px]">
               Đi Việt Nam.
               <br />
-              <span className="text-vxn-saffron-500">Nhanh hơn, gọn hơn.</span>
+              <span className="text-vxn-teal-500">Nhanh hơn, gọn hơn.</span>
             </h1>
             <p className="mt-3 max-w-[580px] text-base font-normal leading-7 text-white/[0.92] drop-shadow-[0_2px_12px_rgba(0,40,60,.40)] sm:text-lg">
               5,400+ chuyến mỗi ngày · 218 nhà xe đối tác · Tích điểm sau mỗi chuyến đi
@@ -595,7 +595,7 @@ const NewHomePage = () => {
 
           <div
             ref={searchCardRef}
-            className="mt-8 lg:absolute lg:bottom-[-64px] lg:left-1/2 lg:right-auto lg:mt-0 lg:w-[calc(100%-7rem)] lg:max-w-[1040px] lg:-translate-x-1/2"
+            className="mt-8 lg:absolute lg:bottom-[-96px] lg:left-1/2 lg:right-auto lg:mt-0 lg:w-[calc(100%-7rem)] lg:max-w-[1040px] lg:-translate-x-1/2"
           >
             <SearchOverlayCard
               form={form}
@@ -609,7 +609,7 @@ const NewHomePage = () => {
         </div>
       </section>
 
-      <div className="hidden h-[92px] bg-white lg:block" />
+      <div className="hidden h-[128px] bg-white lg:block" />
 
       <section className="bg-white px-4 pb-12 pt-8 lg:px-14 lg:pt-6">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

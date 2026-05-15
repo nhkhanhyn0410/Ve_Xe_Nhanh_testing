@@ -30,6 +30,8 @@ import NewHomePage from './pages/NewHomePage';
 import NewsPage from './pages/NewsPage';
 import TripsPage from './pages/TripsPage';
 import TripDetailPage from './pages/TripDetailPage';
+import SeatSelectionPage from './pages/SeatSelectionPage';
+import OperatorPage from './pages/OperatorPage';
 import PassengerInfoPage from './pages/PassengerInfoPage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
 import ProfilePage from './pages/customer/ProfilePage';
@@ -119,6 +121,8 @@ function App() {
         <Route path="/trips" element={<TripsPage />} />
         <Route path="/search-results" element={<TripsPage />} />
         <Route path="/trips/:tripId" element={<TripDetailPage />} />
+        <Route path="/booking/seats/:tripId" element={<SeatSelectionPage />} />
+        <Route path="/operators/:operatorId" element={<OperatorPage />} />
         <Route path="/booking/passenger-info" element={<PassengerInfoPage />} />
         <Route path="/booking/confirmation/:bookingCode" element={<BookingConfirmationPage />} />
 

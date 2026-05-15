@@ -4,9 +4,7 @@ import { AutoComplete, Button, DatePicker, Empty, Form, Select, Slider, Spin } f
 import {
   ArrowRightOutlined,
   CalendarOutlined,
-  CarOutlined,
   CheckOutlined,
-  ClockCircleOutlined,
   EnvironmentOutlined,
   FilterOutlined,
   SearchOutlined,
@@ -286,7 +284,7 @@ const FiltersSidebar = ({
             <button
               key={slot.key}
               type="button"
-              className={`rounded-lg border px-3 py-2 text-left transition ${timeSlot === slot.key ? 'border-vxn-teal-700 bg-vxn-info-bg text-vxn-teal-900' : 'border-vxn-border bg-white text-vxn-fg-2 hover:border-vxn-teal-300'}`}
+              className={`rounded-lg border px-3 py-2 text-left transition ${timeSlot === slot.key ? 'border-vxn-teal-700 bg-[#D4E3FF] text-vxn-teal-900' : 'border-vxn-border bg-white text-vxn-fg-2 hover:border-vxn-teal-300'}`}
               onClick={() => onTimeSlotChange(timeSlot === slot.key ? '' : slot.key)}
             >
               <span className="block text-[12px] font-medium">{slot.label}</span>
@@ -332,7 +330,7 @@ const FiltersSidebar = ({
               <button
                 key={item.key}
                 type="button"
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${active ? 'border-vxn-teal-700 bg-vxn-info-bg text-vxn-teal-900' : 'border-vxn-border bg-white text-vxn-fg-2 hover:border-vxn-teal-300'}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition ${active ? 'border-vxn-teal-700 bg-[#D4E3FF] text-vxn-teal-900' : 'border-vxn-border bg-white text-vxn-fg-2 hover:border-vxn-teal-300'}`}
                 onClick={() => onToggleAmenity(item.key)}
               >
                 <Icon className="text-[12px]" />

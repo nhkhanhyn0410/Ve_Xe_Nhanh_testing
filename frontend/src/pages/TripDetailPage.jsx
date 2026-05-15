@@ -1,481 +1,428 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Button, Empty, Spin } from 'antd';
 import {
-  Card,
-  Row,
-  Col,
-  Button,
-  Typography,
-  Space,
-  Tag,
-  Divider,
-  Spin,
-  Descriptions,
-  message,
-} from 'antd';
-import {
-  ClockCircleOutlined,
-  EnvironmentOutlined,
   ArrowLeftOutlined,
+  ArrowRightOutlined,
+  CalendarOutlined,
   CarOutlined,
-  PhoneOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
   MailOutlined,
-  StarOutlined,
+  PhoneOutlined,
+  SafetyCertificateOutlined,
+  StarFilled,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
-import { getTripDetails, getAvailableSeats } from '../services/bookingApi';
-import useBookingStore from '../store/bookingStore';
-import SeatMapComponent from '../components/SeatMapComponent';
+import CustomerShell from '../components/customer/CustomerShell';
 import ReviewsSection from '../components/ReviewsSection';
-import { getAmenityIcon } from '../utils/constants';
-import CustomerLayout from '../components/layouts/CustomerLayout';
+import { getTripDetails } from '../services/bookingApi';
+import useBookingStore from '../store/bookingStore';
 
-const { Title, Text } = Typography;
+const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
+
+const formatDateTime = (value) => (value ? dayjs(value).format('HH:mm · DD/MM/YYYY') : 'Đang cập nhật');
+
+const formatDuration = (departureTime, arrivalTime) => {
+  if (!departureTime || !arrivalTime) return 'Đang cập nhật';
+
+  const diff = dayjs(arrivalTime).diff(dayjs(departureTime), 'minute');
+  const hours = Math.floor(diff / 60);
+  const minutes = diff % 60;
+
+  return `${hours}h ${minutes}m`;
+};
+
+const getInitials = (name = 'NX') =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+
+const getAmenityLabel = (amenity = '') => {
+  const value = amenity.toLowerCase();
+  if (value.includes('wifi')) return 'WiFi';
+  if (value.includes('air') || value.includes('ac') || value.includes('máy lạnh')) return 'Máy lạnh';
+  if (value.includes('charger') || value.includes('usb') || value.includes('sạc')) return 'Sạc USB';
+  if (value.includes('water') || value.includes('nước')) return 'Nước uống';
+  if (value.includes('blanket') || value.includes('chăn')) return 'Chăn ấm';
+  return amenity;
+};
+
+const normalizeTrip = (trip) => {
+  const route = trip.route || trip.routeId || {};
+  const bus = trip.bus || trip.busId || {};
+  const operator = trip.operator || trip.operatorId || {};
+  const pricing = trip.pricing || {};
+  const seats = trip.seats || {};
+  const fromCity = route.origin?.city || route.origin?.province || 'Điểm đi';
+  const toCity = route.destination?.city || route.destination?.province || 'Điểm đến';
+  const finalPrice = pricing.finalPrice || trip.finalPrice || pricing.basePrice || trip.basePrice || 0;
+  const basePrice = pricing.basePrice || trip.basePrice || finalPrice;
+
+  return {
+    raw: trip,
+    id: trip.id || trip._id,
+    departureTime: trip.departureTime,
+    arrivalTime: trip.arrivalTime,
+    route: {
+      ...route,
+      fromCity,
+      toCity,
+      fromAddress: route.origin?.address || route.origin?.station || fromCity,
+      toAddress: route.destination?.address || route.destination?.station || toCity,
+      name: route.name || route.routeName || `${fromCity} → ${toCity}`,
+      code: route.code || route.routeCode,
+      pickupPoints: route.pickupPoints || [],
+      dropoffPoints: route.dropoffPoints || [],
+    },
+    bus: {
+      ...bus,
+      amenities: bus.amenities || [],
+    },
+    operator: {
+      ...operator,
+      id: operator.id || operator._id,
+      companyName: operator.companyName || 'Nhà xe',
+      ratingAverage: operator.rating?.average || operator.averageRating || 0,
+      ratingTotal: operator.rating?.total || operator.totalReviews || 0,
+    },
+    duration: typeof trip.duration === 'string'
+      ? trip.duration
+      : trip.duration?.formatted || formatDuration(trip.departureTime, trip.arrivalTime),
+    pricing: {
+      basePrice,
+      finalPrice,
+      discount: pricing.discount || trip.discount || 0,
+    },
+    seats: {
+      total: seats.total || trip.totalSeats || 0,
+      available: seats.available ?? trip.availableSeats ?? 0,
+      bookedSeatNumbers: seats.bookedSeatNumbers || [],
+      heldSeatNumbers: seats.heldSeatNumbers || [],
+      occupancyRate: seats.occupancyRate || 0,
+    },
+    policies: trip.policies,
+    cancellationPolicy: trip.cancellationPolicy,
+    notes: trip.notes,
+  };
+};
+
+const InfoCard = ({ children, className = '' }) => (
+  <section className={`rounded-[16px] border border-vxn-border bg-white p-5 shadow-sm ${className}`}>
+    {children}
+  </section>
+);
+
+const SectionTitle = ({ eyebrow, title, children }) => (
+  <div className="mb-4 flex flex-col gap-1">
+    {eyebrow && <span className="text-xs font-semibold uppercase tracking-[0.08em] text-vxn-teal-700">{eyebrow}</span>}
+    <h2 className="m-0 text-xl font-bold tracking-[-0.01em] text-vxn-ink">{title}</h2>
+    {children && <p className="m-0 text-sm leading-6 text-vxn-fg-3">{children}</p>}
+  </div>
+);
+
+const TimelinePoint = ({ type, time, city, address }) => (
+  <div className="grid grid-cols-[86px_20px_1fr] gap-4">
+    <div>
+      <div className="text-xl font-bold text-vxn-ink">{time ? dayjs(time).format('HH:mm') : '--:--'}</div>
+      <div className="text-xs text-vxn-fg-5">{time ? dayjs(time).format('DD/MM') : '--/--'}</div>
+    </div>
+    <div className="relative flex justify-center">
+      <span className={`relative z-10 mt-1 h-3.5 w-3.5 rounded-full ${type === 'start' ? 'bg-vxn-teal-700' : 'bg-vxn-saffron-600'}`} />
+      {type === 'start' && <span className="absolute top-4 h-full w-px bg-vxn-border-strong" />}
+    </div>
+    <div className="pb-6">
+      <div className="font-semibold text-vxn-ink">{city}</div>
+      <div className="mt-1 text-sm leading-6 text-vxn-fg-3">{address}</div>
+    </div>
+  </div>
+);
 
 const TripDetailPage = () => {
   const { tripId } = useParams();
   const navigate = useNavigate();
-  const {
-    selectedTrip,
-    setSelectedTrip,
-    selectedSeats,
-    setPickupPoint,
-    setDropoffPoint,
-    clearSeats,
-  } = useBookingStore();
+  const { setSelectedTrip } = useBookingStore();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [trip, setTrip] = useState(null);
-  const [availableSeats, setAvailableSeats] = useState([]);
-  const [selectedPickup, setSelectedPickup] = useState(null);
-  const [selectedDropoff, setSelectedDropoff] = useState(null);
 
-  // Clear selected seats when entering a new trip page
   useEffect(() => {
-    clearSeats();
-    fetchTripDetails();
-    fetchAvailableSeats();
+    let active = true;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const detailResponse = await getTripDetails(tripId);
+        if (!active) return;
+
+        if (detailResponse.status === 'success' && detailResponse.data?.trip) {
+          const nextTrip = detailResponse.data.trip;
+          setTrip(nextTrip);
+          setSelectedTrip(nextTrip);
+        } else {
+          toast.error('Không tìm thấy thông tin chuyến xe');
+          navigate('/trips');
+        }
+      } catch (error) {
+        toast.error(typeof error === 'string' ? error : 'Có lỗi xảy ra khi tải chuyến xe');
+        navigate('/trips');
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    fetchData();
+
+    return () => {
+      active = false;
+    };
   }, [tripId]);
 
-  const fetchTripDetails = async () => {
-    try {
-      setLoading(true);
-      const response = await getTripDetails(tripId);
-
-      console.log('Trip detail response:', response);
-
-      if (response.status === 'success' && response.data?.trip) {
-        const tripData = response.data.trip;
-        setTrip(tripData);
-        setSelectedTrip(tripData);
-
-        console.log('TripDetailPage - Set selected trip:', {
-          tripId: tripData._id,
-          hasId: !!tripData._id,
-          trip: tripData,
-        });
-      } else {
-        toast.error('Không tìm thấy thông tin chuyến xe');
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('Fetch trip details error:', error);
-      toast.error(error || 'Có lỗi xảy ra');
-      navigate('/');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAvailableSeats = async () => {
-    try {
-      const response = await getAvailableSeats(tripId);
-      console.log('Available seats response:', response);
-
-      if (response.status === 'success' && response.data) {
-        setAvailableSeats(response.data.availableSeats || response.data.available || []);
-      }
-    } catch (error) {
-      console.error('Fetch available seats error:', error);
-    }
-  };
+  const view = useMemo(() => (trip ? normalizeTrip(trip) : null), [trip]);
 
   const handleContinue = () => {
-    if (selectedSeats.length === 0) {
-      message.warning('Vui lòng chọn ghế');
-      return;
-    }
-
-    if (!selectedPickup) {
-      message.warning('Vui lòng chọn điểm đón');
-      return;
-    }
-
-    if (!selectedDropoff) {
-      message.warning('Vui lòng chọn điểm trả');
-      return;
-    }
-
-    // Store pickup/dropoff points
-    setPickupPoint(selectedPickup);
-    setDropoffPoint(selectedDropoff);
-
-    // Debug logging
-    console.log('TripDetailPage - Before navigate to passenger info:', {
-      selectedTrip,
-      selectedSeats,
-      selectedPickup,
-      selectedDropoff,
-      hasTripId: !!selectedTrip?._id,
-      seatsCount: selectedSeats?.length || 0,
-    });
-
-    // Navigate to passenger info
-    navigate('/booking/passenger-info');
+    setSelectedTrip(trip);
+    navigate(`/booking/seats/${tripId}`);
   };
 
-  const formatTime = (dateString) => {
-    return dayjs(dateString).format('HH:mm, DD/MM/YYYY');
-  };
-
-  const formatPrice = (price) => {
-    if (!price || isNaN(price)) return '0đ';
-    return price.toLocaleString('vi-VN') + 'đ';
-  };
-
-  const getSeatPrice = () => {
-    // Try multiple price fields in order of preference
-    return trip?.pricing?.finalPrice || trip?.finalPrice || trip?.pricing?.basePrice || 0;
-  };
-
-  const calculateTotalPrice = () => {
-    if (!trip || selectedSeats.length === 0) return 0;
-    const price = getSeatPrice();
-    return price * selectedSeats.length;
-  };
-
-  if (loading || !trip) {
+  if (loading) {
     return (
-      <CustomerLayout>
-        <div className="flex flex-col justify-center items-center min-h-screen bg-neutral-50">
-          <Spin size="large" />
-          <div className="mt-4 text-center">
-            <Text className="text-neutral-600 text-lg">Đang tải thông tin chuyến xe...</Text>
+      <CustomerShell activeKey="buy" mainClassName="bg-vxn-bg-soft">
+        <div className="grid min-h-screen place-items-center">
+          <div className="text-center">
+            <Spin size="large" />
+            <div className="mt-4 text-sm font-medium text-vxn-fg-3">Đang tải thông tin chuyến xe...</div>
           </div>
         </div>
-      </CustomerLayout>
+      </CustomerShell>
+    );
+  }
+
+  if (!view) {
+    return (
+      <CustomerShell activeKey="buy" mainClassName="bg-vxn-bg-soft">
+        <div className="grid min-h-screen place-items-center px-4">
+          <Empty description="Không tìm thấy chuyến xe" />
+        </div>
+      </CustomerShell>
     );
   }
 
   return (
-    <CustomerLayout>
-      <div className="min-h-screen bg-neutral-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-neutral-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate('/trips')}
-            className="h-10 px-4 rounded-lg border border-neutral-300 hover:border-primary-400 hover:text-primary-600 transition-colors"
-          >
+    <CustomerShell activeKey="buy" mainClassName="bg-vxn-bg-soft">
+      <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-vxn-fg-3">
+            <button type="button" className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800" onClick={() => navigate('/')}>
+              Trang chủ
+            </button>
+            <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
+            <button type="button" className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800" onClick={() => navigate('/trips')}>
+              Tìm chuyến
+            </button>
+            <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
+            <span>{view.route.fromCity} → {view.route.toCity}</span>
+          </div>
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
             Quay lại
           </Button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <Row gutter={[24, 24]}>
-          {/* Trip Information */}
-          <Col xs={24} lg={16}>
-            {/* Operator Info */}
-            <Card className="mb-6 rounded-xl border border-neutral-200 shadow-md">
-              <div className="flex justify-between items-start">
-                <div>
-                  <Title level={3} className="text-neutral-800 mb-3">{trip.operator?.companyName}</Title>
-                  {trip.operator?.rating && (
-                    <div className="flex items-center gap-3">
-                      <Tag className="px-3 py-1 rounded-lg border-0 bg-warning-50 text-warning-700 font-medium">
-                        <StarOutlined className="mr-1" /> {trip.operator.rating.average?.toFixed(1)}
-                      </Tag>
-                      <Text className="text-neutral-500 font-medium">
-                        ({trip.operator.rating.total} đánh giá)
-                      </Text>
-                    </div>
-                  )}
-                </div>
-                <Space direction="vertical" className="text-right" size="small">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg">
-                    <PhoneOutlined className="text-blue-600" />
-                    <Text className="text-blue-700 font-medium">{trip.operator?.phone}</Text>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg">
-                    <MailOutlined className="text-green-600" />
-                    <Text className="text-green-700 font-medium">{trip.operator?.email}</Text>
-                  </div>
-                </Space>
-              </div>
-            </Card>
-
-            {/* Route & Schedule Info */}
-            <Card 
-              title={<span className="text-neutral-800 font-semibold">Thông tin lộ trình</span>} 
-              className="mb-6 rounded-xl border border-neutral-200 shadow-md"
-            >
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 bg-neutral-50 rounded-lg">
-                  <Text className="text-neutral-600 font-medium">Tuyến đường</Text>
-                  <Text strong className="text-neutral-800">{trip.route?.name} ({trip.route?.code})</Text>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <EnvironmentOutlined className="text-primary-600" />
-                      <Text className="text-primary-700 font-semibold">Điểm đi</Text>
-                    </div>
-                    <Text strong className="text-neutral-800 block">{trip.route?.origin?.city}</Text>
-                    <Text className="text-neutral-600 text-sm">{trip.route?.origin?.address}</Text>
-                  </div>
-                  
-                  <div className="p-4 bg-accent-orange-50 rounded-lg border border-accent-orange-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <EnvironmentOutlined className="text-accent-orange-600" />
-                      <Text className="text-accent-orange-700 font-semibold">Điểm đến</Text>
-                    </div>
-                    <Text strong className="text-neutral-800 block">{trip.route?.destination?.city}</Text>
-                    <Text className="text-neutral-600 text-sm">{trip.route?.destination?.address}</Text>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ClockCircleOutlined className="text-blue-600" />
-                      <Text className="text-blue-700 font-medium">Khởi hành</Text>
-                    </div>
-                    <Text strong className="text-neutral-800">{formatTime(trip.departureTime)}</Text>
-                  </div>
-                  
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <ClockCircleOutlined className="text-green-600" />
-                      <Text className="text-green-700 font-medium">Đến nơi</Text>
-                    </div>
-                    <Text strong className="text-neutral-800">{formatTime(trip.arrivalTime)}</Text>
-                  </div>
-                  
-                  <div className="p-4 bg-accent-purple-50 rounded-lg">
-                    <Text className="text-accent-purple-700 font-medium block mb-2">Thời gian & Khoảng cách</Text>
-                    <Text strong className="text-neutral-800 block">{trip.duration?.formatted || 'N/A'}</Text>
-                    <Text className="text-neutral-600 text-sm">{trip.route?.distance} km</Text>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Bus Info */}
-            <Card 
-              title={
-                <div className="flex items-center gap-2">
-                  <CarOutlined className="text-primary-600" />
-                  <span className="text-neutral-800 font-semibold">Thông tin xe</span>
-                </div>
-              } 
-              className="mb-6 rounded-xl border border-neutral-200 shadow-md"
-            >
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <Text className="text-blue-700 font-medium block mb-2">Biển số xe</Text>
-                    <Text strong className="text-neutral-800 text-lg">{trip.bus?.busNumber}</Text>
-                  </div>
-                  
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <Text className="text-green-700 font-medium block mb-2">Loại xe</Text>
-                    <Text strong className="text-neutral-800 text-lg">{trip.bus?.busType}</Text>
-                  </div>
-                </div>
-                
-                <div className="p-4 bg-accent-orange-50 rounded-lg">
-                  <Text className="text-accent-orange-700 font-medium block mb-2">Thông tin ghế</Text>
-                  <Text strong className="text-neutral-800">
-                    {trip.seats?.total} ghế ({trip.seats?.available} ghế trống)
-                  </Text>
-                </div>
-                
-                <div className="p-4 bg-accent-purple-50 rounded-lg">
-                  <Text className="text-accent-purple-700 font-medium block mb-3">Tiện nghi</Text>
-                  <div className="flex flex-wrap gap-2">
-                    {trip.bus?.amenities?.map(amenity => (
-                      <Tag 
-                        key={amenity} 
-                        className="px-3 py-1 rounded-lg border-0 bg-white text-neutral-700 font-medium shadow-sm"
-                      >
-                        {getAmenityIcon(amenity)} {amenity}
-                      </Tag>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Pickup Points */}
-            <Card 
-              title={<span className="text-neutral-800 font-semibold">Điểm đón</span>} 
-              className="mb-6 rounded-xl border border-neutral-200 shadow-md"
-            >
-              <div className="space-y-3">
-                {trip.route?.pickupPoints?.map((point, index) => (
-                  <div
-                    key={index}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
-                      selectedPickup?.name === point.name 
-                        ? 'border-primary-500 bg-primary-50 shadow-md' 
-                        : 'border-neutral-200 bg-white hover:border-primary-300 hover:bg-primary-25'
-                    }`}
-                    onClick={() => setSelectedPickup(point)}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <Text strong className="text-neutral-800 block mb-1">{point.name}</Text>
-                        <Text className="text-sm text-neutral-600">{point.address}</Text>
+      <div className="px-4 py-6 lg:px-8 lg:py-8">
+        <div className="mx-auto grid max-w-[1280px] gap-6 xl:grid-cols-[1fr_380px]">
+          <div className="min-w-0 space-y-5">
+            <section className="overflow-hidden rounded-[20px] border border-vxn-border bg-white shadow-sm">
+              <div className="relative min-h-[260px] bg-[linear-gradient(135deg,#07364C_0%,#006481_55%,#E89B26_140%)] p-6 text-white lg:p-8">
+                <div className="pointer-events-none absolute right-[-80px] top-[-120px] h-80 w-80 rounded-full bg-white/10" />
+                <div className="pointer-events-none absolute bottom-[-120px] right-[120px] h-72 w-72 rounded-full bg-vxn-saffron-500/25" />
+                <div className="relative z-10 flex min-h-[210px] flex-col justify-between gap-8">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-white/85">
+                        <CalendarOutlined /> {formatDateTime(view.departureTime)}
                       </div>
-                      <div className="text-right">
-                        <div className="px-3 py-1 bg-blue-100 rounded-lg">
-                          <Text className="text-blue-700 font-semibold">
-                            {dayjs(trip.departureTime).format('HH:mm')}
-                          </Text>
-                        </div>
-                      </div>
+                      <h1 className="m-0 max-w-2xl text-3xl font-bold tracking-[-0.03em] lg:text-4xl">
+                        {view.route.fromCity} → {view.route.toCity}
+                      </h1>
+                      <p className="mt-3 max-w-xl text-sm leading-6 text-white/78">
+                        {view.route.name}{view.route.code ? ` · ${view.route.code}` : ''} · {view.bus.busType || 'Xe khách'} · {view.duration}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-white/12 px-4 py-3 text-right backdrop-blur">
+                      <div className="text-xs uppercase tracking-[0.08em] text-white/70">Giá từ</div>
+                      <div className="mt-1 text-3xl font-bold text-vxn-saffron-500">{formatCurrency(view.pricing.finalPrice)}</div>
+                      <div className="text-xs text-white/70">/ vé · đã gồm thuế</div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </Card>
 
-            {/* Dropoff Points */}
-            <Card 
-              title={<span className="text-neutral-800 font-semibold">Điểm trả</span>} 
-              className="mb-6 rounded-xl border border-neutral-200 shadow-md"
-            >
-              <div className="space-y-3">
-                {trip.route?.dropoffPoints?.map((point, index) => (
-                  <div
-                    key={index}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
-                      selectedDropoff?.name === point.name 
-                        ? 'border-accent-orange-500 bg-accent-orange-50 shadow-md' 
-                        : 'border-neutral-200 bg-white hover:border-accent-orange-300 hover:bg-accent-orange-25'
-                    }`}
-                    onClick={() => setSelectedDropoff(point)}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <Text strong className="text-neutral-800 block mb-1">{point.name}</Text>
-                        <Text className="text-sm text-neutral-600">{point.address}</Text>
-                      </div>
-                      <div className="text-right">
-                        <div className="px-3 py-1 bg-accent-orange-100 rounded-lg">
-                          <Text className="text-accent-orange-700 font-semibold">
-                            {dayjs(trip.arrivalTime).format('HH:mm')}
-                          </Text>
-                        </div>
-                      </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl bg-white/12 p-4 backdrop-blur">
+                      <ClockCircleOutlined className="mb-2 text-lg text-vxn-saffron-500" />
+                      <div className="text-xs text-white/70">Thời lượng</div>
+                      <div className="font-semibold">{view.duration}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/12 p-4 backdrop-blur">
+                      <CarOutlined className="mb-2 text-lg text-vxn-saffron-500" />
+                      <div className="text-xs text-white/70">Dòng xe</div>
+                      <div className="font-semibold">{view.bus.busType || 'Đang cập nhật'}</div>
+                    </div>
+                    <div className="rounded-xl bg-white/12 p-4 backdrop-blur">
+                      <SafetyCertificateOutlined className="mb-2 text-lg text-vxn-saffron-500" />
+                      <div className="text-xs text-white/70">Ghế trống</div>
+                      <div className="font-semibold">{view.seats.available}/{view.seats.total} chỗ</div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </Card>
-
-            {/* Reviews Section */}
-            <ReviewsSection tripId={tripId} />
-
-            {/* Policies */}
-            {trip.policies && (
-              <Card 
-                title={<span className="text-neutral-800 font-semibold">Chính sách</span>} 
-                className="mb-6 rounded-xl border border-neutral-200 shadow-md"
-              >
-                <div className="p-4 bg-neutral-50 rounded-lg">
-                  <div className="whitespace-pre-line text-neutral-700 leading-relaxed">{trip.policies}</div>
                 </div>
-              </Card>
+              </div>
+            </section>
+
+            <InfoCard>
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="grid h-16 w-16 place-items-center rounded-2xl bg-vxn-teal-700 text-xl font-bold text-white">
+                    {getInitials(view.operator.companyName)}
+                  </span>
+                  <div>
+                    <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-vxn-teal-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-vxn-teal-800">
+                      <CheckCircleOutlined /> Nhà xe đối tác
+                    </div>
+                    <h2 className="m-0 text-xl font-bold text-vxn-ink">{view.operator.companyName}</h2>
+                    <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-vxn-fg-3">
+                      <span className="inline-flex items-center gap-1.5">
+                        <StarFilled className="text-vxn-saffron-600" />
+                        <strong className="text-vxn-ink">{Number(view.operator.ratingAverage || 0).toFixed(1)}</strong>
+                        ({Number(view.operator.ratingTotal || 0).toLocaleString('vi-VN')} đánh giá)
+                      </span>
+                      {view.operator.phone && <span className="inline-flex items-center gap-1.5"><PhoneOutlined /> {view.operator.phone}</span>}
+                      {view.operator.email && <span className="inline-flex items-center gap-1.5"><MailOutlined /> {view.operator.email}</span>}
+                    </div>
+                  </div>
+                </div>
+                {view.operator.id && (
+                  <Button onClick={() => navigate(`/operators/${view.operator.id}`)}>
+                    Xem trang nhà xe
+                  </Button>
+                )}
+              </div>
+            </InfoCard>
+
+            <InfoCard>
+              <SectionTitle eyebrow="Lộ trình" title="Thời gian và điểm dừng">
+                Theo dõi mốc khởi hành, điểm đến và thời lượng dự kiến của chuyến xe.
+              </SectionTitle>
+              <div className="rounded-2xl bg-vxn-bg-soft p-5">
+                <TimelinePoint type="start" time={view.departureTime} city={view.route.fromCity} address={view.route.fromAddress} />
+                <TimelinePoint type="end" time={view.arrivalTime} city={view.route.toCity} address={view.route.toAddress} />
+              </div>
+            </InfoCard>
+
+            <InfoCard>
+              <SectionTitle eyebrow="Tiện nghi" title="Thông tin xe">
+                {view.bus.busNumber ? `Biển số ${view.bus.busNumber}` : 'Thông tin phương tiện sẽ được nhà xe cập nhật trước giờ chạy.'}
+              </SectionTitle>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl bg-vxn-bg-soft p-4">
+                  <div className="text-xs text-vxn-fg-5">Loại xe</div>
+                  <div className="mt-1 font-semibold text-vxn-ink">{view.bus.busType || 'Đang cập nhật'}</div>
+                </div>
+                <div className="rounded-xl bg-vxn-bg-soft p-4">
+                  <div className="text-xs text-vxn-fg-5">Số ghế</div>
+                  <div className="mt-1 font-semibold text-vxn-ink">{view.seats.total} ghế</div>
+                </div>
+                <div className="rounded-xl bg-vxn-bg-soft p-4">
+                  <div className="text-xs text-vxn-fg-5">Còn trống</div>
+                  <div className="mt-1 font-semibold text-vxn-ink">{view.seats.available} ghế</div>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {view.bus.amenities.length > 0 ? view.bus.amenities.map((amenity) => (
+                  <span key={amenity} className="inline-flex items-center gap-1.5 rounded-full bg-vxn-teal-50 px-3 py-1.5 text-sm font-medium text-vxn-teal-900">
+                    <SafetyCertificateOutlined className="text-xs" /> {getAmenityLabel(amenity)}
+                  </span>
+                )) : <span className="text-sm text-vxn-fg-4">Tiện nghi đang được cập nhật.</span>}
+              </div>
+            </InfoCard>
+
+            {(view.policies || view.cancellationPolicy || view.notes) && (
+              <InfoCard>
+                <SectionTitle eyebrow="Chính sách" title="Lưu ý trước khi đặt" />
+                <div className="space-y-3 text-sm leading-6 text-vxn-fg-2">
+                  {view.policies && <p className="m-0 whitespace-pre-line">{view.policies}</p>}
+                  {view.cancellationPolicy && <p className="m-0 whitespace-pre-line">{view.cancellationPolicy}</p>}
+                  {view.notes && <p className="m-0 whitespace-pre-line">{view.notes}</p>}
+                </div>
+              </InfoCard>
             )}
-          </Col>
 
-          {/* Seat Selection & Booking Summary */}
-          <Col xs={24} lg={8}>
-            {/* Seat Map */}
-            <Card 
-              title={<span className="text-neutral-800 font-semibold">Chọn ghế</span>} 
-              className="mb-6 sticky top-4 rounded-xl border border-neutral-200 shadow-lg"
-            >
-              <SeatMapComponent
-                seatLayout={trip.bus?.seatLayout}
-                bookedSeats={trip.seats?.bookedSeatNumbers || []}
-                heldSeats={trip.seats?.heldSeatNumbers || []}
-                availableSeats={availableSeats}
-              />
+            <InfoCard>
+              <SectionTitle eyebrow="Đánh giá" title="Trải nghiệm hành khách" />
+              <ReviewsSection tripId={tripId} />
+            </InfoCard>
+          </div>
 
-              <Divider className="border-neutral-200" />
-
-              {/* Selected Seats */}
-              <div className="mb-5">
-                <Text strong className="text-neutral-800 block mb-3">Ghế đã chọn:</Text>
-                <div className="p-3 bg-neutral-50 rounded-lg min-h-[60px] flex items-center">
-                  {selectedSeats.length === 0 ? (
-                    <Text className="text-neutral-400 italic">Chưa chọn ghế</Text>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedSeats.map(seat => (
-                        <Tag 
-                          key={seat.seatNumber} 
-                          className="px-3 py-2 rounded-lg border-0 bg-primary-100 text-primary-700 font-semibold text-base"
-                        >
-                          {seat.seatNumber}
-                        </Tag>
-                      ))}
+          <aside className="xl:sticky xl:top-6 xl:self-start">
+            <div className="overflow-hidden rounded-[18px] border border-vxn-border bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]">
+              <div className="border-b border-vxn-border bg-vxn-teal-900 px-5 py-4 text-white">
+                <div className="text-xs uppercase tracking-[0.08em] text-white/65">Tóm tắt chuyến</div>
+                <div className="mt-1 text-lg font-bold">{view.route.fromCity} → {view.route.toCity}</div>
+              </div>
+              <div className="space-y-4 p-5">
+                <div>
+                  <div className="text-xs text-vxn-fg-5">Giá vé</div>
+                  <div className="mt-1 text-3xl font-bold text-vxn-saffron-700">{formatCurrency(view.pricing.finalPrice)}</div>
+                  {view.pricing.discount > 0 && (
+                    <div className="mt-1 text-xs text-vxn-fg-5">
+                      Giá gốc <span className="line-through">{formatCurrency(view.pricing.basePrice)}</span> · giảm {view.pricing.discount}%
                     </div>
                   )}
                 </div>
-              </div>
 
-              <Divider className="border-neutral-200" />
-
-              {/* Price Summary */}
-              <div className="mb-6 p-4 bg-neutral-50 rounded-lg">
-                <div className="flex justify-between items-center mb-3">
-                  <Text className="text-neutral-600">Giá vé ({selectedSeats.length} ghế)</Text>
-                  <Text strong className="text-primary-600">
-                    {selectedSeats.length > 0 ? formatPrice(getSeatPrice()) : '0đ'} x {selectedSeats.length}
-                  </Text>
+                <div className="grid grid-cols-2 gap-3 rounded-2xl bg-vxn-bg-soft p-3 text-sm">
+                  <div>
+                    <div className="text-xs text-vxn-fg-5">Khởi hành</div>
+                    <div className="font-semibold text-vxn-ink">{formatDateTime(view.departureTime)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-vxn-fg-5">Đến nơi</div>
+                    <div className="font-semibold text-vxn-ink">{formatDateTime(view.arrivalTime)}</div>
+                  </div>
                 </div>
-                <Divider className="my-3 border-neutral-300" />
-                <div className="flex justify-between items-center">
-                  <Text strong className="text-lg text-neutral-800">Tổng cộng</Text>
-                  <Text strong className="text-xl text-primary-600">
-                    {formatPrice(calculateTotalPrice())}
-                  </Text>
+
+                <div className="space-y-2 text-sm text-vxn-fg-2">
+                  <div className="flex items-start gap-2">
+                    <ClockCircleOutlined className="mt-1 text-vxn-teal-700" />
+                    <span>Thời lượng dự kiến · {view.duration}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CarOutlined className="mt-1 text-vxn-teal-700" />
+                    <span>{view.bus.busType || 'Đang cập nhật loại xe'} · {view.seats.available}/{view.seats.total} ghế trống</span>
+                  </div>
+                </div>
+
+                <Button
+                  type="primary"
+                  block
+                  size="large"
+                  className="h-12 rounded-md border-0 bg-vxn-teal-700 font-semibold hover:!bg-vxn-teal-800"
+                  onClick={handleContinue}
+                >
+                  Đặt vé · Chọn ghế
+                </Button>
+                <div className="flex items-center justify-center gap-1.5 text-xs text-vxn-fg-5">
+                  <CheckCircleOutlined className="text-vxn-teal-700" /> Chọn ghế và điểm đón ở bước tiếp theo
                 </div>
               </div>
-
-              <Button
-                type="primary"
-                size="large"
-                block
-                onClick={handleContinue}
-                disabled={selectedSeats.length === 0 || !selectedPickup || !selectedDropoff}
-                className="h-12 rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 border-0 font-semibold text-base shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                Tiếp tục
-              </Button>
-            </Card>
-          </Col>
-        </Row>
+            </div>
+          </aside>
+        </div>
       </div>
-      </div>
-    </CustomerLayout>
+    </CustomerShell>
   );
 };
 

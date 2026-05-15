@@ -54,6 +54,7 @@ Nguồn tham chiếu chính:
 - [x] Fetch bundle từ Claude Design URL, đọc `README.md`, `chats/chat1.md`, `project/Vé Xe Nhanh.html` và các imports chính trước khi implement.
 - [x] Nâng cấp `NewHomePage.jsx` theo prototype `HomeScreen` - đã đổi sang page frame có sidebar trái, hero top utility, search card nổi và các section đúng cấu trúc prototype.
 - [x] Dùng hero image thật từ prototype thay cho nền gradient/orb - dùng `frontend/src/assets/brand/hero-landscape.jpg` cho hero và route card nổi bật.
+- [x] Tăng chiều cao và hạ vị trí hero trang chủ để ảnh/search card thoáng hơn - `NewHomePage.jsx` dùng `lg:h-[820px]`, `lg:pt-36`, search card `lg:bottom-[-96px]`; `docker compose up -d --build frontend` build thành công.
 - [x] Port search overlay card: điểm đi, điểm đến, ngày đi, đổi chiều, số khách, submit - giữ Ant Design Form/AutoComplete/DatePicker/Select nhưng style lại theo field shell của prototype.
 - [x] Giữ logic `setSearchCriteria` và navigate `/search-results` - submit map về `{ fromCity, toCity, date, passengers }`, giới hạn khách theo rule hiện có.
 - [x] Thêm tuyến phổ biến, lý do chọn VXN, nhà xe đối tác theo UI mới - thêm layout route card lớn/nhỏ, value props, operators và promo/blog strip.
