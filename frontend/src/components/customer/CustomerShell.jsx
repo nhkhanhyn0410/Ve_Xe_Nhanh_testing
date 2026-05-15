@@ -17,16 +17,42 @@ import logoText from '../../assets/brand/Logo_text.svg';
 import useAuthStore from '../../store/authStore';
 
 const sidebarNav = [
-  { key: 'explore', label: 'Khám phá', icon: GlobalOutlined, path: '/kham-pha' },
-  { key: 'buy', label: 'Mua vé', icon: FileTextOutlined, path: '/' },
-  { key: 'addons', label: 'Dịch vụ bổ trợ', icon: PlusSquareOutlined, path: '/dich-vu-bo-tro' },
-  { key: 'trips', label: 'Hành trình', icon: EnvironmentOutlined, path: '/trips' },
+  {
+    key: 'explore',
+    label: 'Khám phá',
+    icon: GlobalOutlined,
+    path: '/kham-pha',
+  },
+  { key: 'home', label: 'Trang chủ', icon: EnvironmentOutlined, path: '/' },
+  { key: 'trips', label: 'Mua vé', icon: FileTextOutlined, path: '/trips' },
+  {
+    key: 'addons',
+    label: 'Dịch vụ bổ trợ',
+    icon: PlusSquareOutlined,
+    path: '/dich-vu-bo-tro',
+  },
+  {
+    key: 'tickets',
+    label: 'Hành trình',
+    icon: EnvironmentOutlined,
+    path: '/my-tickets',
+  },
   { key: 'member', label: 'Thành viên', icon: StarOutlined, path: '/loyalty' },
 ];
 
 const sidebarSupport = [
-  { key: 'lookup', label: 'Tra cứu vé', icon: QrcodeOutlined, path: '/tra-cuu-ve' },
-  { key: 'complaints', label: 'Khiếu nại', icon: QuestionCircleOutlined, path: '/khieu-nai' },
+  {
+    key: 'lookup',
+    label: 'Tra cứu vé',
+    icon: QrcodeOutlined,
+    path: '/tra-cuu-ve',
+  },
+  {
+    key: 'complaints',
+    label: 'Khiếu nại',
+    icon: QuestionCircleOutlined,
+    path: '/khieu-nai',
+  },
   { key: 'news', label: 'Tin tức', icon: FileTextOutlined, path: '/tin-tuc' },
 ];
 
@@ -42,13 +68,18 @@ const getInitials = (user) => {
 };
 
 const resolveActiveKey = (pathname, activeKey) => {
-  if (activeKey) return activeKey;
-  if (pathname.startsWith('/tickets') || pathname.startsWith('/tra-cuu-ve')) return 'lookup';
+  if (activeKey) return activeKey === 'buy' ? 'trips' : activeKey;
+  if (
+    pathname.startsWith('/my-tickets') ||
+    pathname.startsWith('/tickets') ||
+    pathname.startsWith('/tra-cuu-ve') ||
+    pathname.startsWith('/hanh-trinh')
+  )
+    return 'tickets';
   if (pathname.startsWith('/news') || pathname.startsWith('/tin-tuc')) return 'news';
   if (pathname.startsWith('/complaints') || pathname.startsWith('/khieu-nai')) return 'complaints';
   if (pathname.startsWith('/dich-vu-bo-tro')) return 'addons';
   if (pathname.startsWith('/kham-pha') || pathname.startsWith('/explore')) return 'explore';
-  if (pathname === '/trips' || pathname.startsWith('/my-tickets') || pathname.startsWith('/hanh-trinh')) return 'trips';
   if (
     pathname.startsWith('/profile') ||
     pathname.startsWith('/settings') ||
@@ -65,8 +96,8 @@ const resolveActiveKey = (pathname, activeKey) => {
     pathname.startsWith('/booking') ||
     pathname.startsWith('/payment')
   )
-    return 'buy';
-  return pathname === '/' ? 'buy' : 'explore';
+    return 'trips';
+  return pathname === '/' ? 'home' : 'explore';
 };
 
 export const CustomerSidebarContent = ({ activeKey, signedIn, user, onLogout, onClose }) => {

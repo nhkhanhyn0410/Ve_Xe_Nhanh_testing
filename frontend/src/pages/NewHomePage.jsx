@@ -558,7 +558,7 @@ const NewHomePage = () => {
   };
 
   return (
-    <CustomerShell activeKey="buy" mainClassName="bg-white">
+    <CustomerShell mainClassName="bg-white">
       <section className="relative isolate overflow-x-clip bg-vxn-ink">
         <div
           className="absolute inset-0 bg-cover bg-[10%_58%] [@media(min-width:1920px)]:bg-[40%_58%]"

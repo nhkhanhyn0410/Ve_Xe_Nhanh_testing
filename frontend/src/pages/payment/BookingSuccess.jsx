@@ -175,7 +175,9 @@ const BookingSuccess = () => {
 
   const handleViewTicket = () => {
     if (booking?.bookingCode) {
-      navigate(`/booking/confirmation/${booking.bookingCode}`);
+      const phone = booking?.contactInfo?.phone;
+      const queryStr = phone ? `?phone=${phone}` : '';
+      navigate(`/booking/confirmation/${booking.bookingCode}${queryStr}`);
     }
   };
 

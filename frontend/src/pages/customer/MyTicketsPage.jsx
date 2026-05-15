@@ -15,11 +15,7 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import CustomerShell from '../../components/customer/CustomerShell';
-import {
-  getCustomerTickets,
-  cancelTicket,
-  resendTicket,
-} from '../../services/ticketApi';
+import { getCustomerTickets, cancelTicket, resendTicket } from '../../services/ticketApi';
 
 const TABS = [
   { key: 'upcoming', label: 'Sắp tới' },
@@ -35,11 +31,9 @@ const STATUS_META = {
   expired: { tone: 'warning', label: 'HẾT HẠN' },
 };
 
-const formatCurrency = (value = 0) =>
-  `${Number(value || 0).toLocaleString('vi-VN')}đ`;
+const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
-const formatDateLong = (value) =>
-  value ? dayjs(value).format('dddd, D [tháng] M, YYYY') : '—';
+const formatDateLong = (value) => (value ? dayjs(value).format('dddd, D [tháng] M, YYYY') : '—');
 
 const formatTime = (value) => (value ? dayjs(value).format('HH:mm') : '--:--');
 
@@ -123,9 +117,7 @@ const TabBar = ({ activeKey, counts, onChange, search, onSearch, onFilter }) => 
             <span>{tab.label}</span>
             <span
               className={`inline-grid h-[22px] min-w-[22px] place-items-center rounded-full px-[7px] text-[11px] font-semibold ${
-                on
-                  ? 'bg-vxn-saffron-600 text-white'
-                  : 'bg-vxn-bg-cloud text-vxn-fg-3'
+                on ? 'bg-vxn-saffron-600 text-white' : 'bg-vxn-bg-cloud text-vxn-fg-3'
               }`}
             >
               {n}
@@ -149,11 +141,7 @@ const TabBar = ({ activeKey, counts, onChange, search, onSearch, onFilter }) => 
           className="!h-9 !rounded-lg"
           style={{ width: 240 }}
         />
-        <Button
-          icon={<FilterOutlined />}
-          onClick={onFilter}
-          className="!h-9 !rounded-lg"
-        >
+        <Button icon={<FilterOutlined />} onClick={onFilter} className="!h-9 !rounded-lg">
           Lọc
         </Button>
       </div>
@@ -169,14 +157,15 @@ const FeaturedBanner = ({ ticket, onView }) => {
   const route = `${ticket.tripInfo?.origin?.city || ''} → ${ticket.tripInfo?.destination?.city || ''}`;
   const operatorName = ticket.operatorId?.companyName || 'Nhà xe';
   const seats =
-    ticket.passengers?.map((p) => p.seatNumber).filter(Boolean).join(', ') ||
-    '—';
+    ticket.passengers
+      ?.map((p) => p.seatNumber)
+      .filter(Boolean)
+      .join(', ') || '—';
   return (
     <div
       className="flex flex-col gap-4 rounded-2xl px-6 py-5 text-white sm:flex-row sm:items-center sm:gap-6"
       style={{
-        background:
-          'linear-gradient(110deg, #00476B 0%, #00506A 60%, #036672 100%)',
+        background: 'linear-gradient(110deg, #00476B 0%, #00506A 60%, #036672 100%)',
       }}
     >
       <div
@@ -186,9 +175,7 @@ const FeaturedBanner = ({ ticket, onView }) => {
         <CarOutlined style={{ fontSize: 26, color: '#fff' }} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-[12px] font-medium tracking-[0.06em] text-[#FFD078]">
-          {eyebrow}
-        </div>
+        <div className="text-[12px] font-medium tracking-[0.06em] text-[#FFD078]">{eyebrow}</div>
         <div className="mt-1 truncate text-[18px] font-semibold">
           {route} · {operatorName}
         </div>
@@ -265,20 +252,17 @@ const TicketRow = ({
 
   const fromCity = ticket.tripInfo?.origin?.city || '—';
   const toCity = ticket.tripInfo?.destination?.city || '—';
-  const fromStation =
-    ticket.tripInfo?.pickupPoint?.name ||
-    ticket.tripInfo?.origin?.station ||
-    '';
+  const fromStation = ticket.tripInfo?.pickupPoint?.name || ticket.tripInfo?.origin?.station || '';
   const toStation =
-    ticket.tripInfo?.dropoffPoint?.name ||
-    ticket.tripInfo?.destination?.station ||
-    '';
+    ticket.tripInfo?.dropoffPoint?.name || ticket.tripInfo?.destination?.station || '';
 
   const dep = ticket.tripInfo?.departureTime;
   const arr = ticket.tripInfo?.arrivalTime;
   const seats =
-    ticket.passengers?.map((p) => p.seatNumber).filter(Boolean).join(', ') ||
-    '—';
+    ticket.passengers
+      ?.map((p) => p.seatNumber)
+      .filter(Boolean)
+      .join(', ') || '—';
   const passengerCount = ticket.passengers?.length || 0;
 
   const isPaid = ticket.totalPrice > 0;
@@ -306,9 +290,7 @@ const TicketRow = ({
             {opInitials}
           </div>
           <div className="min-w-0">
-            <div className="truncate text-[15px] font-semibold text-vxn-ink">
-              {operatorName}
-            </div>
+            <div className="truncate text-[15px] font-semibold text-vxn-ink">{operatorName}</div>
             <div className="truncate text-[12px] text-vxn-fg-5">
               {busType}
               {plate ? ` · ${plate}` : ''}
@@ -325,12 +307,8 @@ const TicketRow = ({
             <div className="text-[11px] font-medium tracking-wide text-vxn-fg-5">
               {formatTime(dep)}
             </div>
-            <div className="text-[22px] font-bold leading-[1.1] text-vxn-ink">
-              {fromCity}
-            </div>
-            <div className="mt-0.5 text-[12px] text-vxn-fg-5">
-              {fromStation}
-            </div>
+            <div className="text-[22px] font-bold leading-[1.1] text-vxn-ink">{fromCity}</div>
+            <div className="mt-0.5 text-[12px] text-vxn-fg-5">{fromStation}</div>
           </div>
 
           <TimelineBetween
@@ -342,9 +320,7 @@ const TicketRow = ({
             <div className="text-[11px] font-medium tracking-wide text-vxn-fg-5">
               {formatTime(arr)}
             </div>
-            <div className="text-[22px] font-bold leading-[1.1] text-vxn-ink">
-              {toCity}
-            </div>
+            <div className="text-[22px] font-bold leading-[1.1] text-vxn-ink">{toCity}</div>
             <div className="mt-0.5 text-[12px] text-vxn-fg-5">{toStation}</div>
           </div>
         </div>
@@ -356,12 +332,13 @@ const TicketRow = ({
           </span>
           {status === 'cancelled' && refundAmount > 0 && (
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
-              <SyncOutlined spin style={{ fontSize: 11 }} /> Hoàn {formatCurrency(refundAmount)} đang xử lý
+              <SyncOutlined spin style={{ fontSize: 11 }} /> Hoàn {formatCurrency(refundAmount)}{' '}
+              đang xử lý
             </span>
           )}
           <span className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-vxn-fg-4 transition group-hover:text-vxn-saffron-700">
             Xem chi tiết
-            <span aria-hidden="true" className="transition group-hover:translate-x-0.5">→</span>
+            <span aria-hidden="true" className="transition group-hover:translate-x-0.5"></span>
           </span>
         </div>
       </div>
@@ -401,7 +378,7 @@ const TicketRow = ({
               }}
               className="!h-9 !w-full !rounded-lg"
             >
-              Đổi / Huỷ vé
+              Huỷ vé
             </Button>
           </>
         )}
@@ -473,9 +450,7 @@ const EmptyState = ({ activeTab }) => {
       <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-vxn-bg-mist">
         <TagOutlined style={{ fontSize: 22, color: '#475569' }} />
       </div>
-      <p className="m-0 text-[14px] text-vxn-fg-3">
-        {copy[activeTab] || copy.all}
-      </p>
+      <p className="m-0 text-[14px] text-vxn-fg-3">{copy[activeTab] || copy.all}</p>
     </div>
   );
 };
@@ -535,11 +510,7 @@ const MyTicketsPage = () => {
   const featuredTicket = useMemo(() => {
     return tickets
       .filter((t) => t.status === 'valid')
-      .sort((a, b) =>
-        dayjs(a.tripInfo?.departureTime).diff(
-          dayjs(b.tripInfo?.departureTime)
-        )
-      )[0];
+      .sort((a, b) => dayjs(a.tripInfo?.departureTime).diff(dayjs(b.tripInfo?.departureTime)))[0];
   }, [tickets]);
 
   const handleShowQR = (ticket) => {
@@ -554,7 +525,9 @@ const MyTicketsPage = () => {
       message.warning('Không tìm thấy mã đặt vé');
       return;
     }
-    navigate(`/booking/confirmation/${code}`);
+    const phone = ticket.bookingId?.contactInfo?.phone || ticket.contactInfo?.phone;
+    const queryStr = phone ? `?phone=${phone}` : '';
+    navigate(`/booking/confirmation/${code}${queryStr}`);
   };
 
   const handleResend = async (ticketId) => {
@@ -577,9 +550,7 @@ const MyTicketsPage = () => {
     if (!selectedTicket) return;
     try {
       await cancelTicket(selectedTicket._id, cancelReason);
-      message.success(
-        'Huỷ vé thành công. Tiền sẽ được hoàn lại trong 3-5 ngày làm việc.'
-      );
+      message.success('Huỷ vé thành công. Tiền sẽ được hoàn lại trong 3-5 ngày làm việc.');
       setCancelModalVisible(false);
       setCancelReason('');
       setSelectedTicket(null);
@@ -665,9 +636,7 @@ const MyTicketsPage = () => {
           onChange={setActiveTab}
           search={searchText}
           onSearch={setSearchText}
-          onFilter={() =>
-            message.info('Bộ lọc nâng cao sẽ được mở trong bản kế tiếp.')
-          }
+          onFilter={() => message.info('Bộ lọc nâng cao sẽ được mở trong bản kế tiếp.')}
         />
       </div>
 
@@ -733,38 +702,29 @@ const MyTicketsPage = () => {
               {qrTicket.tripInfo?.origin?.city} → {qrTicket.tripInfo?.destination?.city}
             </div>
             <div className="mt-0.5 text-[13px] text-vxn-fg-3">
-              {formatDateLong(qrTicket.tripInfo?.departureTime)} · {formatTime(qrTicket.tripInfo?.departureTime)}
+              {formatDateLong(qrTicket.tripInfo?.departureTime)} ·{' '}
+              {formatTime(qrTicket.tripInfo?.departureTime)}
             </div>
 
             <div
               className="mx-auto mt-5 inline-block rounded-2xl p-4"
               style={{
-                background:
-                  'linear-gradient(135deg, #FFF6E2 0%, #FFE9C4 60%, #FFD9A0 100%)',
+                background: 'linear-gradient(135deg, #FFF6E2 0%, #FFE9C4 60%, #FFD9A0 100%)',
                 border: '1px solid #F2C677',
               }}
             >
               <div className="rounded-xl bg-white p-3">
-                <img
-                  src={qrTicket.qrCode}
-                  alt="QR Code"
-                  style={{ width: 280, height: 280 }}
-                />
+                <img src={qrTicket.qrCode} alt="QR Code" style={{ width: 280, height: 280 }} />
               </div>
             </div>
 
-            <p className="mt-4 font-mono text-[14px] text-vxn-ink">
-              {qrTicket.ticketCode}
-            </p>
+            <p className="mt-4 font-mono text-[14px] text-vxn-ink">{qrTicket.ticketCode}</p>
             <p className="mt-1 text-[12px] text-vxn-fg-3">
               Vui lòng xuất trình mã QR khi lên xe · Có mặt trước giờ khởi hành 20 phút
             </p>
 
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-              <Button
-                onClick={() => handleResend(qrTicket._id)}
-                className="!h-10 !rounded-lg"
-              >
+              <Button onClick={() => handleResend(qrTicket._id)} className="!h-10 !rounded-lg">
                 Gửi lại email
               </Button>
               <Button
@@ -796,9 +756,7 @@ const MyTicketsPage = () => {
         centered
       >
         <div className="flex flex-col gap-4 pt-1">
-          <p className="m-0 text-[14px] text-vxn-ink">
-            Bạn có chắc chắn muốn huỷ vé này?
-          </p>
+          <p className="m-0 text-[14px] text-vxn-ink">Bạn có chắc chắn muốn huỷ vé này?</p>
 
           {selectedTicket && (
             <div className="rounded-lg bg-vxn-bg-mist p-4 text-[13px]">
@@ -818,9 +776,7 @@ const MyTicketsPage = () => {
               <div className="mt-1 flex justify-between">
                 <span className="text-vxn-fg-5">Khởi hành</span>
                 <span className="font-medium text-vxn-ink">
-                  {dayjs(selectedTicket.tripInfo?.departureTime).format(
-                    'HH:mm · DD/MM/YYYY'
-                  )}
+                  {dayjs(selectedTicket.tripInfo?.departureTime).format('HH:mm · DD/MM/YYYY')}
                 </span>
               </div>
             </div>

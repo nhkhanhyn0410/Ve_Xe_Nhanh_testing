@@ -12,6 +12,7 @@ import dayjs from 'dayjs';
 import { getBookingByCode } from '../services/bookingApi';
 import api from '../services/api';
 import useBookingStore from '../store/bookingStore';
+import useAuthStore from '../store/authStore';
 import CustomerShell from '../components/customer/CustomerShell';
 import SaffronTicketCard from '../components/customer/SaffronTicketCard';
 
@@ -84,18 +85,19 @@ const BookingConfirmationPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { resetBooking } = useBookingStore();
+  const { user } = useAuthStore();
 
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(null);
   const [ticket, setTicket] = useState(null);
 
   useEffect(() => {
-    const phone = searchParams.get('phone');
+    const phone = searchParams.get('phone') || user?.phone;
     const fetchBooking = async () => {
       try {
         setLoading(true);
         const response = await getBookingByCode(bookingCode, phone || undefined);
-        if (response.success && response.data) {
+        if ((response.success || response.status === 'success') && response.data) {
           const data = response.data.booking || response.data;
           setBooking(data);
         }
@@ -137,9 +139,7 @@ const BookingConfirmationPage = () => {
       <CustomerShell activeKey="buy">
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
           <Spin size="large" />
-          <p className="text-[14px] text-vxn-fg-3">
-            Đang tải thông tin vé...
-          </p>
+          <p className="text-[14px] text-vxn-fg-3">Đang tải thông tin vé...</p>
         </div>
       </CustomerShell>
     );
@@ -156,12 +156,7 @@ const BookingConfirmationPage = () => {
             <p className="mt-2 text-[13px] text-vxn-fg-3">
               Mã đặt vé không tồn tại hoặc đã bị xoá. Vui lòng kiểm tra lại.
             </p>
-            <Button
-              type="primary"
-              size="large"
-              className="mt-5"
-              onClick={() => navigate('/')}
-            >
+            <Button type="primary" size="large" className="mt-5" onClick={() => navigate('/')}>
               Về trang chủ
             </Button>
           </div>
@@ -174,24 +169,23 @@ const BookingConfirmationPage = () => {
   const totalPrice = booking?.totalPrice ?? booking?.finalPrice ?? 0;
   const finalPrice = booking?.finalPrice ?? totalPrice;
   const discount = (booking?.discount || 0) + (booking?.voucherDiscount || 0);
-  const isPaid =
-    booking?.paymentStatus === 'paid' || booking?.status === 'confirmed';
+  const isPaid = booking?.paymentStatus === 'paid' || booking?.status === 'confirmed';
 
   return (
-    <CustomerShell activeKey="buy">
-      <BookingStepper current={4} />
-
+    <CustomerShell activeKey="tickets">
       <div className="px-4 py-6 lg:px-8 lg:py-10">
-        <div className="mx-auto max-w-5xl">
-          <nav className="mb-5 flex items-center gap-1 text-[13px] text-vxn-fg-4">
-            <span>Trang chủ</span>
-            <span>·</span>
-            <span>Hành trình</span>
-            <span>·</span>
-            <span>Thanh toán</span>
-            <span>·</span>
-            <span className="text-vxn-fg-2">Vé điện tử</span>
-          </nav>
+        <div className="mx-auto max-w-7xl">
+          {
+            <nav className="mb-5 flex items-center gap-1 text-[13px] text-vxn-fg-4">
+              <span>Trang chủ</span>
+              <span>·</span>
+              <span>Hành trình</span>
+              <span>·</span>
+              <span>Thanh toán</span>
+              <span>·</span>
+              <span className="text-vxn-fg-2">Vé điện tử</span>
+            </nav>
+          }
 
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -200,13 +194,9 @@ const BookingConfirmationPage = () => {
               </h1>
               <p className="m-0 mt-1 text-[13px] text-vxn-fg-3">
                 Mã đặt vé:{' '}
-                <span className="font-mono font-semibold text-vxn-ink">
-                  {booking.bookingCode}
-                </span>{' '}
+                <span className="font-mono font-semibold text-vxn-ink">{booking.bookingCode}</span>{' '}
                 · Đã gửi đến email{' '}
-                <span className="text-vxn-ink">
-                  {booking?.contactInfo?.email || ''}
-                </span>
+                <span className="text-vxn-ink">{booking?.contactInfo?.email || ''}</span>
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -222,21 +212,15 @@ const BookingConfirmationPage = () => {
 
           <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
             <div className="rounded-2xl border border-vxn-border bg-white p-6">
-              <h3 className="m-0 text-[15px] font-semibold text-vxn-ink">
-                Hành khách & Liên hệ
-              </h3>
+              <h3 className="m-0 text-[15px] font-semibold text-vxn-ink">Hành khách & Liên hệ</h3>
               <dl className="mt-4 space-y-3 text-[13.5px]">
                 <div className="flex justify-between gap-3">
                   <dt className="text-vxn-fg-5">Người đặt</dt>
-                  <dd className="font-medium text-vxn-ink">
-                    {booking?.contactInfo?.name || '—'}
-                  </dd>
+                  <dd className="font-medium text-vxn-ink">{booking?.contactInfo?.name || '—'}</dd>
                 </div>
                 <div className="flex justify-between gap-3">
                   <dt className="text-vxn-fg-5">Điện thoại</dt>
-                  <dd className="font-medium text-vxn-ink">
-                    {booking?.contactInfo?.phone || '—'}
-                  </dd>
+                  <dd className="font-medium text-vxn-ink">{booking?.contactInfo?.phone || '—'}</dd>
                 </div>
                 <div className="flex justify-between gap-3">
                   <dt className="text-vxn-fg-5">Email</dt>
@@ -270,9 +254,7 @@ const BookingConfirmationPage = () => {
             </div>
 
             <div className="rounded-2xl border border-vxn-border bg-white p-6">
-              <h3 className="m-0 text-[15px] font-semibold text-vxn-ink">
-                Thanh toán
-              </h3>
+              <h3 className="m-0 text-[15px] font-semibold text-vxn-ink">Thanh toán</h3>
               <dl className="mt-4 space-y-3 text-[13.5px]">
                 <div className="flex justify-between">
                   <dt className="text-vxn-fg-5">Phương thức</dt>
@@ -282,36 +264,24 @@ const BookingConfirmationPage = () => {
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-vxn-fg-5">Trạng thái</dt>
-                  <dd
-                    className={`font-semibold ${
-                      isPaid ? 'text-emerald-600' : 'text-amber-600'
-                    }`}
-                  >
+                  <dd className={`font-semibold ${isPaid ? 'text-emerald-600' : 'text-amber-600'}`}>
                     {isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}
                   </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-vxn-fg-5">Thời điểm đặt</dt>
-                  <dd className="font-medium text-vxn-ink">
-                    {formatDateTime(booking?.createdAt)}
-                  </dd>
+                  <dd className="font-medium text-vxn-ink">{formatDateTime(booking?.createdAt)}</dd>
                 </div>
                 {booking?.paidAt && (
                   <div className="flex justify-between">
                     <dt className="text-vxn-fg-5">Thanh toán lúc</dt>
-                    <dd className="font-medium text-vxn-ink">
-                      {formatDateTime(booking.paidAt)}
-                    </dd>
+                    <dd className="font-medium text-vxn-ink">{formatDateTime(booking.paidAt)}</dd>
                   </div>
                 )}
                 <div className="my-2 h-px bg-vxn-border" />
                 <div className="flex justify-between">
-                  <dt className="text-vxn-fg-5">
-                    Giá vé ({seats.length} ghế)
-                  </dt>
-                  <dd className="font-medium text-vxn-ink">
-                    {formatCurrency(totalPrice)}
-                  </dd>
+                  <dt className="text-vxn-fg-5">Giá vé ({seats.length} ghế)</dt>
+                  <dd className="font-medium text-vxn-ink">{formatCurrency(totalPrice)}</dd>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-600">
@@ -320,9 +290,7 @@ const BookingConfirmationPage = () => {
                   </div>
                 )}
                 <div className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2.5">
-                  <span className="text-[14px] font-medium text-vxn-ink">
-                    Tổng đã thanh toán
-                  </span>
+                  <span className="text-[14px] font-medium text-vxn-ink">Tổng đã thanh toán</span>
                   <span className="text-[20px] font-bold text-[#A8741A]">
                     {formatCurrency(finalPrice)}
                   </span>
@@ -338,11 +306,7 @@ const BookingConfirmationPage = () => {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => navigate('/my-tickets')}>Vé của tôi</Button>
-              <Button
-                type="primary"
-                icon={<HomeOutlined />}
-                onClick={() => navigate('/')}
-              >
+              <Button type="primary" icon={<HomeOutlined />} onClick={() => navigate('/')}>
                 Về trang chủ
               </Button>
             </div>
