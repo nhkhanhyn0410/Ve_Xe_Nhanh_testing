@@ -41,6 +41,15 @@ export const uploadAvatar = async (file) => {
 // Delete customer avatar
 export const deleteAvatar = async () => api.delete('/users/avatar');
 
+// Saved passengers — add a frequently-traveled companion
+// Body: { fullName, phone, idCard }
+export const addSavedPassenger = async (passengerData) =>
+  api.post('/users/saved-passengers', passengerData);
+
+// Saved passengers — remove by sub-document id
+export const removeSavedPassenger = async (passengerId) =>
+  api.delete(`/users/saved-passengers/${passengerId}`);
+
 // Refresh token
 export const refreshToken = async (token) => api.post('/auth/refresh-token', { refreshToken: token });
 
@@ -75,6 +84,8 @@ export default {
   changePassword,
   uploadAvatar,
   deleteAvatar,
+  addSavedPassenger,
+  removeSavedPassenger,
   refreshToken,
   forgotPassword,
   resetPassword,
