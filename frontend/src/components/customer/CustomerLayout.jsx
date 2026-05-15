@@ -1,18 +1,12 @@
-import { Layout } from 'antd';
-import CustomerHeader from './CustomerHeader';
 import CustomerFooter from './CustomerFooter';
+import CustomerShell from './CustomerShell';
 
-const { Content } = Layout;
-
-const CustomerLayout = ({ children, className = '' }) => {
+const CustomerLayout = ({ children, className = '', hideFooter = true }) => {
   return (
-    <Layout className="min-h-screen bg-white">
-      <CustomerHeader />
-      <Content className={`flex-1 ${className}`}>
-        {children}
-      </Content>
-      <CustomerFooter />
-    </Layout>
+    <CustomerShell mainClassName={`bg-vxn-bg-soft ${className}`}>
+      {children}
+      {!hideFooter && <CustomerFooter />}
+    </CustomerShell>
   );
 };
 
