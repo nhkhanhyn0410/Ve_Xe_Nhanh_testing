@@ -71,8 +71,8 @@ export const CustomerSidebarContent = ({ activeKey, signedIn, user, onLogout, on
   };
 
   return (
-    <div className="flex h-full min-h-screen w-full flex-col justify-between bg-vxn-teal-700 text-white">
-      <div className="flex flex-col gap-[18px] pt-7">
+    <div className="flex h-full w-full flex-col justify-between bg-vxn-teal-700 text-white">
+      <div className="flex min-h-0 flex-1 flex-col gap-[18px] overflow-y-auto pt-7">
         <button
           type="button"
           className="mx-6 flex items-center justify-start rounded-lg border-0 bg-transparent p-0"
@@ -255,7 +255,7 @@ const CustomerShell = ({ children, activeKey, className = '', mainClassName = 'b
 
   return (
     <div className={`min-h-screen bg-vxn-bg-soft font-sans text-vxn-fg-1 lg:flex ${className}`}>
-      <aside className="hidden w-64 shrink-0 lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 self-start lg:flex">
         <CustomerSidebarContent activeKey={activeKey} signedIn={isAuthenticated} user={user} onLogout={handleLogout} />
       </aside>
 

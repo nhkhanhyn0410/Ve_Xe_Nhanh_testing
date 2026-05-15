@@ -26,6 +26,9 @@ router.get('/', operatorController.getAll);
 router.get('/me/profile', authenticate, authorize('operator'), operatorController.getMe);
 router.put('/me/profile', authenticate, authorize('operator'), operatorController.updateMe);
 
+// Public operator profile
+router.get('/:id/profile', operatorController.getPublicProfile);
+
 // Dashboard statistics (Operator only)
 router.get('/dashboard/stats', authenticate, authorize('operator'), operatorController.getDashboardStats);
 

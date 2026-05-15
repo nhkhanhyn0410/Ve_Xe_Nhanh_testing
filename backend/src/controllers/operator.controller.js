@@ -214,6 +214,24 @@ exports.getById = async (req, res, next) => {
   }
 };
 
+exports.getPublicProfile = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const profile = await OperatorService.getPublicProfile(id);
+
+    res.status(200).json({
+      status: 'success',
+      data: profile,
+    });
+  } catch (error) {
+    logger.error('Lỗi lấy hồ sơ nhà xe:', error);
+    res.status(404).json({
+      status: 'error',
+      message: error.message || 'Không tìm thấy hồ sơ nhà xe',
+    });
+  }
+};
+
 /**
  * @route   GET /api/v1/operators
  * @desc    Lấy danh sách operators
