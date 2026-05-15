@@ -69,8 +69,9 @@ Nguồn tham chiếu chính:
 - [~] Nâng cấp `TripsPage.jsx` theo prototype `SearchResultsScreen` - đã tách `/trips` thành trang bộ lọc tổng hiển thị toàn bộ chuyến tương lai, chưa hoàn tất visual full prototype.
 - [ ] Giữ API `searchTrips`, filter, sort, pagination hiện có.
 - [~] Tách trip normalization ra helper để tránh lặp và dễ test - hiện vẫn là helper nội bộ trong `TripsPage.jsx`, chưa tách file riêng.
-- [ ] Port trip result card: timeline, operator, rating, amenities, seat left, price, CTA.
+- [~] Port trip result card: timeline, operator, rating, amenities, seat left, price, CTA - đã sửa để mọi chuyến trong `/trips` và `/search-results` đều hiển thị đầy đủ phần lịch trình/tiện ích/chính sách, không chỉ item đầu tiên; thiết kế lại card gọn hơn với operator/timeline/price tách rõ, CTA nổi bật, bỏ tiện ích khỏi badge giữa timeline và cập nhật số chỗ định kỳ qua API ghế trống.
 - [~] Thiết kế lại filter panel: khoảng giá, loại xe, nhà xe, giờ đi, tiện ích - thêm bộ lọc tổng điểm đi/điểm đến/khoảng ngày và sticky heading ở `TripsPage.jsx`.
+- [~] Điều chỉnh filter aside của `TripsPage.jsx` để không đổi vị trí/chiều cao bất thường khi scroll - đã thêm sticky offset theo search bar, `self-start` và vùng cuộn riêng; cần smoke test trực quan trên desktop/tablet.
 - [ ] Hiển thị loading/empty/error theo style VXN.
 - [~] Không làm mất route `/trips` và `/search-results` - `/trips` browse all, `/search-results` vẫn đọc search từ booking store; build chưa xác nhận được do lỗi Node/WSL 1.
 - [ ] Kiểm tra chọn chuyến dẫn đúng `/trips/:tripId`.
@@ -80,9 +81,10 @@ Nguồn tham chiếu chính:
 - [ ] Nâng cấp `TripDetailPage.jsx` theo prototype `TripDetailScreen`.
 - [ ] Giữ API `getTripDetails` và `getAvailableSeats`.
 - [ ] Giữ store booking: `selectedTrip`, `selectedSeats`, pickup, dropoff.
+- [~] Làm sticky breadcrumb/booking stepper cho `TripDetailPage.jsx`, `SeatSelectionPage.jsx` và `PassengerInfoPage.jsx`; đã chỉnh offset desktop/mobile, sticky summary bên phải và căn giữa riêng hàng stepper không bao gồm breadcrumb.
 - [ ] Nâng cấp `SeatMapComponent.jsx` theo visual sleeper bus hai tầng trong prototype.
 - [ ] Giữ logic không chọn ghế đã booked/held và giới hạn số ghế.
-- [ ] Thêm legend ghế rõ ràng: trống, đang chọn, đang giữ, đã đặt.
+- [~] Thêm legend ghế rõ ràng: trống, đang chọn, đang giữ, đã đặt - đã đồng bộ ghế `held` trong `SeatMapComponent.jsx` sang nền/viền vàng như legend và bỏ overlay ổ khóa.
 - [ ] Thiết kế lại pickup/dropoff selector theo card/timeline.
 - [ ] Thiết kế sticky booking summary bên phải trên desktop.
 - [ ] Bảo đảm mobile vẫn thao tác được chọn ghế và CTA.
@@ -91,10 +93,10 @@ Nguồn tham chiếu chính:
 ## 6. Passenger info, booking confirmation, payment
 
 - [ ] Nâng cấp `PassengerInfoPage.jsx` theo prototype `PassengerInfoScreen`.
-- [ ] Giữ validation passenger, phone, email, id card nếu đang có.
+- [~] Giữ validation passenger, phone, email, id card nếu đang có - đã sửa `PassengerInfoPage.jsx` để checkbox "Người liên hệ là hành khách 1" tự sync contact sang hành khách 1 và không bắt required riêng cho hành khách 1.
 - [ ] Tích hợp saved passengers nếu API/store đã có.
 - [ ] Nâng cấp `BookingConfirmationPage.jsx` theo payment/summary style mới.
-- [ ] Giữ luồng tạo booking và payment hiện có.
+- [~] Giữ luồng tạo booking và payment hiện có - đã thiết kế lại bước chọn phương thức thanh toán trong `PassengerInfoPage.jsx` theo layout phương thức/ngân hàng/tóm tắt đơn; vẫn gọi `createPayment` endpoint hiện có và map online methods qua VNPay.
 - [ ] Nâng cấp các trang `VNPayReturn`, `BookingSuccess`, `BookingFailure`.
 - [ ] Bảo đảm callback payment không bị đổi route ngoài `App.jsx`.
 - [ ] Kiểm tra happy path: search -> trip detail -> seat -> passenger -> payment.

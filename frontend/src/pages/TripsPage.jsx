@@ -19,7 +19,7 @@ import dayjs from 'dayjs';
 import { toast } from 'react-hot-toast';
 import CustomerShell from '../components/customer/CustomerShell';
 import useBookingStore from '../store/bookingStore';
-import { searchTrips } from '../services/bookingApi';
+import { getAvailableSeats, searchTrips } from '../services/bookingApi';
 
 const cityOptions = [
   'Hà Nội',
@@ -89,7 +89,9 @@ const getRouteLabel = ({ fromCity, toCity }) => {
 
 const matchesCity = (value, keyword) => {
   if (!keyword) return true;
-  return String(value || '').toLowerCase().includes(String(keyword).trim().toLowerCase());
+  return String(value || '')
+    .toLowerCase()
+    .includes(String(keyword).trim().toLowerCase());
 };
 
 const isInDateRange = (departureTime, fromDate, toDate) => {
@@ -115,6 +117,16 @@ const formatDuration = (departureTime, arrivalTime) => {
   return `${hours}h ${minutes}m`;
 };
 
+const getLiveAvailableSeatCount = (response) => {
+  const data = response?.data || {};
+
+  if (Array.isArray(data.availableSeatNumbers)) return data.availableSeatNumbers.length;
+  if (Array.isArray(data.availableSeats)) return data.availableSeats.length;
+  if (typeof data.availableSeats === 'number') return data.availableSeats;
+  if (typeof data.available === 'number') return data.available;
+  return null;
+};
+
 const getInitials = (name = 'NX') =>
   name
     .split(' ')
@@ -138,8 +150,10 @@ const normalizeTrip = (trip) => {
   const bus = trip.busId || trip.bus || {};
   const operator = trip.operatorId || trip.operator || {};
   const fromCity = route.origin?.city || route.origin?.province || trip.fromCity || 'Điểm đi';
-  const toCity = route.destination?.city || route.destination?.province || trip.toCity || 'Điểm đến';
-  const finalPrice = trip.finalPrice || trip.pricing?.finalPrice || trip.basePrice || trip.pricing?.basePrice || 0;
+  const toCity =
+    route.destination?.city || route.destination?.province || trip.toCity || 'Điểm đến';
+  const finalPrice =
+    trip.finalPrice || trip.pricing?.finalPrice || trip.basePrice || trip.pricing?.basePrice || 0;
   const basePrice = trip.basePrice || trip.pricing?.basePrice || finalPrice;
   const availableSeats = trip.availableSeats ?? trip.seats?.available ?? 0;
   const totalSeats = trip.totalSeats ?? trip.seats?.total ?? 0;
@@ -157,7 +171,10 @@ const normalizeTrip = (trip) => {
     departLabel: trip.departureTime ? dayjs(trip.departureTime).format('HH:mm') : '--:--',
     arriveLabel: trip.arrivalTime ? dayjs(trip.arrivalTime).format('HH:mm') : '--:--',
     dateLabel: trip.departureTime ? dayjs(trip.departureTime).format('DD/MM/YYYY') : '--/--/----',
-    duration: typeof trip.duration === 'string' ? trip.duration : trip.duration?.formatted || formatDuration(trip.departureTime, trip.arrivalTime),
+    duration:
+      typeof trip.duration === 'string'
+        ? trip.duration
+        : trip.duration?.formatted || formatDuration(trip.departureTime, trip.arrivalTime),
     operatorId: operator._id || operator.id,
     operatorName: operator.companyName || trip.operatorName || 'Nhà xe',
     operatorRating: operator.averageRating || operator.rating?.average || trip.operatorRating || 0,
@@ -170,12 +187,18 @@ const normalizeTrip = (trip) => {
     discount: trip.discount || trip.pricing?.discount || 0,
     availableSeats,
     totalSeats,
-    tag: trip.discount ? `GIẢM ${trip.discount}%` : availableSeats > 0 && availableSeats < 5 ? 'SẮP HẾT CHỖ' : null,
+    tag: trip.discount
+      ? `GIẢM ${trip.discount}%`
+      : availableSeats > 0 && availableSeats < 5
+        ? 'SẮP HẾT CHỖ'
+        : null,
   };
 };
 
 const CompactField = ({ icon: Icon, label, children, last = false }) => (
-  <div className={`flex min-h-[72px] flex-col justify-center gap-1 bg-white px-4 py-2 ${last ? '' : 'border-b border-vxn-border lg:border-b-0 lg:border-r'}`}>
+  <div
+    className={`flex min-h-[72px] flex-col justify-center gap-1 bg-white px-4 py-2 ${last ? '' : 'border-b border-vxn-border lg:border-b-0 lg:border-r'}`}
+  >
     <div className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.04em] text-vxn-fg-5">
       <Icon className="text-[12px] text-vxn-teal-700" />
       {label}
@@ -193,7 +216,9 @@ const SearchSummaryBar = ({ form, initialValues, loading, onSearch, onSwap, brow
             <Form.Item name="fromCity" style={{ marginBottom: 0 }}>
               <AutoComplete
                 options={cityOptions.map((city) => ({ value: city }))}
-                filterOption={(inputValue, option) => option.value.toLowerCase().includes(inputValue.toLowerCase())}
+                filterOption={(inputValue, option) =>
+                  option.value.toLowerCase().includes(inputValue.toLowerCase())
+                }
                 placeholder="Tất cả điểm đi"
                 className="vxn-compact-input"
                 allowClear
@@ -216,7 +241,9 @@ const SearchSummaryBar = ({ form, initialValues, loading, onSearch, onSwap, brow
             <Form.Item name="toCity" style={{ marginBottom: 0 }}>
               <AutoComplete
                 options={cityOptions.map((city) => ({ value: city }))}
-                filterOption={(inputValue, option) => option.value.toLowerCase().includes(inputValue.toLowerCase())}
+                filterOption={(inputValue, option) =>
+                  option.value.toLowerCase().includes(inputValue.toLowerCase())
+                }
                 placeholder="Tất cả điểm đến"
                 className="vxn-compact-input"
                 allowClear
@@ -238,7 +265,11 @@ const SearchSummaryBar = ({ form, initialValues, loading, onSearch, onSwap, brow
           </CompactField>
 
           <CompactField icon={UserOutlined} label="Hành khách" last>
-            <Form.Item name="passengers" rules={[{ required: true, message: 'Vui lòng chọn số khách!' }]} style={{ marginBottom: 0 }}>
+            <Form.Item
+              name="passengers"
+              rules={[{ required: true, message: 'Vui lòng chọn số khách!' }]}
+              style={{ marginBottom: 0 }}
+            >
               <Select options={passengerOptions} suffixIcon={null} />
             </Form.Item>
           </CompactField>
@@ -274,7 +305,9 @@ const ToggleRow = ({ label, count, active, onClick }) => (
     className={`flex w-full items-center gap-2 rounded-md border-0 bg-transparent py-1.5 text-left text-[13px] transition ${active ? 'font-medium text-vxn-ink' : 'text-vxn-fg-2 hover:text-vxn-teal-800'}`}
     onClick={onClick}
   >
-    <span className={`grid h-4 w-4 place-items-center rounded border ${active ? 'border-vxn-teal-700 bg-vxn-teal-700 text-white' : 'border-vxn-border-strong bg-white text-transparent'}`}>
+    <span
+      className={`grid h-4 w-4 place-items-center rounded border ${active ? 'border-vxn-teal-700 bg-vxn-teal-700 text-white' : 'border-vxn-border-strong bg-white text-transparent'}`}
+    >
       <CheckOutlined className="text-[10px]" />
     </span>
     <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -298,13 +331,17 @@ const FiltersSidebar = ({
   onToggleAmenity,
   onReset,
 }) => (
-  <aside className="border-r border-vxn-border bg-white px-5 py-6 lg:sticky lg:top-0 lg:max-h-screen lg:overflow-auto">
+  <aside className="border-r border-vxn-border bg-white px-5 py-6 lg:sticky lg:top-[198px] lg:h-[calc(100svh-198px)] lg:self-start lg:overflow-y-auto lg:overscroll-contain xl:top-[114px] xl:h-[calc(100svh-114px)]">
     <div className="mb-6 flex items-center justify-between">
       <div className="flex items-center gap-2 text-base font-semibold text-vxn-ink">
         <FilterOutlined className="text-vxn-teal-700" />
         Bộ lọc
       </div>
-      <button type="button" className="border-0 bg-transparent text-[13px] font-medium text-vxn-teal-800" onClick={onReset}>
+      <button
+        type="button"
+        className="border-0 bg-transparent text-[13px] font-medium text-vxn-teal-800"
+        onClick={onReset}
+      >
         Xóa hết
       </button>
     </div>
@@ -395,8 +432,7 @@ const FiltersSidebar = ({
 const SortRow = ({ total, criteria, sortBy, onSortChange }) => (
   <div className="flex flex-col gap-3 rounded-xl border border-vxn-border bg-white px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
     <div className="text-sm font-medium text-vxn-ink">
-      <strong className="text-vxn-teal-700">{total} chuyến</strong>{' '}
-      {getRouteLabel(criteria)}
+      <strong className="text-vxn-teal-700">{total} chuyến</strong> {getRouteLabel(criteria)}
       {getDateRangeLabel(criteria) ? ` · ${getDateRangeLabel(criteria)}` : ''}
     </div>
     <div className="flex flex-wrap gap-1 rounded-lg bg-vxn-bg-soft p-1">
@@ -429,6 +465,10 @@ const AmenityList = ({ amenities }) => {
     blanket: 'Chăn ấm',
   };
 
+  if (!amenities.length) {
+    return <span className="text-xs font-medium text-vxn-fg-4">Tiện ích đang cập nhật</span>;
+  }
+
   return (
     <div className="flex flex-wrap gap-3">
       {amenities.slice(0, 5).map((amenity) => (
@@ -441,108 +481,174 @@ const AmenityList = ({ amenities }) => {
   );
 };
 
-const TripCard = ({ trip, expanded, onSelect, onOperatorClick }) => (
-  <div className={`overflow-hidden rounded-[14px] border bg-white ${expanded ? 'border-vxn-teal-700 shadow-[0_8px_24px_-8px_rgba(0,100,129,.18)]' : 'border-vxn-border'}`}>
-    <div className="grid lg:grid-cols-[180px_1fr_220px]">
-      <button
-        type="button"
-        className="flex flex-col justify-center gap-2 border-0 border-b border-vxn-border bg-vxn-bg-soft p-5 text-left lg:border-b-0 lg:border-r"
-        onClick={onOperatorClick}
-      >
-        <span className="grid h-14 w-14 place-items-center rounded-xl bg-vxn-teal-700 text-xl font-bold text-white">
-          {getInitials(trip.operatorName)}
-        </span>
-        <span className="text-sm font-semibold text-vxn-ink">{trip.operatorName}</span>
-        <span className="flex items-center gap-1.5 text-xs text-vxn-fg-3">
-          <StarFilled className="text-vxn-saffron-600" />
-          <strong className="text-vxn-ink">{Number(trip.operatorRating || 0).toFixed(1)}</strong>
-          <span>({Number(trip.operatorReviews || 0).toLocaleString('vi-VN')})</span>
-        </span>
-        {trip.tag && <span className="mt-1 self-start rounded-full bg-[#FFE9C4] px-2.5 py-1 text-[10px] font-semibold text-vxn-saffron-700">{trip.tag}</span>}
-      </button>
+const TripCard = ({ trip, onSelect, onOperatorClick }) => {
+  const amenityItems = trip.amenities.length > 0 ? trip.amenities : ['Đang cập nhật'];
+  const seatCountLabel = trip.totalSeats
+    ? `${trip.availableSeats}/${trip.totalSeats}`
+    : `${trip.availableSeats}`;
 
-      <div className="flex flex-col gap-3 p-5">
-        <div className="flex items-center gap-5">
-          <div className="min-w-[76px] text-right">
-            <div className="text-2xl font-bold text-vxn-ink">{trip.departLabel}</div>
-            <div className="mt-0.5 text-xs text-vxn-fg-5">{trip.fromStation}</div>
-          </div>
-          <div className="flex flex-1 flex-col items-center gap-1">
-            <span className="text-xs font-medium uppercase tracking-[0.04em] text-vxn-fg-4">{trip.duration}</span>
-            <div className="relative h-0.5 w-full bg-vxn-bg-fog">
-              <span className="absolute left-[-4px] top-[-3px] h-2 w-2 rounded-full bg-vxn-teal-700" />
-              <span className="absolute right-[-4px] top-[-3px] h-2 w-2 rounded-full bg-vxn-teal-700" />
+  return (
+    <article className="overflow-hidden rounded-[18px] border border-vxn-border bg-white shadow-[0_18px_44px_-30px_rgba(15,23,42,0.55)] transition hover:-translate-y-0.5 hover:border-vxn-teal-300 hover:shadow-[0_24px_54px_-32px_rgba(0,100,129,0.42)]">
+      <div className="grid xl:grid-cols-[178px_minmax(0,1fr)_218px]">
+        <button
+          type="button"
+          className="flex items-center gap-3 border-0 border-b border-vxn-border bg-[#F4FAFB] p-4 text-left transition hover:bg-[#EDF7F9] xl:flex-col xl:items-start xl:justify-between xl:border-b-0 xl:border-r xl:p-5"
+          onClick={onOperatorClick}
+        >
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[12px] bg-vxn-teal-700 text-base font-bold text-white shadow-sm xl:h-14 xl:w-14 xl:text-lg">
+            {getInitials(trip.operatorName)}
+          </span>
+          <span className="min-w-0 flex-1 xl:flex-none">
+            <span className="block truncate text-sm font-bold text-vxn-ink">
+              {trip.operatorName}
+            </span>
+            <span className="mt-1 flex items-center gap-1.5 text-xs text-vxn-fg-3">
+              <StarFilled className="text-vxn-saffron-600" />
+              <strong className="text-vxn-ink">
+                {Number(trip.operatorRating || 0).toFixed(1)}
+              </strong>
+              <span>({Number(trip.operatorReviews || 0).toLocaleString('vi-VN')})</span>
+            </span>
+          </span>
+          {trip.tag && (
+            <span className="rounded-full bg-[#FFE9C4] px-2.5 py-1 text-[10px] font-semibold text-vxn-saffron-700">
+              {trip.tag}
+            </span>
+          )}
+        </button>
+
+        <div className="min-w-0 p-4 xl:p-5">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-vxn-ink">
+              <EnvironmentOutlined className="shrink-0 text-vxn-teal-700" />
+              <span className="truncate">{trip.fromCity}</span>
+              <ArrowRightOutlined className="shrink-0 text-[11px] text-vxn-fg-5" />
+              <span className="truncate">{trip.toCity}</span>
             </div>
-            <span className="text-[11px] text-vxn-fg-5">{trip.busType}</span>
-          </div>
-          <div className="min-w-[76px]">
-            <div className="text-2xl font-bold text-vxn-ink">{trip.arriveLabel}</div>
-            <div className="mt-0.5 text-xs text-vxn-fg-5">{trip.toStation}</div>
-          </div>
-        </div>
-
-        <div className="border-t border-dashed border-vxn-border pt-3">
-          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-vxn-ink">
-            <EnvironmentOutlined className="text-vxn-teal-700" />
-            {trip.fromCity} <ArrowRightOutlined className="text-xs text-vxn-fg-5" /> {trip.toCity}
-            <span className="text-xs font-normal text-vxn-fg-5">· {trip.dateLabel}</span>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <AmenityList amenities={trip.amenities} />
-            <span className={`text-xs font-medium ${trip.availableSeats < 5 ? 'text-red-500' : 'text-vxn-fg-3'}`}>
-              Còn <strong>{trip.availableSeats}/{trip.totalSeats}</strong> chỗ
+            <span className="inline-flex w-fit items-center rounded-full bg-vxn-bg-soft px-3 py-1 text-xs font-medium text-vxn-fg-3">
+              {trip.dateLabel} · {trip.busType}
             </span>
           </div>
+
+          <div className="grid grid-cols-[72px_minmax(0,1fr)_72px] items-start gap-4 sm:grid-cols-[92px_minmax(0,1fr)_92px]">
+            <div className="text-right">
+              <div className="text-[28px] font-bold leading-none text-vxn-ink">
+                {trip.departLabel}
+              </div>
+              <div className="mt-1 line-clamp-2 text-xs leading-5 text-vxn-fg-5">
+                {trip.fromStation}
+              </div>
+            </div>
+
+            <div className="pt-3">
+              <div className="mb-2 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-vxn-fg-5">
+                <span>{trip.duration}</span>
+              </div>
+              <div className="relative h-2">
+                <span className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-vxn-border-strong" />
+                <span className="absolute left-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border-2 border-white bg-vxn-teal-700 shadow" />
+                <span className="absolute right-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border-2 border-white bg-vxn-teal-700 shadow" />
+              </div>
+              <div className="mt-3 rounded-[10px] border border-dashed border-vxn-border bg-[#FAFCFF] px-3 py-2">
+                <div className="flex items-center justify-center text-xs text-vxn-fg-3">
+                  <span
+                    className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 font-semibold ${trip.availableSeats < 5 ? 'bg-red-50 text-red-500' : 'bg-[#E7F4FA] text-vxn-teal-800'}`}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${trip.availableSeats < 5 ? 'bg-red-500' : 'bg-vxn-teal-700'}`} />
+                    Còn {seatCountLabel} chỗ
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div className="text-[28px] font-bold leading-none text-vxn-ink">
+                {trip.arriveLabel}
+              </div>
+              <div className="mt-1 line-clamp-2 text-xs leading-5 text-vxn-fg-5">
+                {trip.toStation}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-vxn-border bg-[#FFF9ED] p-4 xl:border-l xl:border-t-0 xl:p-5">
+          <div className="xl:text-right">
+            {trip.discount > 0 && (
+              <div className="mb-1 flex items-center gap-2 xl:justify-end">
+                <span className="text-xs text-vxn-fg-5 line-through">
+                  {formatCurrency(trip.basePrice)}
+                </span>
+                <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-600">
+                  -{trip.discount}%
+                </span>
+              </div>
+            )}
+            <div className="text-[30px] font-bold leading-none tracking-[-0.01em] text-vxn-saffron-700">
+              {formatCurrency(trip.finalPrice)}
+            </div>
+            <div className="mt-1 text-[11px] text-vxn-fg-5">/ vé · đã gồm thuế</div>
+          </div>
+
+          <Button
+            type="primary"
+            className="mt-auto h-11 rounded-md border-0 bg-vxn-teal-700 text-[15px] font-semibold hover:!bg-vxn-teal-800"
+            onClick={onSelect}
+            block
+          >
+            Chọn chuyến <ArrowRightOutlined className="text-xs" />
+          </Button>
+          <button
+            type="button"
+            className="border-0 bg-transparent text-center text-xs font-medium text-vxn-teal-800"
+            onClick={onSelect}
+          >
+            Xem chi tiết & sơ đồ ghế
+          </button>
         </div>
       </div>
 
-      <div className="flex flex-col items-start justify-center gap-2 border-t border-vxn-border bg-vxn-bg-soft p-5 lg:items-end lg:border-l lg:border-t-0">
-        {trip.discount > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-vxn-fg-5 line-through">{formatCurrency(trip.basePrice)}</span>
-            <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-600">-{trip.discount}%</span>
-          </div>
-        )}
-        <div className="text-[26px] font-bold tracking-[-0.01em] text-vxn-saffron-700">{formatCurrency(trip.finalPrice)}</div>
-        <div className="text-[11px] text-vxn-fg-5">/ vé · đã gồm thuế</div>
-        <Button
-          type="primary"
-          className="mt-1 h-10 w-full rounded-md border-0 bg-vxn-teal-700 font-semibold hover:!bg-vxn-teal-800"
-          onClick={onSelect}
-        >
-          Chọn chuyến <ArrowRightOutlined className="text-xs" />
-        </Button>
-        <button type="button" className="border-0 bg-transparent text-xs font-medium text-vxn-teal-800" onClick={onSelect}>
-          Xem chi tiết & sơ đồ ghế ↓
-        </button>
-      </div>
-    </div>
-
-    {expanded && (
-      <div className="grid gap-5 border-t border-vxn-border bg-vxn-bg-soft px-5 py-4 lg:grid-cols-3">
+      <div className="grid gap-4 border-t border-vxn-border bg-[#F7FAFC] px-4 py-4 xl:grid-cols-[1fr_1fr_1.25fr] xl:px-5">
         <div>
-          <div className="mb-2 text-xs font-medium uppercase tracking-[0.05em] text-vxn-fg-5">Lịch trình</div>
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-vxn-fg-5">
+            Lịch trình
+          </div>
           <div className="space-y-1.5 text-[13px] text-vxn-fg-2">
-            <div><strong className="text-vxn-ink">{trip.departLabel}</strong> · {trip.fromStation}</div>
-            <div><strong className="text-vxn-ink">{trip.arriveLabel}</strong> · {trip.toStation}</div>
+            <div>
+              <strong className="text-vxn-ink">{trip.departLabel}</strong> · {trip.fromStation}
+            </div>
+            <div>
+              <strong className="text-vxn-ink">{trip.arriveLabel}</strong> · {trip.toStation}
+            </div>
           </div>
         </div>
         <div>
-          <div className="mb-2 text-xs font-medium uppercase tracking-[0.05em] text-vxn-fg-5">Tiện ích đầy đủ</div>
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-vxn-fg-5">
+            Tiện ích
+          </div>
           <div className="flex flex-wrap gap-2">
-            {trip.amenities.map((amenity) => (
-              <span key={amenity} className="rounded-full bg-white px-2.5 py-1 text-xs text-vxn-fg-2">{amenity}</span>
+            {amenityItems.slice(0, 4).map((amenity) => (
+              <span
+                key={amenity}
+                className="rounded-full border border-vxn-border bg-white px-2.5 py-1 text-xs font-medium text-vxn-fg-2"
+              >
+                {amenity}
+              </span>
             ))}
           </div>
         </div>
         <div>
-          <div className="mb-2 text-xs font-medium uppercase tracking-[0.05em] text-vxn-fg-5">Chính sách</div>
-          <div className="text-[13px] leading-6 text-vxn-fg-2">Hoàn 90% trước 24h · Đổi chuyến miễn phí trước 24h · Trẻ em dưới 1m miễn vé</div>
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-vxn-fg-5">
+            Chính sách
+          </div>
+          <div className="text-[13px] leading-6 text-vxn-fg-2">
+            Đổi chuyến miễn phí trước 24h · Trẻ em dưới 1m miễn vé
+          </div>
         </div>
       </div>
-    )}
-  </div>
-);
+    </article>
+  );
+};
 
 const TripsPage = () => {
   const navigate = useNavigate();
@@ -597,15 +703,19 @@ const TripsPage = () => {
     try {
       setLoading(true);
       const query = Object.fromEntries(
-        Object.entries(criteria).filter(([, value]) => value !== undefined && value !== null && value !== '')
+        Object.entries(criteria).filter(
+          ([, value]) => value !== undefined && value !== null && value !== ''
+        )
       );
       const response = await searchTrips(query);
-      const nextTrips = response.status === 'success' ? (response.data?.trips || []).map(normalizeTrip) : [];
+      const nextTrips =
+        response.status === 'success' ? (response.data?.trips || []).map(normalizeTrip) : [];
 
       setTrips(nextTrips);
 
       if (nextTrips.length > 0) {
-        const nextMaxPrice = Math.ceil(Math.max(...nextTrips.map((trip) => trip.finalPrice), 1000000) / 10000) * 10000;
+        const nextMaxPrice =
+          Math.ceil(Math.max(...nextTrips.map((trip) => trip.finalPrice), 1000000) / 10000) * 10000;
         setMaxPrice(nextMaxPrice);
         setPriceRange([0, nextMaxPrice]);
       } else {
@@ -654,16 +764,30 @@ const TripsPage = () => {
     setActiveCriteria(nextCriteria);
     form.setFieldsValue(initialValues);
     fetchTrips(apiCriteria);
-  }, [form, initialValues, isSearchResultsPage, location.search, operatorIdFromUrl, searchCriteria]);
+  }, [
+    form,
+    initialValues,
+    isSearchResultsPage,
+    location.search,
+    operatorIdFromUrl,
+    searchCriteria,
+  ]);
 
-  const busTypes = useMemo(() => Array.from(new Set(trips.map((trip) => trip.busType).filter(Boolean))), [trips]);
+  const busTypes = useMemo(
+    () => Array.from(new Set(trips.map((trip) => trip.busType).filter(Boolean))),
+    [trips]
+  );
 
   const operators = useMemo(() => {
     const map = new Map();
 
     trips.forEach((trip) => {
       if (!trip.operatorId) return;
-      const current = map.get(trip.operatorId) || { id: trip.operatorId, name: trip.operatorName, count: 0 };
+      const current = map.get(trip.operatorId) || {
+        id: trip.operatorId,
+        name: trip.operatorName,
+        count: 0,
+      };
       current.count += 1;
       map.set(trip.operatorId, current);
     });
@@ -677,19 +801,109 @@ const TripsPage = () => {
     return trips
       .filter((trip) => matchesCity(trip.fromCity, activeCriteria.fromCity))
       .filter((trip) => matchesCity(trip.toCity, activeCriteria.toCity))
-      .filter((trip) => isInDateRange(trip.departureTime, activeCriteria.fromDate, activeCriteria.toDate))
+      .filter((trip) =>
+        isInDateRange(trip.departureTime, activeCriteria.fromDate, activeCriteria.toDate)
+      )
       .filter((trip) => trip.finalPrice >= priceRange[0] && trip.finalPrice <= priceRange[1])
-      .filter((trip) => !selectedSlot || (dayjs(trip.departureTime).hour() >= selectedSlot.start && dayjs(trip.departureTime).hour() < selectedSlot.end))
+      .filter(
+        (trip) =>
+          !selectedSlot ||
+          (dayjs(trip.departureTime).hour() >= selectedSlot.start &&
+            dayjs(trip.departureTime).hour() < selectedSlot.end)
+      )
       .filter((trip) => selectedBusTypes.length === 0 || selectedBusTypes.includes(trip.busType))
-      .filter((trip) => selectedOperators.length === 0 || selectedOperators.includes(trip.operatorId))
-      .filter((trip) => selectedAmenities.length === 0 || selectedAmenities.every((amenity) => trip.amenities.includes(amenity)))
+      .filter(
+        (trip) => selectedOperators.length === 0 || selectedOperators.includes(trip.operatorId)
+      )
+      .filter(
+        (trip) =>
+          selectedAmenities.length === 0 ||
+          selectedAmenities.every((amenity) => trip.amenities.includes(amenity))
+      )
       .sort((a, b) => {
         if (sortBy === 'price') return a.finalPrice - b.finalPrice;
         if (sortBy === 'rating') return b.operatorRating - a.operatorRating;
         if (sortBy === 'seats') return b.availableSeats - a.availableSeats;
         return new Date(a.departureTime) - new Date(b.departureTime);
       });
-  }, [trips, activeCriteria, priceRange, timeSlot, selectedBusTypes, selectedOperators, selectedAmenities, sortBy]);
+  }, [
+    trips,
+    activeCriteria,
+    priceRange,
+    timeSlot,
+    selectedBusTypes,
+    selectedOperators,
+    selectedAmenities,
+    sortBy,
+  ]);
+
+  const visibleTripIds = useMemo(
+    () => filteredTrips.map((trip) => trip.id).filter(Boolean).join('|'),
+    [filteredTrips]
+  );
+
+  useEffect(() => {
+    if (!visibleTripIds) return undefined;
+
+    let cancelled = false;
+    const tripIds = visibleTripIds.split('|').filter(Boolean);
+
+    const refreshSeatCounts = async () => {
+      const updates = await Promise.all(
+        tripIds.map(async (tripId) => {
+          try {
+            const response = await getAvailableSeats(tripId);
+            const availableSeats = getLiveAvailableSeatCount(response);
+            const totalSeats = response?.data?.totalSeats;
+
+            if (availableSeats === null) return null;
+            return { tripId, availableSeats, totalSeats };
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      if (cancelled) return;
+
+      const updateMap = new Map(
+        updates
+          .filter(Boolean)
+          .map((update) => [update.tripId, update])
+      );
+
+      if (updateMap.size === 0) return;
+
+      setTrips((currentTrips) =>
+        currentTrips.map((trip) => {
+          const update = updateMap.get(trip.id);
+          if (!update) return trip;
+
+          const nextTotalSeats = update.totalSeats || trip.totalSeats;
+          if (
+            trip.availableSeats === update.availableSeats &&
+            trip.totalSeats === nextTotalSeats
+          ) {
+            return trip;
+          }
+
+          return {
+            ...trip,
+            availableSeats: update.availableSeats,
+            totalSeats: nextTotalSeats,
+          };
+        })
+      );
+    };
+
+    refreshSeatCounts();
+    const timer = setInterval(refreshSeatCounts, 15000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [visibleTripIds]);
 
   const handleSearch = async (values) => {
     try {
@@ -741,7 +955,9 @@ const TripsPage = () => {
   };
 
   const toggleValue = (setter, value) => {
-    setter((current) => (current.includes(value) ? current.filter((item) => item !== value) : [...current, value]));
+    setter((current) =>
+      current.includes(value) ? current.filter((item) => item !== value) : [...current, value]
+    );
   };
 
   const resetFilters = () => {
@@ -788,7 +1004,7 @@ const TripsPage = () => {
         browseMode={!isSearchResultsPage}
       />
 
-      <div className="grid lg:grid-cols-[280px_1fr]">
+      <div className="grid items-start lg:grid-cols-[280px_minmax(0,1fr)]">
         <FiltersSidebar
           maxPrice={maxPrice}
           priceRange={priceRange}
@@ -807,8 +1023,13 @@ const TripsPage = () => {
         />
 
         <section className="min-w-0 px-4 py-6 lg:px-8">
-          <div className="mx-auto flex max-w-[1180px] flex-col gap-4">
-            <SortRow total={filteredTrips.length} criteria={activeCriteria} sortBy={sortBy} onSortChange={setSortBy} />
+          <div className="mx-auto flex max-w-[1180px] flex-col gap-5">
+            <SortRow
+              total={filteredTrips.length}
+              criteria={activeCriteria}
+              sortBy={sortBy}
+              onSortChange={setSortBy}
+            />
 
             {loading ? (
               <div className="grid min-h-[360px] place-items-center rounded-xl border border-vxn-border bg-white">
@@ -819,13 +1040,14 @@ const TripsPage = () => {
                 <Empty description="Không tìm thấy chuyến phù hợp" />
               </div>
             ) : (
-              filteredTrips.map((trip, index) => (
+              filteredTrips.map((trip) => (
                 <TripCard
                   key={trip.id}
                   trip={trip}
-                  expanded={index === 0}
                   onSelect={() => handleTripSelect(trip)}
-                  onOperatorClick={() => trip.operatorId && navigate(`/operators/${trip.operatorId}`)}
+                  onOperatorClick={() =>
+                    trip.operatorId && navigate(`/operators/${trip.operatorId}`)
+                  }
                 />
               ))
             )}

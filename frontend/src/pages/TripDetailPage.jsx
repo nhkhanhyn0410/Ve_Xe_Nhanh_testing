@@ -215,7 +215,7 @@ const TripDetailPage = () => {
 
   return (
     <CustomerShell activeKey="buy" mainClassName="bg-vxn-bg-soft">
-      <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
+      <div className="sticky top-16 z-30 border-b border-vxn-border bg-white px-4 py-4 shadow-sm lg:top-0 lg:px-8">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2 text-sm text-vxn-fg-3">
             <button type="button" className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800" onClick={() => navigate('/')}>
@@ -366,7 +366,7 @@ const TripDetailPage = () => {
             </InfoCard>
           </div>
 
-          <aside className="xl:sticky xl:top-6 xl:self-start">
+          <aside className="xl:sticky xl:top-[88px] xl:self-start">
             <div className="overflow-hidden rounded-[18px] border border-vxn-border bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]">
               <div className="border-b border-vxn-border bg-vxn-teal-900 px-5 py-4 text-white">
                 <div className="text-xs uppercase tracking-[0.08em] text-white/65">Tóm tắt chuyến</div>

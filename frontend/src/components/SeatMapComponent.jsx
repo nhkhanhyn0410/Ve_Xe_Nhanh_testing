@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { CheckOutlined, CloseOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
+import { CheckOutlined, CloseOutlined, UserOutlined } from '@ant-design/icons';
 import useBookingStore from '../store/bookingStore';
 
 const MAX_SEATS_SELECTION = 10;
@@ -163,7 +163,8 @@ const SeatMapComponent = ({
     else if (isSelected) stateClass = 'vxn-seat--selected';
 
     const finalPrice = vip ? seatPrice + (vipSurcharge || 0) : seatPrice;
-    const title = `Ghế ${cell.seatNumber}${vip ? ' · VIP' : ''}${showPrice && finalPrice ? ` · ${finalPrice.toLocaleString('vi-VN')}đ` : ''}`;
+    const statusLabel = isBooked ? 'Đã đặt' : isHeld || isUnavailable ? 'Đang giữ' : isSelected ? 'Đang chọn' : 'Còn trống';
+    const title = `Ghế ${cell.seatNumber} · ${statusLabel}${vip ? ' · VIP' : ''}${showPrice && finalPrice ? ` · ${finalPrice.toLocaleString('vi-VN')}đ` : ''}`;
 
     return (
       <button
@@ -185,11 +186,6 @@ const SeatMapComponent = ({
         {isBooked && (
           <span className="vxn-seat__overlay vxn-seat__overlay--booked" aria-hidden="true">
             <CloseOutlined />
-          </span>
-        )}
-        {(isHeld || (isUnavailable && !isBooked)) && (
-          <span className="vxn-seat__overlay vxn-seat__overlay--held" aria-hidden="true">
-            <LockOutlined />
           </span>
         )}
       </button>
@@ -554,9 +550,9 @@ const SeatMapComponent = ({
         }
 
         .vxn-seat--held {
-          background: #f1f5f9;
-          border-color: #cbd5e1;
-          color: #94a3b8;
+          background: #fef3c7;
+          border-color: #fcd34d;
+          color: #92400e;
         }
 
         .vxn-seat--booked {
@@ -608,10 +604,6 @@ const SeatMapComponent = ({
           font-size: 18px;
           color: #94a3b8;
           background: rgba(255, 255, 255, 0.4);
-        }
-
-        .vxn-seat__overlay--held {
-          color: #b45309;
         }
 
         .vxn-seat__overlay--booked {

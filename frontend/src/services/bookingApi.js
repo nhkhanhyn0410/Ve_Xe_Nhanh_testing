@@ -47,9 +47,11 @@ export const confirmBooking = async (bookingId, sessionId) => {
   return api.post(`/bookings/${bookingId}/confirm`, { sessionId });
 };
 
-// Get booking by code
-export const getBookingByCode = async (bookingCode) => {
-  return api.get(`/bookings/code/${bookingCode}`);
+// Get booking by code (optional phone for guest lookup)
+export const getBookingByCode = async (bookingCode, phone) => {
+  return api.get(`/bookings/code/${bookingCode}`, {
+    params: phone ? { phone } : undefined,
+  });
 };
 
 // Cancel booking

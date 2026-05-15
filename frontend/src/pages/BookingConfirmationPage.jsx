@@ -1,18 +1,83 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, Result, Button, Descriptions, Typography, Space, Tag, Divider, Spin } from 'antd';
+import { Button, Spin } from 'antd';
 import {
-  CheckCircleOutlined,
-  CloseCircleOutlined,
+  CheckOutlined,
   DownloadOutlined,
   HomeOutlined,
+  PrinterOutlined,
+  ShareAltOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getBookingByCode } from '../services/bookingApi';
+import api from '../services/api';
 import useBookingStore from '../store/bookingStore';
-import CustomerLayout from '../components/layouts/CustomerLayout';
+import CustomerShell from '../components/customer/CustomerShell';
+import SaffronTicketCard from '../components/customer/SaffronTicketCard';
 
-const { Title, Text } = Typography;
+const BOOKING_STEPS = [
+  { key: 'seats', label: 'Chọn ghế' },
+  { key: 'passenger', label: 'Thông tin hành khách' },
+  { key: 'payment', label: 'Thanh toán' },
+  { key: 'done', label: 'Hoàn tất' },
+];
+
+const BookingStepper = ({ current = 4 }) => (
+  <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
+    <ol className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+      {BOOKING_STEPS.map((step, index) => {
+        const stepNumber = index + 1;
+        const done = stepNumber < current;
+        const active = stepNumber === current;
+        return (
+          <li key={step.key} className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span
+                className={`grid h-7 w-7 place-items-center rounded-full text-[13px] font-semibold ${
+                  done || active ? 'bg-vxn-teal-700 text-white' : 'bg-vxn-bg-cloud text-vxn-fg-5'
+                }`}
+              >
+                {done ? <CheckOutlined className="text-[12px]" /> : stepNumber}
+              </span>
+              <span
+                className={`text-sm ${
+                  active
+                    ? 'font-semibold text-vxn-ink'
+                    : done
+                      ? 'font-medium text-vxn-fg-2'
+                      : 'text-vxn-fg-5'
+                }`}
+              >
+                {step.label}
+              </span>
+            </div>
+            {index < BOOKING_STEPS.length - 1 && (
+              <span className={`h-px w-10 ${done ? 'bg-vxn-teal-700' : 'bg-vxn-border'}`} />
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  </div>
+);
+
+const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
+const formatDateTime = (value) => (value ? dayjs(value).format('HH:mm · DD/MM/YYYY') : '—');
+
+const paymentMethodLabel = (method) => {
+  switch (method) {
+    case 'vnpay':
+      return 'VNPay';
+    case 'momo':
+      return 'Ví MoMo';
+    case 'zalopay':
+      return 'ZaloPay';
+    case 'cash':
+      return 'Tiền mặt';
+    default:
+      return method ? method.toUpperCase() : '—';
+  }
+};
 
 const BookingConfirmationPage = () => {
   const { bookingCode } = useParams();
@@ -20,269 +85,271 @@ const BookingConfirmationPage = () => {
   const navigate = useNavigate();
   const { resetBooking } = useBookingStore();
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(null);
-  const [paymentStatus, setPaymentStatus] = useState(null);
+  const [ticket, setTicket] = useState(null);
 
   useEffect(() => {
-    // Check if coming from payment
-    const paymentCode = searchParams.get('paymentCode');
-    if (paymentCode) {
-      setPaymentStatus('success');
-    }
+    const phone = searchParams.get('phone');
+    const fetchBooking = async () => {
+      try {
+        setLoading(true);
+        const response = await getBookingByCode(bookingCode, phone || undefined);
+        if (response.success && response.data) {
+          const data = response.data.booking || response.data;
+          setBooking(data);
+        }
+      } catch (error) {
+        console.error('Fetch booking error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     if (bookingCode) {
       fetchBooking();
-    }
-
-    // Reset booking flow
-    resetBooking();
-  }, [bookingCode]);
-
-  const fetchBooking = async () => {
-    try {
-      setLoading(true);
-      const response = await getBookingByCode(bookingCode);
-
-      if (response.success && response.data) {
-        setBooking(response.data);
-      }
-    } catch (error) {
-      console.error('Fetch booking error:', error);
-    } finally {
+    } else {
       setLoading(false);
     }
-  };
 
-  const formatTime = (dateString) => {
-    return dayjs(dateString).format('HH:mm, DD/MM/YYYY');
-  };
+    // Reset the in-progress booking flow once landing here
+    resetBooking();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingCode]);
 
-  const formatPrice = (price) => {
-    return price.toLocaleString('vi-VN') + 'đ';
-  };
-
-  const getStatusTag = (status) => {
-    const statusConfig = {
-      pending: { color: 'orange', text: 'Chờ thanh toán' },
-      confirmed: { color: 'green', text: 'Đã xác nhận' },
-      cancelled: { color: 'red', text: 'Đã hủy' },
-      completed: { color: 'blue', text: 'Hoàn thành' },
+  useEffect(() => {
+    const fetchTicket = async () => {
+      if (!booking?._id) return;
+      try {
+        const response = await api.get(`/tickets/booking/${booking._id}`);
+        if (response.success && response.data?.ticket) {
+          setTicket(response.data.ticket);
+        }
+      } catch (error) {
+        console.error('Failed to fetch ticket:', error);
+      }
     };
-
-    const config = statusConfig[status] || statusConfig.pending;
-    return <Tag color={config.color}>{config.text}</Tag>;
-  };
-
-  const getPaymentStatusTag = (status) => {
-    const statusConfig = {
-      pending: { color: 'orange', text: 'Chờ thanh toán' },
-      paid: { color: 'green', text: 'Đã thanh toán' },
-      failed: { color: 'red', text: 'Thanh toán thất bại' },
-      refunded: { color: 'purple', text: 'Đã hoàn tiền' },
-    };
-
-    const config = statusConfig[status] || statusConfig.pending;
-    return <Tag color={config.color}>{config.text}</Tag>;
-  };
+    fetchTicket();
+  }, [booking]);
 
   if (loading) {
     return (
-      <CustomerLayout>
-        <div className="flex justify-center items-center min-h-screen">
-          <Spin size="large" tip="Đang tải thông tin đặt vé..." />
+      <CustomerShell activeKey="buy">
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
+          <Spin size="large" />
+          <p className="text-[14px] text-vxn-fg-3">
+            Đang tải thông tin vé...
+          </p>
         </div>
-      </CustomerLayout>
+      </CustomerShell>
     );
   }
 
   if (!booking) {
     return (
-      <CustomerLayout>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <Card>
-            <Result
-              status="404"
-              title="Không tìm thấy thông tin đặt vé"
-              extra={
-                <Button type="primary" onClick={() => navigate('/')}>
-                  Về trang chủ
-                </Button>
-              }
-            />
-          </Card>
+      <CustomerShell activeKey="buy">
+        <div className="flex min-h-[60vh] items-center justify-center px-4">
+          <div className="max-w-md rounded-2xl border border-vxn-border bg-white p-8 text-center">
+            <h2 className="m-0 text-[20px] font-semibold text-vxn-ink">
+              Không tìm thấy thông tin đặt vé
+            </h2>
+            <p className="mt-2 text-[13px] text-vxn-fg-3">
+              Mã đặt vé không tồn tại hoặc đã bị xoá. Vui lòng kiểm tra lại.
+            </p>
+            <Button
+              type="primary"
+              size="large"
+              className="mt-5"
+              onClick={() => navigate('/')}
+            >
+              Về trang chủ
+            </Button>
+          </div>
         </div>
-      </CustomerLayout>
+      </CustomerShell>
     );
   }
 
-  const isSuccess = booking.status === 'confirmed' || booking.paymentStatus === 'paid';
+  const seats = booking?.seats || [];
+  const totalPrice = booking?.totalPrice ?? booking?.finalPrice ?? 0;
+  const finalPrice = booking?.finalPrice ?? totalPrice;
+  const discount = (booking?.discount || 0) + (booking?.voucherDiscount || 0);
+  const isPaid =
+    booking?.paymentStatus === 'paid' || booking?.status === 'confirmed';
 
   return (
-    <CustomerLayout>
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Success/Failure Message */}
-        <Card className="mb-6">
-          <Result
-            status={isSuccess ? 'success' : 'warning'}
-            icon={
-              isSuccess ? (
-                <CheckCircleOutlined className="text-green-500" />
-              ) : (
-                <CloseCircleOutlined className="text-orange-500" />
-              )
-            }
-            title={
-              isSuccess
-                ? 'Đặt vé thành công!'
-                : 'Đang chờ thanh toán'
-            }
-            subTitle={
-              isSuccess
-                ? `Mã đặt vé của bạn: ${booking.bookingCode}`
-                : 'Vui lòng hoàn tất thanh toán để xác nhận vé'
-            }
-            extra={[
+    <CustomerShell activeKey="buy">
+      <BookingStepper current={4} />
+
+      <div className="px-4 py-6 lg:px-8 lg:py-10">
+        <div className="mx-auto max-w-5xl">
+          <nav className="mb-5 flex items-center gap-1 text-[13px] text-vxn-fg-4">
+            <span>Trang chủ</span>
+            <span>·</span>
+            <span>Hành trình</span>
+            <span>·</span>
+            <span>Thanh toán</span>
+            <span>·</span>
+            <span className="text-vxn-fg-2">Vé điện tử</span>
+          </nav>
+
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="m-0 text-[26px] font-semibold tracking-tight text-vxn-ink">
+                Vé điện tử của bạn
+              </h1>
+              <p className="m-0 mt-1 text-[13px] text-vxn-fg-3">
+                Mã đặt vé:{' '}
+                <span className="font-mono font-semibold text-vxn-ink">
+                  {booking.bookingCode}
+                </span>{' '}
+                · Đã gửi đến email{' '}
+                <span className="text-vxn-ink">
+                  {booking?.contactInfo?.email || ''}
+                </span>
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button icon={<PrinterOutlined />} onClick={() => window.print()}>
+                In vé
+              </Button>
+              <Button icon={<DownloadOutlined />}>Tải PDF</Button>
+              <Button icon={<ShareAltOutlined />}>Chia sẻ</Button>
+            </div>
+          </div>
+
+          <SaffronTicketCard booking={booking} ticket={ticket} className="mb-6" />
+
+          <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+            <div className="rounded-2xl border border-vxn-border bg-white p-6">
+              <h3 className="m-0 text-[15px] font-semibold text-vxn-ink">
+                Hành khách & Liên hệ
+              </h3>
+              <dl className="mt-4 space-y-3 text-[13.5px]">
+                <div className="flex justify-between gap-3">
+                  <dt className="text-vxn-fg-5">Người đặt</dt>
+                  <dd className="font-medium text-vxn-ink">
+                    {booking?.contactInfo?.name || '—'}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-vxn-fg-5">Điện thoại</dt>
+                  <dd className="font-medium text-vxn-ink">
+                    {booking?.contactInfo?.phone || '—'}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-vxn-fg-5">Email</dt>
+                  <dd className="font-medium text-vxn-ink truncate max-w-[60%]">
+                    {booking?.contactInfo?.email || '—'}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt className="text-vxn-fg-5">Ghế đã đặt</dt>
+                  <dd className="font-semibold text-[#A8741A]">
+                    {seats.map((s) => s.seatNumber || s).join(', ') || '—'}
+                  </dd>
+                </div>
+                {booking?.pickupPoint && (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-vxn-fg-5">Điểm đón</dt>
+                    <dd className="text-right font-medium text-vxn-ink max-w-[60%]">
+                      {booking.pickupPoint.name || booking.pickupPoint.address}
+                    </dd>
+                  </div>
+                )}
+                {booking?.dropoffPoint && (
+                  <div className="flex justify-between gap-3">
+                    <dt className="text-vxn-fg-5">Điểm trả</dt>
+                    <dd className="text-right font-medium text-vxn-ink max-w-[60%]">
+                      {booking.dropoffPoint.name || booking.dropoffPoint.address}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+
+            <div className="rounded-2xl border border-vxn-border bg-white p-6">
+              <h3 className="m-0 text-[15px] font-semibold text-vxn-ink">
+                Thanh toán
+              </h3>
+              <dl className="mt-4 space-y-3 text-[13.5px]">
+                <div className="flex justify-between">
+                  <dt className="text-vxn-fg-5">Phương thức</dt>
+                  <dd className="font-medium text-vxn-ink">
+                    {paymentMethodLabel(booking?.paymentMethod)}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-vxn-fg-5">Trạng thái</dt>
+                  <dd
+                    className={`font-semibold ${
+                      isPaid ? 'text-emerald-600' : 'text-amber-600'
+                    }`}
+                  >
+                    {isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-vxn-fg-5">Thời điểm đặt</dt>
+                  <dd className="font-medium text-vxn-ink">
+                    {formatDateTime(booking?.createdAt)}
+                  </dd>
+                </div>
+                {booking?.paidAt && (
+                  <div className="flex justify-between">
+                    <dt className="text-vxn-fg-5">Thanh toán lúc</dt>
+                    <dd className="font-medium text-vxn-ink">
+                      {formatDateTime(booking.paidAt)}
+                    </dd>
+                  </div>
+                )}
+                <div className="my-2 h-px bg-vxn-border" />
+                <div className="flex justify-between">
+                  <dt className="text-vxn-fg-5">
+                    Giá vé ({seats.length} ghế)
+                  </dt>
+                  <dd className="font-medium text-vxn-ink">
+                    {formatCurrency(totalPrice)}
+                  </dd>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-emerald-600">
+                    <dt>Giảm giá</dt>
+                    <dd>−{formatCurrency(discount)}</dd>
+                  </div>
+                )}
+                <div className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2.5">
+                  <span className="text-[14px] font-medium text-vxn-ink">
+                    Tổng đã thanh toán
+                  </span>
+                  <span className="text-[20px] font-bold text-[#A8741A]">
+                    {formatCurrency(finalPrice)}
+                  </span>
+                </div>
+              </dl>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-vxn-border bg-vxn-bg-mist p-5">
+            <div className="text-[13.5px] text-vxn-fg-2">
+              📱 Vui lòng quét mã QR khi lên xe · Có mặt trước giờ khởi hành{' '}
+              <strong>20 phút</strong>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => navigate('/my-tickets')}>Vé của tôi</Button>
               <Button
-                key="home"
+                type="primary"
                 icon={<HomeOutlined />}
                 onClick={() => navigate('/')}
               >
                 Về trang chủ
-              </Button>,
-              <Button key="mybookings" type="primary" onClick={() => navigate('/my-bookings')}>
-                Vé của tôi
-              </Button>,
-            ]}
-          />
-        </Card>
-
-        {/* Booking Details */}
-        <Card title={<Title level={4}>Thông tin đặt vé</Title>} className="mb-6">
-          <Descriptions bordered column={1}>
-            <Descriptions.Item label="Mã đặt vé">
-              <Text strong className="text-lg">{booking.bookingCode}</Text>
-            </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái booking">
-              {getStatusTag(booking.status)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Trạng thái thanh toán">
-              {getPaymentStatusTag(booking.paymentStatus)}
-            </Descriptions.Item>
-            <Descriptions.Item label="Nhà xe">
-              {booking.operatorId?.companyName}
-            </Descriptions.Item>
-            <Descriptions.Item label="Thời gian đặt">
-              {formatTime(booking.createdAt)}
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
-
-        {/* Trip Information */}
-        {booking.tripId && (
-          <Card title={<Title level={4}>Thông tin chuyến xe</Title>} className="mb-6">
-            <Descriptions bordered column={1}>
-              <Descriptions.Item label="Thời gian khởi hành">
-                {formatTime(booking.tripId.departureTime)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Thời gian đến">
-                {formatTime(booking.tripId.arrivalTime)}
-              </Descriptions.Item>
-              <Descriptions.Item label="Điểm đón">
-                <div>
-                  <div><strong>{booking.pickupPoint?.name}</strong></div>
-                  <div className="text-sm text-gray-500">{booking.pickupPoint?.address}</div>
-                  <div className="text-sm">Thời gian: {dayjs(booking.pickupPoint?.time).format('HH:mm')}</div>
-                </div>
-              </Descriptions.Item>
-              <Descriptions.Item label="Điểm trả">
-                <div>
-                  <div><strong>{booking.dropoffPoint?.name}</strong></div>
-                  <div className="text-sm text-gray-500">{booking.dropoffPoint?.address}</div>
-                  <div className="text-sm">Thời gian: {dayjs(booking.dropoffPoint?.time).format('HH:mm')}</div>
-                </div>
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-        )}
-
-        {/* Passenger Information */}
-        <Card title={<Title level={4}>Thông tin hành khách</Title>} className="mb-6">
-          <Descriptions bordered column={1}>
-            <Descriptions.Item label="Người đặt">
-              <div>
-                <div>{booking.contactInfo?.name}</div>
-                <div className="text-sm text-gray-500">{booking.contactInfo?.phone}</div>
-                <div className="text-sm text-gray-500">{booking.contactInfo?.email}</div>
-              </div>
-            </Descriptions.Item>
-            <Descriptions.Item label="Ghế đã chọn">
-              <Space wrap>
-                {booking.seats?.map((seat) => (
-                  <Tag key={seat.seatNumber} color="blue" className="text-base px-3 py-1">
-                    {seat.seatNumber}
-                  </Tag>
-                ))}
-              </Space>
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
-
-        {/* Payment Information */}
-        <Card title={<Title level={4}>Thông tin thanh toán</Title>}>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <Text>Tổng tiền vé ({booking.seats?.length} ghế)</Text>
-              <Text>{formatPrice(booking.totalPrice)}</Text>
+              </Button>
             </div>
-            {booking.discount > 0 && (
-              <div className="flex justify-between text-green-600">
-                <Text>Giảm giá ({booking.discount}%)</Text>
-                <Text>-{formatPrice(booking.totalPrice * booking.discount / 100)}</Text>
-              </div>
-            )}
-            {booking.voucherDiscount > 0 && (
-              <div className="flex justify-between text-green-600">
-                <Text>Giảm giá voucher ({booking.voucherCode})</Text>
-                <Text>-{formatPrice(booking.voucherDiscount)}</Text>
-              </div>
-            )}
-            <Divider className="my-2" />
-            <div className="flex justify-between">
-              <Text strong className="text-xl">Tổng thanh toán</Text>
-              <Text strong className="text-xl text-blue-600">
-                {formatPrice(booking.finalPrice)}
-              </Text>
-            </div>
-            {booking.paymentMethod && (
-              <div className="flex justify-between">
-                <Text>Phương thức thanh toán</Text>
-                <Text className="uppercase">{booking.paymentMethod}</Text>
-              </div>
-            )}
-            {booking.paidAt && (
-              <div className="flex justify-between">
-                <Text>Thời gian thanh toán</Text>
-                <Text>{formatTime(booking.paidAt)}</Text>
-              </div>
-            )}
           </div>
-        </Card>
-
-        {/* Note */}
-        {isSuccess && (
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <Text className="text-sm text-blue-800">
-              📧 Thông tin vé đã được gửi đến email <strong>{booking.contactInfo?.email}</strong>
-              <br />
-              📱 Vui lòng mang theo mã đặt vé <strong>{booking.bookingCode}</strong> khi lên xe
-            </Text>
-          </div>
-        )}
         </div>
       </div>
-    </CustomerLayout>
+    </CustomerShell>
   );
 };
 

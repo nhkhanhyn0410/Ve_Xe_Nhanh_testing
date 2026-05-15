@@ -84,7 +84,7 @@ const BOOKING_STEPS = [
 
 const BookingStepper = ({ current = 1 }) => (
   <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
-    <ol className="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <ol className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
       {BOOKING_STEPS.map((step, index) => {
         const stepNumber = index + 1;
         const done = stepNumber < current;
@@ -244,34 +244,36 @@ const SeatSelectionPage = () => {
 
   return (
     <CustomerShell activeKey="buy" mainClassName="bg-vxn-bg-soft">
-      <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-2 text-sm text-vxn-fg-3">
-            <button type="button" className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800" onClick={() => navigate('/')}>
-              Trang chủ
-            </button>
-            <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-            <button type="button" className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800" onClick={() => navigate('/trips')}>
-              Tìm chuyến
-            </button>
-            <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-            <button
-              type="button"
-              className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800"
-              onClick={() => navigate(`/trips/${tripId}`)}
-            >
-              {view.route.fromCity} → {view.route.toCity}
-            </button>
-            <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-            <span>Chọn ghế</span>
+      <div className="sticky top-16 z-30 bg-white shadow-sm lg:top-0">
+        <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-vxn-fg-3">
+              <button type="button" className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800" onClick={() => navigate('/')}>
+                Trang chủ
+              </button>
+              <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
+              <button type="button" className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800" onClick={() => navigate('/trips')}>
+                Tìm chuyến
+              </button>
+              <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
+              <button
+                type="button"
+                className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800"
+                onClick={() => navigate(`/trips/${tripId}`)}
+              >
+                {view.route.fromCity} → {view.route.toCity}
+              </button>
+              <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
+              <span>Chọn ghế</span>
+            </div>
+            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(`/trips/${tripId}`)}>
+              Quay lại chi tiết chuyến
+            </Button>
           </div>
-          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(`/trips/${tripId}`)}>
-            Quay lại chi tiết chuyến
-          </Button>
         </div>
-      </div>
 
-      <BookingStepper current={1} />
+        <BookingStepper current={1} />
+      </div>
 
       <div className="px-4 py-6 lg:px-8 lg:py-8">
         <div className="mx-auto grid max-w-[1280px] gap-6 xl:grid-cols-[1fr_380px]">
@@ -360,7 +362,7 @@ const SeatSelectionPage = () => {
             </section>
           </div>
 
-          <aside className="xl:sticky xl:top-6 xl:self-start">
+          <aside className="xl:sticky xl:top-[152px] xl:self-start">
             <div className="overflow-hidden rounded-[18px] border border-vxn-border bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]">
               <div className="border-b border-vxn-border bg-vxn-teal-900 px-5 py-4 text-white">
                 <div className="text-xs uppercase tracking-[0.08em] text-white/65">Chuyến đi</div>
