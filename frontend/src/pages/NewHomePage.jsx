@@ -17,8 +17,8 @@ import {
   StarFilled,
   StarOutlined,
   SwapOutlined,
+  TagsOutlined,
   TeamOutlined,
-  ThunderboltOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -52,6 +52,7 @@ const popularRoutesFallback = [
   { from: 'TP. Hồ Chí Minh', to: 'Vũng Tàu', km: 125, hours: '2 tiếng', fromPrice: 120000, rating: '4.6' },
   { from: 'Đà Nẵng', to: 'Huế', km: 100, hours: '2 tiếng', fromPrice: 110000, rating: '4.6' },
   { from: 'TP. Hồ Chí Minh', to: 'Nha Trang', km: 440, hours: '9 tiếng', fromPrice: 420000, rating: '4.7' },
+  { from: 'Hà Nội', to: 'Ninh Bình', km: 95, hours: '2 tiếng', fromPrice: 130000, rating: '4.7' },
 ];
 
 const operatorFallback = [
@@ -399,6 +400,20 @@ const NewHomePage = () => {
     [searchCriteria]
   );
 
+  const { featuredRoute, topRowRoutes, bottomRowRoutes } = useMemo(() => {
+    const featuredIdx = 0;
+    const topIndices = [1, 3];
+    const usedIndices = new Set([featuredIdx, ...topIndices]);
+
+    return {
+      featuredRoute: popularRoutesFallback[featuredIdx],
+      topRowRoutes: topIndices.map((i) => popularRoutesFallback[i]),
+      bottomRowRoutes: popularRoutesFallback
+        .filter((_, i) => !usedIndices.has(i))
+        .slice(0, 4),
+    };
+  }, []);
+
   const buildSearchData = (values) => {
     const passengers = Math.min(Math.max(Number(values.passengers || 1), 1), 6);
 
@@ -489,12 +504,16 @@ const NewHomePage = () => {
             aria-hidden="true"
           />
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,71,107,0)_0%,rgba(0,40,60,0)_48%,rgba(0,40,60,.56)_100%)]" aria-hidden="true" />
+          <div
+            className="pointer-events-none absolute -right-32 top-1/3 hidden h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,rgba(243,177,50,0.28),rgba(243,177,50,0)_70%)] lg:block"
+            aria-hidden="true"
+          />
           <UtilityPills />
 
           <div className="relative z-10 px-4 pb-8 pt-14 sm:px-6 lg:h-[620px] lg:px-14 lg:pb-0 lg:pt-20">
             <div className="max-w-[780px] text-white">
               <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-vxn-saffron-600/95 px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.08em] text-white">
-                <ThunderboltOutlined className="text-[13px]" />
+                <TagsOutlined className="text-[13px]" />
                 Ưu đãi hè · Giảm đến 35% tuyến miền Bắc
               </div>
               <h1 className="m-0 text-[42px] font-bold leading-[1.05] tracking-normal text-white drop-shadow-[0_4px_24px_rgba(0,40,60,.40)] sm:text-[56px]">
@@ -541,12 +560,13 @@ const NewHomePage = () => {
           </div>
 
           <div className="grid gap-[18px] xl:grid-cols-[2fr_1fr_1fr]">
-            <RouteCardLarge route={popularRoutesFallback[0]} onFill={fillRoute} onSubmit={submitRoute} />
-            <RouteCardSmall route={popularRoutesFallback[1]} onSubmit={submitRoute} />
-            <RouteCardSmall route={popularRoutesFallback[3]} onSubmit={submitRoute} />
+            <RouteCardLarge route={featuredRoute} onFill={fillRoute} onSubmit={submitRoute} />
+            {topRowRoutes.map((route) => (
+              <RouteCardSmall key={`${route.from}-${route.to}`} route={route} onSubmit={submitRoute} />
+            ))}
           </div>
           <div className="mt-[18px] grid gap-[18px] sm:grid-cols-2 xl:grid-cols-4">
-            {popularRoutesFallback.slice(2).map((route) => (
+            {bottomRowRoutes.map((route) => (
               <RouteCardSmall key={`${route.from}-${route.to}`} route={route} compact onSubmit={submitRoute} />
             ))}
           </div>

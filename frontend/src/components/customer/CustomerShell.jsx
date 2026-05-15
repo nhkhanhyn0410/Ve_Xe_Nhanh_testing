@@ -71,7 +71,7 @@ export const CustomerSidebarContent = ({ activeKey, signedIn, user, onLogout, on
   };
 
   return (
-    <div className="flex h-full min-h-screen flex-col justify-between bg-vxn-teal-700 text-white">
+    <div className="flex h-full min-h-screen w-full flex-col justify-between bg-vxn-teal-700 text-white">
       <div className="flex flex-col gap-[18px] pt-7">
         <button
           type="button"
