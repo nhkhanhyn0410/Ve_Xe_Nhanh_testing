@@ -72,16 +72,7 @@ const createWithHooks = async (Model, docs) => {
   return createdDocs;
 };
 
-const stationSnapshot = (place) => ({
-  city: place.city,
-  station: place.station,
-  address: place.address,
-});
 
-const pointSnapshot = (point) => ({
-  name: point.name,
-  address: point.address,
-});
 
 // Enhanced seed data with full journey tracking
 const seedData = async () => {
@@ -1160,10 +1151,8 @@ const seedData = async () => {
         routeName: 'TP. Hồ Chí Minh - Đà Lạt',
         departureTime: tripTime(0, 6),
         arrivalTime: tripTime(0, 13),
-        origin: stationSnapshot(routes[0].origin),
-        destination: stationSnapshot(routes[0].destination),
-        pickupPoint: pointSnapshot(booking1.pickupPoint),
-        dropoffPoint: pointSnapshot(booking1.dropoffPoint),
+        origin: 'Bến xe Miền Đông',
+        destination: 'Bến xe Đà Lạt',
         busNumber: 'PT-001',
         busType: 'limousine',
       },
@@ -1223,10 +1212,8 @@ const seedData = async () => {
         routeName: 'TP. Hồ Chí Minh - Vũng Tàu',
         departureTime: tripTime(0, 8),
         arrivalTime: tripTime(0, 10.5),
-        origin: stationSnapshot(routes[1].origin),
-        destination: stationSnapshot(routes[1].destination),
-        pickupPoint: pointSnapshot(booking2.pickupPoint),
-        dropoffPoint: pointSnapshot(booking2.dropoffPoint),
+        origin: 'Bến xe Miền Đông',
+        destination: 'Bến xe Vũng Tàu',
         busNumber: 'PT-003',
         busType: 'sleeper',
       },
@@ -1281,10 +1268,8 @@ const seedData = async () => {
         routeName: 'TP. Hồ Chí Minh - Nha Trang',
         departureTime: tripTime(1, 6),
         arrivalTime: tripTime(1, 14),
-        origin: stationSnapshot(routes[2].origin),
-        destination: stationSnapshot(routes[2].destination),
-        pickupPoint: pointSnapshot(booking3.pickupPoint),
-        dropoffPoint: pointSnapshot(booking3.dropoffPoint),
+        origin: 'Bến xe Miền Đông',
+        destination: 'Bến xe Phía Nam',
         busNumber: 'TB-001',
         busType: 'limousine',
       },
