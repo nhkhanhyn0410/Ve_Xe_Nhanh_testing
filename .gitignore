@@ -48,4 +48,4 @@ Thumbs.db
 .DS_Store
 
 .claude
-doc
+doc*:Zone.Identifier
