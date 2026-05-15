@@ -459,7 +459,7 @@ class EmployeeService {
     }
 
     // Return without password
-    return await Employee.findById(employee._id).select('-password');
+    return Employee.findById(employee._id).select('-password');
   }
 
   /**

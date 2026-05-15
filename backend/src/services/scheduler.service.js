@@ -1,7 +1,6 @@
 const cron = require('node-cron');
 const Booking = require('../models/Booking');
 const Trip = require('../models/Trip');
-const User = require('../models/User');
 const notificationService = require('./notification.service');
 const smsService = require('./sms.service');
 const reviewService = require('./review.service');
@@ -291,8 +290,7 @@ class SchedulerService {
         .select('_id userId tripId')
         .lean();
 
-      let sent = 0;
-      let skipped = 0;
+      // counters are computed from results later
 
       const tasks = completedBookings.map(async (booking) => {
         if (!booking.userId) return { skipped: true };
@@ -351,7 +349,9 @@ class SchedulerService {
    * @returns {Promise<void>}
    */
   delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
   }
 
   /**

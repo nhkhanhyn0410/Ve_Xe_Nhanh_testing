@@ -6,6 +6,7 @@ const logger = require('../utils/logger');
 let websocketService;
 const getWebSocketService = () => {
   if (!websocketService) {
+    // eslint-disable-next-line global-require
     websocketService = require('./websocket.service');
   }
   return websocketService;
@@ -102,10 +103,9 @@ class SeatService {
    * Xóa lock khỏi Redis vì đã được lưu vào MongoDB
    * @param {String} tripId - Trip ID
    * @param {Array<String>} seats - Seat numbers
-   * @param {String} userId - User ID
-   * @returns {Promise<Boolean>}
-   */
-  static async confirmSeats(tripId, seats, userId) {
+  * @returns {Promise<Boolean>}
+  */
+  static async confirmSeats(tripId, seats) {
     const redis = getRedisClient();
 
     try {

@@ -317,7 +317,7 @@ class SeatLockService {
         };
       }
 
-      return await this.releaseSeats(tripId, userSeats, userId);
+      return this.releaseSeats(tripId, userSeats, userId);
     } catch (error) {
       logger.error('Lỗi giải phóng tất cả các khóa người dùng:', error);
       throw new Error('Không thể mở khóa tất cả ghế.');

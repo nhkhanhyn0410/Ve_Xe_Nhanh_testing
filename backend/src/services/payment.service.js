@@ -11,6 +11,7 @@ const SeatLockService = require('./seatLock.service');
 let TicketService = null;
 const getTicketService = () => {
   if (!TicketService) {
+    // eslint-disable-next-line global-require
     TicketService = require('./ticket.service');
   }
   return TicketService;
@@ -18,6 +19,7 @@ const getTicketService = () => {
 let VoucherService = null;
 const getVoucherService = () => {
   if (!VoucherService) {
+    // eslint-disable-next-line global-require
     VoucherService = require('./voucher.service');
   }
   return VoucherService;
@@ -137,7 +139,8 @@ class PaymentService {
 
       // Add seats to trip's booked seats
       const seatNumbers = booking.seats.map((s) => s.seatNumber);
-      for (const seat of booking.seats) {
+      for (let i = 0; i < booking.seats.length; i += 1) {
+        const seat = booking.seats[i];
         trip.bookedSeats.push({
           seatNumber: seat.seatNumber,
           bookingId: booking._id,
@@ -205,7 +208,7 @@ class PaymentService {
    * @param {string} ipAddress - Client IP address
    * @returns {Object} Processing result
    */
-  static async processVNPayCallback(vnpParams, ipAddress) {
+  static async processVNPayCallback(vnpParams) {
     logger.info('VNPay callback đã nhận:', vnpParams);
 
     // Process callback with VNPay service
@@ -298,7 +301,8 @@ class PaymentService {
             // Add seats to trip's booked seats
             const seatNumbers = booking.seats.map((s) => s.seatNumber);
 
-            for (const seat of booking.seats) {
+            for (let i = 0; i < booking.seats.length; i += 1) {
+              const seat = booking.seats[i];
               // Only add if not already booked
               const alreadyBooked = trip.bookedSeats.some(
                 (bookedSeat) => bookedSeat.seatNumber === seat.seatNumber
@@ -563,7 +567,7 @@ class PaymentService {
         }
 
         if (refundAmount > 0) {
-          return await this.processRefund({
+          return this.processRefund({
             paymentId: payment._id,
             amount: refundAmount,
             reason: `Hoàn tiền tự động do hủy booking: ${reason}`,

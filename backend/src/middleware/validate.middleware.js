@@ -148,6 +148,11 @@ const validateUpdateProfile = [
     .trim()
     .isLength({ min: 2, max: 100 })
     .withMessage('Họ tên phải từ 2-100 ký tự'),
+  body('phone')
+    .optional()
+    .trim()
+    .matches(/^[0-9]{10,11}$/)
+    .withMessage('Số điện thoại phải có 10-11 chữ số'),
   body('dateOfBirth').optional().isISO8601().withMessage('Ngày sinh không hợp lệ'),
   body('gender').optional().isIn(['male', 'female', 'other']).withMessage('Giới tính không hợp lệ'),
   handleValidationErrors,
