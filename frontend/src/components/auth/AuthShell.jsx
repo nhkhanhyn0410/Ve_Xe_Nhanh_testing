@@ -5,29 +5,12 @@ import {
   QrcodeOutlined,
 } from '@ant-design/icons';
 import heroLandscape from '../../assets/brand/hero-landscape.jpg';
+import logoMark from '../../assets/brand/logo-icon_background_white.svg';
 
-// VXN mark — teal rounded box + saffron mountain/arrow stroke (matches brand).
+// Full VXN logo (icon + wordmark) — light variant for the white form panel.
 const BrandMark = () => (
-  <Link to="/" className="flex items-center gap-2.5" aria-label="Về trang chủ Vé Xe Nhanh">
-    <span className="grid h-9 w-9 place-items-center rounded-lg bg-vxn-teal-700">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M3 19 12 4l9 15M8 13l4-6 4 6M12 7v12"
-          stroke="#E89B26"
-          strokeWidth="2"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-      </svg>
-    </span>
-    <span className="flex flex-col leading-none">
-      <span className="text-[13px] font-bold tracking-[0.04em] text-vxn-saffron-700">
-        VÉ XE
-      </span>
-      <span className="mt-0.5 text-[13px] font-bold tracking-[0.06em] text-vxn-ink">
-        NHANH
-      </span>
-    </span>
+  <Link to="/" className="flex w-fit items-center" aria-label="Về trang chủ Vé Xe Nhanh">
+    <img src={logoMark} alt="Vé Xe Nhanh" className="h-9 w-auto" />
   </Link>
 );
 

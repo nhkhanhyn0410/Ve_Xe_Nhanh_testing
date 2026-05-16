@@ -54,8 +54,17 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
   const pickupName = booking?.pickupPoint?.name || booking?.pickupPoint?.address || '';
   const dropoffName = booking?.dropoffPoint?.name || booking?.dropoffPoint?.address || '';
 
-  const isPaid =
-    booking?.paymentStatus === 'paid' || booking?.status === 'confirmed';
+  // Honest status — a cash booking that is confirmed is NOT yet paid.
+  const cancelled = booking?.status === 'cancelled';
+  const paid = booking?.paymentStatus === 'paid';
+  const confirmed = booking?.status === 'confirmed';
+  const statusChip = cancelled
+    ? { label: 'ĐÃ HUỶ', bg: '#C0392B' }
+    : paid
+      ? { label: 'SẴN SÀNG ĐI', bg: '#1E9E5B' }
+      : confirmed
+        ? { label: 'ĐÃ XÁC NHẬN', bg: '#0F8458' }
+        : { label: 'CHỜ THANH TOÁN', bg: '#475569' };
 
   return (
     <div
@@ -97,12 +106,9 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
             </div>
             <span
               className="rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide"
-              style={{
-                background: isPaid ? '#1E9E5B' : '#475569',
-                color: '#fff',
-              }}
+              style={{ background: statusChip.bg, color: '#fff' }}
             >
-              {isPaid ? 'SẴN SÀNG ĐI' : 'CHỜ THANH TOÁN'}
+              {statusChip.label}
             </span>
           </div>
 
