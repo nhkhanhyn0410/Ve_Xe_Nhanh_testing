@@ -109,7 +109,7 @@ Nguồn tham chiếu chính:
 - [ ] Nâng cấp ticket detail/QR nếu route hoặc component hiện có hỗ trợ.
 - [ ] Nâng cấp `GuestTicketLookupPage.jsx` theo prototype `GuestLookupScreen`.
 - [ ] Nâng cấp `CancelTicketPage.jsx` theo prototype `GuestCancelScreen` và policy hiện có.
-- [~] Giữ API ticket lookup, OTP, cancel, download PDF, QR - đã sửa `GuestTicketLookupPage.jsx` không gửi field phone/email rỗng, normalize phone, tăng giới hạn nhập `+84 ...`, hiển thị lỗi backend dạng string; backend `ticket.routes.js` bỏ qua field rỗng, normalize phone trước validate, `ticket.service.js` lookup cả dạng `0...` và `+84...` để tránh 400 khi nhập số có khoảng trắng/khác format lưu.
+- [~] Giữ API ticket lookup, OTP, cancel, download PDF, QR - đã sửa `GuestTicketLookupPage.jsx` không gửi field phone/email rỗng, normalize phone, chấp nhận `0...`, `+84...`, `84...`, hiển thị lỗi backend dạng string; backend `ticket.routes.js` bỏ qua field rỗng, normalize phone trước validate, `ticket.service.js` lookup các format phone tương đương để tránh 400 khi nhập số có khoảng trắng/khác format lưu.
 - [ ] Hiển thị trạng thái vé: valid, used, cancelled, refund processing.
 - [ ] Kiểm tra quyền xem vé: customer chỉ xem vé của mình, guest qua OTP.
 

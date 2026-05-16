@@ -12,6 +12,7 @@ const logger = require('../utils/logger');
 
 const normalizeLookupPhone = (phone = '') => {
   const normalized = String(phone).replace(/[\s().-]/g, '');
+  if (/^84\d{9}$/.test(normalized)) return `0${normalized.slice(2)}`;
   if (normalized.startsWith('+84')) return `0${normalized.slice(3)}`;
   return normalized;
 };
