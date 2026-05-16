@@ -314,6 +314,36 @@ const TripsPage = () => {
     }
   };
 
+  // Tự động: chọn tuyến → điền giá vé gợi ý; chọn tuyến + ngày/giờ đi →
+  // tính giờ đến theo thời lượng ước tính của tuyến. Tất cả vẫn sửa lại được.
+  const handleValuesChange = (changed, all) => {
+    const route = routes.find((x) => x._id === all.routeId);
+
+    if ('routeId' in changed && route && Number(route.basePrice) > 0) {
+      form.setFieldsValue({ basePrice: Number(route.basePrice) });
+    }
+
+    if (
+      'routeId' in changed ||
+      'departureDate' in changed ||
+      'departureTime' in changed
+    ) {
+      const dur =
+        route && Number(route.estimatedDuration) > 0
+          ? Number(route.estimatedDuration)
+          : null;
+      if (dur && all.departureDate && all.departureTime) {
+        const dep = all.departureDate
+          .hour(all.departureTime.hour())
+          .minute(all.departureTime.minute())
+          .second(0)
+          .millisecond(0);
+        const arr = dep.add(dur, 'minute');
+        form.setFieldsValue({ arrivalDate: arr, arrivalTime: arr });
+      }
+    }
+  };
+
   const handleCancel = (t) => {
     Modal.confirm({
       title: 'Hủy chuyến xe',
@@ -769,7 +799,12 @@ const TripsPage = () => {
         okText={editingTrip ? 'Cập nhật' : 'Tạo'}
         cancelText="Hủy"
       >
-        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSubmit}
+          onValuesChange={handleValuesChange}
+        >
           <Form.Item
             name="routeId"
             label="Tuyến đường"
@@ -779,12 +814,6 @@ const TripsPage = () => {
               placeholder="Chọn tuyến đường"
               showSearch
               optionFilterProp="children"
-              onChange={(routeId) => {
-                const r = routes.find((x) => x._id === routeId);
-                form.setFieldsValue({
-                  basePrice: r && Number(r.basePrice) > 0 ? Number(r.basePrice) : undefined,
-                });
-              }}
             >
               {routes.map((route) => (
                 <Option key={route._id} value={route._id}>
@@ -878,20 +907,21 @@ const TripsPage = () => {
 
           <Form.Item
             name="basePrice"
-            label="Giá vé (tự động theo tuyến)"
-            extra="Giá vé được lấy tự động theo tuyến đã chọn và áp dụng cho chuyến này."
+            label="Giá vé"
+            extra="Tự động điền theo tuyến đã chọn — có thể điều chỉnh riêng cho chuyến này."
             rules={[
-              { required: true, message: 'Hãy chọn tuyến đường để lấy giá vé' },
+              { required: true, message: 'Vui lòng nhập giá vé' },
               {
                 type: 'number',
                 min: 1,
-                message: 'Tuyến chưa có giá vé — vui lòng cấu hình giá cho tuyến trước',
+                message: 'Giá vé phải lớn hơn 0',
               },
             ]}
           >
             <InputNumber
-              disabled
-              placeholder="Tự động theo tuyến đã chọn"
+              min={0}
+              step={1000}
+              placeholder="Chọn tuyến để tự điền, hoặc nhập giá riêng"
               formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}
               parser={(value) => `${value}`.replace(/\D/g, '')}
               style={{ width: '100%' }}

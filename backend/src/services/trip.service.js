@@ -31,14 +31,9 @@ class TripService {
       throw new Error('Ngày & giờ đến phải sau ngày & giờ khởi hành');
     }
 
-    // Giá vé được thiết lập tự động theo tuyến đã chọn
-    if (!route.basePrice || route.basePrice <= 0) {
-      throw new Error(
-        'Tuyến đường chưa được cấu hình giá vé. Vui lòng thiết lập giá vé cho tuyến trước khi tạo chuyến.'
-      );
-    }
-    tripData.basePrice = route.basePrice;
-    delete tripData.finalPrice; // để pre-save tính lại theo basePrice của tuyến
+    // Giá vé: tự động theo tuyến, nhưng cho phép điều chỉnh riêng cho chuyến
+    tripData.basePrice = this.resolveBasePrice(tripData.basePrice, route);
+    delete tripData.finalPrice; // để pre-save tính lại theo basePrice
 
     // Không cho phép tạo chuyến trùng giờ của xe / tài xế / quản lý chuyến
     await this.checkScheduleConflicts(operatorId, {
@@ -98,14 +93,9 @@ class TripService {
     // Validate references once (lấy route để gán giá vé tự động)
     const { route } = await this.validateReferences(operatorId, tripData);
 
-    // Giá vé được thiết lập tự động theo tuyến đã chọn
-    if (!route.basePrice || route.basePrice <= 0) {
-      throw new Error(
-        'Tuyến đường chưa được cấu hình giá vé. Vui lòng thiết lập giá vé cho tuyến trước khi tạo chuyến.'
-      );
-    }
-    tripData.basePrice = route.basePrice;
-    delete tripData.finalPrice; // để pre-save tính lại theo basePrice của tuyến
+    // Giá vé: tự động theo tuyến, nhưng cho phép điều chỉnh chung cho cả nhóm
+    tripData.basePrice = this.resolveBasePrice(tripData.basePrice, route);
+    delete tripData.finalPrice; // để pre-save tính lại theo basePrice
 
     // Generate group ID for recurring trips
     const recurringGroupId = uuidv4();
@@ -330,6 +320,36 @@ class TripService {
   }
 
   /**
+   * Quyết định giá vé cho chuyến.
+   * Ưu tiên giá người dùng nhập (điều chỉnh riêng cho chuyến); nếu không nhập
+   * thì lấy giá vé mặc định của tuyến. Bắt buộc phải có một giá hợp lệ (> 0).
+   * @param {*} provided - giá người dùng gửi lên (có thể rỗng/undefined)
+   * @param {Object} route - tài liệu tuyến đường
+   * @returns {number} giá vé hợp lệ
+   */
+  static resolveBasePrice(provided, route) {
+    const n = Number(provided);
+    const hasOverride =
+      provided !== undefined &&
+      provided !== null &&
+      provided !== '' &&
+      !Number.isNaN(n) &&
+      n > 0;
+
+    if (hasOverride) {
+      return n;
+    }
+
+    if (route && route.basePrice && route.basePrice > 0) {
+      return route.basePrice;
+    }
+
+    throw new Error(
+      'Chưa có giá vé cho chuyến. Vui lòng nhập giá vé hoặc thiết lập giá vé mặc định cho tuyến.'
+    );
+  }
+
+  /**
    * Lấy danh sách chuyến của operator
    * @param {ObjectId} operatorId
    * @param {Object} filters
@@ -490,14 +510,28 @@ class TripService {
       }
     }
 
-    // Giá vé đồng bộ tự động theo tuyến (khi tuyến/tham chiếu thay đổi)
-    if (route) {
+    // Giá vé: cho phép điều chỉnh thủ công; nếu không nhập thì đồng bộ theo
+    // tuyến khi tuyến/tham chiếu thay đổi.
+    const manualPrice = Number(updateData.basePrice);
+    const hasManualPrice =
+      updateData.basePrice !== undefined &&
+      updateData.basePrice !== null &&
+      updateData.basePrice !== '' &&
+      !Number.isNaN(manualPrice);
+
+    if (hasManualPrice) {
+      if (manualPrice <= 0) {
+        throw new Error('Giá vé phải lớn hơn 0');
+      }
+      updateData.basePrice = manualPrice;
+      delete updateData.finalPrice; // pre-save sẽ tính lại theo basePrice mới
+    } else if (route) {
       if (route.basePrice && route.basePrice > 0) {
         updateData.basePrice = route.basePrice;
-        delete updateData.finalPrice; // pre-save sẽ tính lại theo basePrice của tuyến
+        delete updateData.finalPrice;
       } else if (!(trip.basePrice > 0)) {
         throw new Error(
-          'Tuyến đường chưa được cấu hình giá vé. Vui lòng thiết lập giá vé cho tuyến trước khi cập nhật chuyến.'
+          'Chưa có giá vé cho chuyến. Vui lòng nhập giá vé hoặc thiết lập giá vé mặc định cho tuyến.'
         );
       } else {
         // Tuyến cũ chưa có giá nhưng chuyến đã có giá hợp lệ → giữ nguyên
@@ -888,6 +922,10 @@ class TripService {
     const SeatLockService = require('./seatLock.service');
     const heldSeatNumbers = await SeatLockService.getLockedSeats(tripId);
 
+    const routeStops = Array.isArray(trip.routeId?.stops)
+      ? [...trip.routeId.stops].sort((a, b) => (a.order || 0) - (b.order || 0))
+      : [];
+
     // Build enhanced response
     const publicTrip = {
       // Trip basic info
@@ -931,6 +969,7 @@ class TripService {
         estimatedDuration: trip.routeId.estimatedDuration,
         pickupPoints: trip.routeId.pickupPoints,
         dropoffPoints: trip.routeId.dropoffPoints,
+        stops: routeStops,
       } : null,
 
       // Bus information

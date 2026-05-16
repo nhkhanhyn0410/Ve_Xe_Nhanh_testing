@@ -35,6 +35,44 @@ const formatDuration = (departureTime, arrivalTime) => {
   return `${hours}h ${minutes}m`;
 };
 
+const normalizeRouteStops = (stops = []) =>
+  Array.isArray(stops)
+    ? [...stops]
+        .filter((stop) => stop && (stop.name || stop.address))
+        .sort((a, b) => {
+          const orderA = Number.isFinite(Number(a.order))
+            ? Number(a.order)
+            : Number.MAX_SAFE_INTEGER;
+          const orderB = Number.isFinite(Number(b.order))
+            ? Number(b.order)
+            : Number.MAX_SAFE_INTEGER;
+          return orderA - orderB;
+        })
+    : [];
+
+const getStopTitle = (stop, fallback = 'Điểm dừng') =>
+  stop?.name || stop?.station || stop?.address || fallback;
+
+const getStopAddress = (stop) => {
+  const title = getStopTitle(stop, '');
+  return stop?.address && stop.address !== title ? stop.address : '';
+};
+
+const getStopTimeValue = (departureTime, stop) => {
+  const estimatedMinutes = Number(stop?.estimatedArrivalMinutes);
+
+  if (departureTime && Number.isFinite(estimatedMinutes)) {
+    return dayjs(departureTime).add(estimatedMinutes, 'minute').toISOString();
+  }
+
+  return stop?.arrivalTime || stop?.time || null;
+};
+
+const getEntityId = (entity) => {
+  if (!entity || typeof entity !== 'object') return entity;
+  return entity.id || Reflect.get(entity, '_id');
+};
+
 const getInitials = (name = 'NX') =>
   name
     .split(' ')
@@ -67,7 +105,7 @@ const normalizeTrip = (trip) => {
 
   return {
     raw: trip,
-    id: trip.id || trip._id,
+    id: getEntityId(trip),
     departureTime: trip.departureTime,
     arrivalTime: trip.arrivalTime,
     route: {
@@ -80,6 +118,7 @@ const normalizeTrip = (trip) => {
       code: route.code || route.routeCode,
       pickupPoints: route.pickupPoints || [],
       dropoffPoints: route.dropoffPoints || [],
+      stops: normalizeRouteStops(route.stops),
     },
     bus: {
       ...bus,
@@ -87,7 +126,7 @@ const normalizeTrip = (trip) => {
     },
     operator: {
       ...operator,
-      id: operator.id || operator._id,
+      id: getEntityId(operator),
       companyName: operator.companyName || 'Nhà xe',
       ratingAverage: operator.rating?.average || operator.averageRating || 0,
       ratingTotal: operator.rating?.total || operator.totalReviews || 0,
@@ -127,17 +166,26 @@ const SectionTitle = ({ eyebrow, title, children }) => (
   </div>
 );
 
-const TimelinePoint = ({ type, time, city, address }) => (
+const getTimelineDotClass = (type) => {
+  if (type === 'stop') return 'bg-vxn-saffron-600';
+  if (type === 'end') return 'bg-vxn-teal-900';
+  return 'bg-vxn-teal-700';
+};
+
+const TimelinePoint = ({ type, time, city, address, meta, isLast = false }) => (
   <div className="grid grid-cols-[86px_20px_1fr] gap-4">
     <div>
       <div className="text-xl font-bold text-vxn-ink">{time ? dayjs(time).format('HH:mm') : '--:--'}</div>
       <div className="text-xs text-vxn-fg-5">{time ? dayjs(time).format('DD/MM') : '--/--'}</div>
     </div>
     <div className="relative flex justify-center">
-      <span className={`relative z-10 mt-1 h-3.5 w-3.5 rounded-full ${type === 'start' ? 'bg-vxn-teal-700' : 'bg-vxn-saffron-600'}`} />
-      {type === 'start' && <span className="absolute top-4 h-full w-px bg-vxn-border-strong" />}
+      <span
+        className={`relative z-10 mt-1 h-3.5 w-3.5 rounded-full ${getTimelineDotClass(type)}`}
+      />
+      {!isLast && <span className="absolute top-4 h-full w-px bg-vxn-border-strong" />}
     </div>
-    <div className="pb-6">
+    <div className={isLast ? 'pb-0' : 'pb-6'}>
+      {meta && <div className="mb-1 text-xs font-semibold uppercase tracking-[0.06em] text-vxn-fg-5">{meta}</div>}
       <div className="font-semibold text-vxn-ink">{city}</div>
       <div className="mt-1 text-sm leading-6 text-vxn-fg-3">{address}</div>
     </div>
@@ -186,7 +234,7 @@ const TripDetailPage = () => {
     return () => {
       active = false;
     };
-  }, [tripId]);
+  }, [navigate, setSelectedTrip, tripId]);
 
   const view = useMemo(() => (trip ? normalizeTrip(trip) : null), [trip]);
 
@@ -217,6 +265,35 @@ const TripDetailPage = () => {
       </CustomerShell>
     );
   }
+
+  const timelineItems = [
+    {
+      key: 'origin',
+      type: 'start',
+      time: view.departureTime,
+      city: view.route.fromCity,
+      address: view.route.fromAddress,
+      meta: 'Khởi hành',
+    },
+    ...view.route.stops.map((stop, index) => ({
+      key: getEntityId(stop) || `${stop.name || stop.address}-${index}`,
+      type: 'stop',
+      time: getStopTimeValue(view.departureTime, stop),
+      city: getStopTitle(stop, `Điểm dừng ${index + 1}`),
+      address: getStopAddress(stop) || 'Địa chỉ đang cập nhật',
+      meta: stop.stopDuration
+        ? `Điểm dừng ${index + 1} · dừng ${stop.stopDuration} phút`
+        : `Điểm dừng ${index + 1}`,
+    })),
+    {
+      key: 'destination',
+      type: 'end',
+      time: view.arrivalTime,
+      city: view.route.toCity,
+      address: view.route.toAddress,
+      meta: 'Đến nơi dự kiến',
+    },
+  ];
 
   return (
     <CustomerShell activeKey="buy" mainClassName="bg-vxn-bg-soft">
@@ -314,11 +391,22 @@ const TripDetailPage = () => {
 
             <InfoCard>
               <SectionTitle eyebrow="Lộ trình" title="Thời gian và điểm dừng">
-                Theo dõi mốc khởi hành, điểm đến và thời lượng dự kiến của chuyến xe.
+                {view.route.stops.length > 0
+                  ? `Theo dõi đầy đủ ${view.route.stops.length} điểm dừng trung gian của chuyến xe.`
+                  : 'Theo dõi mốc khởi hành, điểm đến và thời lượng dự kiến của chuyến xe.'}
               </SectionTitle>
               <div className="rounded-2xl bg-vxn-bg-soft p-5">
-                <TimelinePoint type="start" time={view.departureTime} city={view.route.fromCity} address={view.route.fromAddress} />
-                <TimelinePoint type="end" time={view.arrivalTime} city={view.route.toCity} address={view.route.toAddress} />
+                {timelineItems.map((item, index) => (
+                  <TimelinePoint
+                    key={item.key}
+                    type={item.type}
+                    time={item.time}
+                    city={item.city}
+                    address={item.address}
+                    meta={item.meta}
+                    isLast={index === timelineItems.length - 1}
+                  />
+                ))}
               </div>
             </InfoCard>
 

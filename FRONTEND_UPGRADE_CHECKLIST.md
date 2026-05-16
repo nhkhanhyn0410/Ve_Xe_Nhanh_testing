@@ -72,6 +72,7 @@ Nguồn tham chiếu chính:
 - [ ] Giữ API `searchTrips`, filter, sort, pagination hiện có.
 - [~] Tách trip normalization ra helper để tránh lặp và dễ test - hiện vẫn là helper nội bộ trong `TripsPage.jsx`, chưa tách file riêng.
 - [~] Port trip result card: timeline, operator, rating, amenities, seat left, price, CTA - đã sửa để mọi chuyến trong `/trips` và `/search-results` đều hiển thị đầy đủ phần lịch trình/tiện ích/chính sách, không chỉ item đầu tiên; thiết kế lại card gọn hơn với operator/timeline/price tách rõ, CTA nổi bật, bỏ tiện ích khỏi badge giữa timeline và cập nhật số chỗ định kỳ qua API ghế trống.
+- [x] Hiển thị đầy đủ điểm dừng trung gian trên trip card - `TripsPage.jsx` đọc `route.stops`, sắp xếp theo `order`, tính giờ theo `estimatedArrivalMinutes` và render timeline đầy đủ; `npm.cmd run build` trong `frontend/` thành công.
 - [~] Đồng bộ hiển thị số ghế thực tế trên trip card/detail/seat selection - thêm `utils/seatAvailability.js` để tính ghế trống từ `seatLayout.layout`, `bookedSeats`, `lockedSeats`, rồi merge vào `TripsPage.jsx`, `TripDetailPage.jsx`, `SeatSelectionPage.jsx`; cần smoke test với chuyến có ghế đang giữ/đã đặt.
 - [~] Thiết kế lại filter panel: khoảng giá, loại xe, nhà xe, giờ đi, tiện ích - thêm bộ lọc tổng điểm đi/điểm đến/khoảng ngày và sticky heading ở `TripsPage.jsx`.
 - [~] Điều chỉnh filter aside của `TripsPage.jsx` để không đổi vị trí/chiều cao bất thường khi scroll/chọn filter - đã reserve scrollbar viewport trong `frontend/src/index.css`; sticky offset của sidebar giữ đúng bằng chiều cao search bar (`114px` desktop rộng, `198px` desktop hẹp) để không nhảy 24px giữa trạng thái sticky và normal flow; cần smoke test trực quan trên desktop/tablet.
@@ -81,7 +82,7 @@ Nguồn tham chiếu chính:
 
 ## 5. Chi tiết chuyến và chọn ghế
 
-- [ ] Nâng cấp `TripDetailPage.jsx` theo prototype `TripDetailScreen`.
+- [~] Nâng cấp `TripDetailPage.jsx` theo prototype `TripDetailScreen` - đã bổ sung timeline start → stops → destination và cập nhật public trip detail API trả `route.stops`; còn cần smoke test trực quan với dữ liệu thật nhiều điểm dừng.
 - [ ] Giữ API `getTripDetails` và `getAvailableSeats`.
 - [ ] Giữ store booking: `selectedTrip`, `selectedSeats`, pickup, dropoff.
 - [~] Làm sticky breadcrumb/booking stepper cho `TripDetailPage.jsx`, `SeatSelectionPage.jsx` và `PassengerInfoPage.jsx`; đã chỉnh offset desktop/mobile, sticky summary bên phải và căn giữa riêng hàng stepper không bao gồm breadcrumb.
@@ -151,8 +152,8 @@ Nguồn tham chiếu chính:
 
 ## 11. Kiểm thử và chất lượng
 
-- [~] Chạy `npm run build` trong `frontend/` - bị chặn bởi môi trường: WSL báo `WSL 1 is not supported. Please upgrade to WSL 2 or above. Could not determine Node.js install directory`; thử qua `cmd.exe` cũng lỗi WSL socket.
-- [ ] Chạy `npm run lint` trong `frontend/` nếu dependency đã cài.
+- [x] Chạy `npm run build` trong `frontend/` - `npm.cmd run build` thành công sau chỉnh hiển thị điểm dừng trip card/detail.
+- [~] Chạy `npm run lint` trong `frontend/` nếu dependency đã cài - repo-wide lint còn fail bởi nhiều lỗi hiện hữu ngoài phạm vi; lint riêng `TripsPage.jsx` và `TripDetailPage.jsx` đã pass.
 - [ ] Chạy test frontend nếu có test liên quan.
 - [ ] Chạy e2e smoke cho customer booking flow nếu môi trường sẵn sàng.
 - [ ] Kiểm tra console không có runtime error ở các route chính.

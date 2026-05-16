@@ -118,6 +118,44 @@ const formatDuration = (departureTime, arrivalTime) => {
   return `${hours}h ${minutes}m`;
 };
 
+const normalizeRouteStops = (stops = []) =>
+  Array.isArray(stops)
+    ? [...stops]
+        .filter((stop) => stop && (stop.name || stop.address))
+        .sort((a, b) => {
+          const orderA = Number.isFinite(Number(a.order))
+            ? Number(a.order)
+            : Number.MAX_SAFE_INTEGER;
+          const orderB = Number.isFinite(Number(b.order))
+            ? Number(b.order)
+            : Number.MAX_SAFE_INTEGER;
+          return orderA - orderB;
+        })
+    : [];
+
+const getStopTitle = (stop, fallback = 'Điểm dừng') =>
+  stop?.name || stop?.station || stop?.address || fallback;
+
+const getStopAddress = (stop) => {
+  const title = getStopTitle(stop, '');
+  return stop?.address && stop.address !== title ? stop.address : '';
+};
+
+const getStopTimeValue = (departureTime, stop) => {
+  const estimatedMinutes = Number(stop?.estimatedArrivalMinutes);
+
+  if (departureTime && Number.isFinite(estimatedMinutes)) {
+    return dayjs(departureTime).add(estimatedMinutes, 'minute').toISOString();
+  }
+
+  return stop?.arrivalTime || stop?.time || null;
+};
+
+const getEntityId = (entity) => {
+  if (!entity || typeof entity !== 'object') return entity;
+  return entity.id || Reflect.get(entity, '_id');
+};
+
 const getInitials = (name = 'NX') =>
   name
     .split(' ')
@@ -148,14 +186,23 @@ const normalizeTrip = (trip) => {
   const basePrice = trip.basePrice || trip.pricing?.basePrice || finalPrice;
   const availableSeats = trip.availableSeats ?? trip.seats?.available ?? 0;
   const totalSeats = trip.totalSeats ?? trip.seats?.total ?? 0;
+  const stops = normalizeRouteStops(route.stops);
+  let tag = null;
+
+  if (trip.discount) {
+    tag = `GIẢM ${trip.discount}%`;
+  } else if (availableSeats > 0 && availableSeats < 5) {
+    tag = 'SẮP HẾT CHỖ';
+  }
 
   return {
     raw: trip,
-    id: trip._id || trip.id,
+    id: getEntityId(trip),
     fromCity,
     toCity,
     fromStation: route.origin?.station || route.origin?.address || fromCity,
     toStation: route.destination?.station || route.destination?.address || toCity,
+    stops,
     routeName: route.routeName || route.name || `${fromCity} → ${toCity}`,
     departureTime: trip.departureTime,
     arrivalTime: trip.arrivalTime,
@@ -166,7 +213,7 @@ const normalizeTrip = (trip) => {
       typeof trip.duration === 'string'
         ? trip.duration
         : trip.duration?.formatted || formatDuration(trip.departureTime, trip.arrivalTime),
-    operatorId: operator._id || operator.id,
+    operatorId: getEntityId(operator),
     operatorName: operator.companyName || trip.operatorName || 'Nhà xe',
     operatorRating: operator.averageRating || operator.rating?.average || trip.operatorRating || 0,
     operatorReviews: operator.totalReviews || operator.rating?.total || 0,
@@ -178,11 +225,7 @@ const normalizeTrip = (trip) => {
     discount: trip.discount || trip.pricing?.discount || 0,
     availableSeats,
     totalSeats,
-    tag: trip.discount
-      ? `GIẢM ${trip.discount}%`
-      : availableSeats > 0 && availableSeats < 5
-        ? 'SẮP HẾT CHỖ'
-        : null,
+    tag,
   };
 };
 
@@ -446,37 +489,35 @@ const SortRow = ({ total, criteria, sortBy, onSortChange }) => (
   </div>
 );
 
-const AmenityList = ({ amenities }) => {
-  const labels = {
-    wifi: 'WiFi',
-    ac: 'Máy lạnh',
-    charger: 'Sạc',
-    water: 'Nước',
-    toilet: 'Toilet',
-    blanket: 'Chăn ấm',
-  };
-
-  if (!amenities.length) {
-    return <span className="text-xs font-medium text-vxn-fg-4">Tiện ích đang cập nhật</span>;
-  }
-
-  return (
-    <div className="flex flex-wrap gap-3">
-      {amenities.slice(0, 5).map((amenity) => (
-        <span key={amenity} className="inline-flex items-center gap-1.5 text-xs text-vxn-fg-3">
-          <SafetyCertificateOutlined className="text-vxn-teal-700" />
-          {labels[amenity] || amenity}
-        </span>
-      ))}
-    </div>
-  );
-};
-
 const TripCard = ({ trip, onSelect, onOperatorClick }) => {
   const amenityItems = trip.amenities.length > 0 ? trip.amenities : ['Đang cập nhật'];
   const seatCountLabel = trip.totalSeats
     ? `${trip.availableSeats}/${trip.totalSeats}`
     : `${trip.availableSeats}`;
+  const scheduleItems = [
+    {
+      key: 'origin',
+      type: 'start',
+      time: trip.departureTime,
+      title: trip.fromStation,
+      subtitle: trip.fromCity,
+    },
+    ...trip.stops.map((stop, index) => ({
+      key: getEntityId(stop) || `${stop.name || stop.address}-${index}`,
+      type: 'stop',
+      time: getStopTimeValue(trip.departureTime, stop),
+      title: getStopTitle(stop, `Điểm dừng ${index + 1}`),
+      subtitle: getStopAddress(stop),
+      meta: stop.stopDuration ? `Dừng ${stop.stopDuration} phút` : 'Điểm dừng trung gian',
+    })),
+    {
+      key: 'destination',
+      type: 'end',
+      time: trip.arrivalTime,
+      title: trip.toStation,
+      subtitle: trip.toCity,
+    },
+  ];
 
   return (
     <article className="overflow-hidden rounded-[18px] border border-vxn-border bg-white shadow-[0_18px_44px_-30px_rgba(15,23,42,0.55)] transition hover:-translate-y-0.5 hover:border-vxn-teal-300 hover:shadow-[0_24px_54px_-32px_rgba(0,100,129,0.42)]">
@@ -538,6 +579,14 @@ const TripCard = ({ trip, onSelect, onOperatorClick }) => {
               <div className="relative h-2">
                 <span className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-vxn-border-strong" />
                 <span className="absolute left-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border-2 border-white bg-vxn-teal-700 shadow" />
+                {trip.stops.map((stop, index) => (
+                  <span
+                    key={getEntityId(stop) || `${stop.name || stop.address}-${index}`}
+                    className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-vxn-saffron-600 shadow"
+                    style={{ left: `${((index + 1) / (trip.stops.length + 1)) * 100}%` }}
+                    title={getStopTitle(stop, `Điểm dừng ${index + 1}`)}
+                  />
+                ))}
                 <span className="absolute right-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border-2 border-white bg-vxn-teal-700 shadow" />
               </div>
               <div className="mt-3 rounded-[10px] border border-dashed border-vxn-border bg-[#FAFCFF] px-3 py-2">
@@ -601,16 +650,41 @@ const TripCard = ({ trip, onSelect, onOperatorClick }) => {
 
       <div className="grid gap-4 border-t border-vxn-border bg-[#F7FAFC] px-4 py-4 xl:grid-cols-[1fr_1fr_1.25fr] xl:px-5">
         <div>
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-vxn-fg-5">
-            Lịch trình
+          <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-vxn-fg-5">
+            <span>Lịch trình</span>
+            {trip.stops.length > 0 && (
+              <span className="rounded-full bg-white px-2 py-0.5 text-[10px] tracking-normal text-vxn-teal-800">
+                {trip.stops.length} điểm dừng
+              </span>
+            )}
           </div>
-          <div className="space-y-1.5 text-[13px] text-vxn-fg-2">
-            <div>
-              <strong className="text-vxn-ink">{trip.departLabel}</strong> · {trip.fromStation}
-            </div>
-            <div>
-              <strong className="text-vxn-ink">{trip.arriveLabel}</strong> · {trip.toStation}
-            </div>
+          <div className="space-y-2 text-[13px] text-vxn-fg-2">
+            {scheduleItems.map((item, index) => (
+              <div key={item.key} className="grid grid-cols-[44px_12px_minmax(0,1fr)] gap-2">
+                <div className="text-right font-semibold text-vxn-ink">
+                  {item.time ? dayjs(item.time).format('HH:mm') : '--:--'}
+                </div>
+                <div className="relative flex justify-center pt-1.5">
+                  <span
+                    className={`relative z-10 h-2.5 w-2.5 rounded-full ${
+                      item.type === 'stop' ? 'bg-vxn-saffron-600' : 'bg-vxn-teal-700'
+                    }`}
+                  />
+                  {index < scheduleItems.length - 1 && (
+                    <span className="absolute top-4 h-[calc(100%+0.5rem)] w-px bg-vxn-border-strong" />
+                  )}
+                </div>
+                <div className="min-w-0 pb-1">
+                  <div className="font-medium text-vxn-ink">{item.title}</div>
+                  {item.subtitle && item.subtitle !== item.title && (
+                    <div className="mt-0.5 break-words text-xs leading-5 text-vxn-fg-4">
+                      {item.subtitle}
+                    </div>
+                  )}
+                  {item.meta && <div className="mt-0.5 text-xs text-vxn-fg-5">{item.meta}</div>}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
         <div>
@@ -987,6 +1061,31 @@ const TripsPage = () => {
     navigate(`/trips/${trip.id}`);
   };
 
+  let tripListContent;
+
+  if (loading) {
+    tripListContent = (
+      <div className="grid min-h-[360px] place-items-center rounded-xl border border-vxn-border bg-white">
+        <Spin size="large" />
+      </div>
+    );
+  } else if (filteredTrips.length === 0) {
+    tripListContent = (
+      <div className="rounded-xl border border-vxn-border bg-white py-16">
+        <Empty description="Không tìm thấy chuyến phù hợp" />
+      </div>
+    );
+  } else {
+    tripListContent = filteredTrips.map((trip) => (
+      <TripCard
+        key={trip.id}
+        trip={trip}
+        onSelect={() => handleTripSelect(trip)}
+        onOperatorClick={() => trip.operatorId && navigate(`/operators/${trip.operatorId}`)}
+      />
+    ));
+  }
+
   return (
     <CustomerShell activeKey={isSearchResultsPage ? 'buy' : 'trips'} mainClassName="bg-vxn-bg-soft">
       <SearchSummaryBar
@@ -1025,26 +1124,7 @@ const TripsPage = () => {
               onSortChange={setSortBy}
             />
 
-            {loading ? (
-              <div className="grid min-h-[360px] place-items-center rounded-xl border border-vxn-border bg-white">
-                <Spin size="large" />
-              </div>
-            ) : filteredTrips.length === 0 ? (
-              <div className="rounded-xl border border-vxn-border bg-white py-16">
-                <Empty description="Không tìm thấy chuyến phù hợp" />
-              </div>
-            ) : (
-              filteredTrips.map((trip) => (
-                <TripCard
-                  key={trip.id}
-                  trip={trip}
-                  onSelect={() => handleTripSelect(trip)}
-                  onOperatorClick={() =>
-                    trip.operatorId && navigate(`/operators/${trip.operatorId}`)
-                  }
-                />
-              ))
-            )}
+            {tripListContent}
           </div>
         </section>
       </div>
