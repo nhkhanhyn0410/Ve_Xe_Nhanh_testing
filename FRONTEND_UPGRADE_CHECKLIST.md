@@ -60,6 +60,7 @@ Nguồn tham chiếu chính:
 - [x] Port search overlay card: điểm đi, điểm đến, ngày đi, đổi chiều, số khách, submit - giữ Ant Design Form/AutoComplete/DatePicker/Select nhưng style lại theo field shell của prototype.
 - [x] Giữ logic `setSearchCriteria` và navigate `/search-results` - submit map về `{ fromCity, toCity, date, passengers }`, giới hạn khách theo rule hiện có.
 - [x] Thêm tuyến phổ biến, lý do chọn VXN, nhà xe đối tác theo UI mới - thêm layout route card lớn/nhỏ, value props, operators và promo/blog strip.
+- [x] Gắn ảnh nền cho các tuyến phổ biến bằng `frontend/src/assets/img/`; route card tự dùng ảnh làm background khi route có field `image`.
 - [x] Thay mock route card bằng dữ liệu API nếu endpoint sẵn có; nếu chưa có thì tách rõ fallback - tách rõ `popularRoutesFallback` và `operatorFallback`, chưa gọi API mới vì production app chưa có endpoint homepage riêng.
 - [~] Kiểm tra validation form: thiếu điểm đi/đến/ngày đi - Ant Design rules và toast đã giữ, cần click test trên trình duyệt.
 - [~] Kiểm tra responsive desktop/tablet/mobile - layout đã dùng responsive grid/classes, cần kiểm tra trực quan trên Chrome/mobile viewport.
