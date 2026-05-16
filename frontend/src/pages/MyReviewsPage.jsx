@@ -6,6 +6,8 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/vi';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
+import { accountBreadcrumbItem } from '../components/customer/accountMenu';
 import { getMyReviews, getPendingReviews } from '../services/reviewApi';
 import CreateReviewModal from '../components/CreateReviewModal';
 
@@ -263,25 +265,13 @@ const MyReviewsPage = () => {
       {/* Header */}
       <div className="border-b border-vxn-border bg-white">
         <div className="px-4 pt-6 lg:px-8">
-          <nav className="mb-3 flex items-center gap-1 text-[13px] text-vxn-fg-4">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-            >
-              Trang chủ
-            </button>
-            <span>·</span>
-            <button
-              type="button"
-              onClick={() => navigate('/profile')}
-              className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-            >
-              Tài khoản
-            </button>
-            <span>·</span>
-            <span className="text-vxn-fg-2">Đánh giá của tôi</span>
-          </nav>
+          <CustomerBreadcrumb
+            className="mb-3"
+            items={[
+              accountBreadcrumbItem(),
+              { label: 'Đánh giá của tôi' },
+            ]}
+          />
           <div className="flex flex-wrap items-end justify-between gap-3 pb-5">
             <div>
               <h1 className="m-0 text-[26px] font-semibold tracking-tight text-vxn-ink sm:text-[28px]">

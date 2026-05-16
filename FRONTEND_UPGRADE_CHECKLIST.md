@@ -48,6 +48,7 @@ Nguồn tham chiếu chính:
 - [~] Bảo đảm header/footer không che nội dung ở mobile - đã dùng responsive classes và drawer, cần kiểm tra trực quan trên Chrome/mobile viewport.
 - [x] Bảo đảm các trang customer vẫn giữ route hiện có - giữ `/`, `/trips`, `/search-results`, `/tickets/lookup`, auth/user routes; `npm run build` thành công.
 - [~] Tách sidebar customer theo route mới: `/kham-pha` cho Khám phá, `/` và `/mua-ve` cho Mua vé, `/dich-vu-bo-tro` cho Dịch vụ bổ trợ, `/my-tickets` cho Hành trình; build chưa xác nhận được do lỗi Node/WSL 1 trong môi trường hiện tại.
+- [~] Đồng bộ breadcrumb customer - thêm `CustomerBreadcrumb.jsx` dùng chung, thay breadcrumb thủ công trên các trang content, booking, vé, tài khoản và payment; đã bổ sung box menu hover cho breadcrumb `Tài khoản`; build chưa xác nhận được do lỗi Node/WSL 1 trong môi trường hiện tại.
 - [~] Kiểm chứng trạng thái đăng nhập/đăng xuất và user menu - logic `authStore`/logout được giữ, cần click test với session thật.
 
 ## 3. Trang chủ và tìm kiếm
@@ -115,7 +116,7 @@ Nguồn tham chiếu chính:
 
 ## 8. Tài khoản, loyalty, review, complaint
 
-- [ ] Nâng cấp `ProfilePage.jsx` theo prototype `ProfileScreen`.
+- [~] Nâng cấp `ProfilePage.jsx` theo prototype `ProfileScreen` - bổ sung box lối tắt tiện ích tài khoản, gắn menu tài khoản dùng chung trong breadcrumb và hỗ trợ nhảy đến phần hành khách đã lưu qua hash.
 - [ ] Nâng cấp `LoyaltyOverviewPage.jsx` và `LoyaltyHistoryPage.jsx`.
 - [ ] Nâng cấp `MyReviewsPage.jsx` và modal tạo review.
 - [ ] Nâng cấp `MyComplaintsPage.jsx`, `ComplaintDetailPage.jsx`, complaint modal.

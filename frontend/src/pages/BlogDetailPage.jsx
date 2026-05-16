@@ -1,14 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Empty, Spin, message } from 'antd';
-import {
-  ArrowLeftOutlined,
-  HeartOutlined,
-  HeartFilled,
-  ShareAltOutlined,
-} from '@ant-design/icons';
+import { ArrowLeftOutlined, HeartOutlined, HeartFilled, ShareAltOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import BlogCard, { BLOG_CAT_LABELS } from '../components/content/BlogCard';
 import { getBlogBySlug, likeBlog } from '../services/contentApi';
 
@@ -23,7 +19,10 @@ const initials = (name = 'VXN') =>
 
 // Estimate reading time from the (HTML) content — ~200 words/min, min 1.
 const readMinutes = (html = '') => {
-  const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const text = html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   const words = text ? text.split(' ').length : 0;
   return Math.max(1, Math.round(words / 200));
 };
@@ -98,9 +97,7 @@ const BlogDetailPage = () => {
   };
 
   const author = blog?.author;
-  const authorLabel =
-    (author && typeof author === 'object' && author.fullName) ||
-    'VXN Editorial';
+  const authorLabel = (author && typeof author === 'object' && author.fullName) || 'VXN Editorial';
   const catLabel = BLOG_CAT_LABELS[blog?.category] || 'Tin tức';
 
   return (
@@ -131,31 +128,13 @@ const BlogDetailPage = () => {
 
       {/* Breadcrumb */}
       <div className="border-b border-vxn-border bg-white">
-        <nav className="flex items-center gap-1 px-4 py-3 text-[13px] text-vxn-fg-4 lg:px-8">
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-          >
-            Trang chủ
-          </button>
-          <span>·</span>
-          <button
-            type="button"
-            onClick={() => navigate('/news')}
-            className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-          >
-            Cẩm nang &amp; tin tức
-          </button>
-          {blog && (
-            <>
-              <span>·</span>
-              <span className="max-w-[280px] truncate text-vxn-fg-2">
-                {blog.title}
-              </span>
-            </>
-          )}
-        </nav>
+        <CustomerBreadcrumb
+          className="px-4 py-3 lg:px-8"
+          items={[
+            { label: 'Cẩm nang & tin tức', to: '/news' },
+            blog ? { label: blog.title } : null,
+          ]}
+        />
       </div>
 
       <div className="px-4 py-8 lg:px-8">
@@ -168,9 +147,7 @@ const BlogDetailPage = () => {
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               description={
-                <span className="text-[13px] text-vxn-fg-4">
-                  Không tìm thấy bài viết này.
-                </span>
+                <span className="text-[13px] text-vxn-fg-4">Không tìm thấy bài viết này.</span>
               }
             >
               <button
@@ -183,7 +160,7 @@ const BlogDetailPage = () => {
             </Empty>
           </div>
         ) : (
-          <article className="mx-auto flex w-full max-w-[860px] flex-col gap-6">
+          <article className="mx-auto flex max-w-[108rem] flex-col gap-6">
             {/* Title block */}
             <div>
               <span
@@ -206,20 +183,12 @@ const BlogDetailPage = () => {
                     {initials(authorLabel)}
                   </span>
                   <div>
-                    <div className="text-[13px] font-medium text-vxn-ink">
-                      {authorLabel}
-                    </div>
-                    <div className="text-[11px] text-vxn-fg-5">
-                      Biên tập viên VXN
-                    </div>
+                    <div className="text-[13px] font-medium text-vxn-ink">{authorLabel}</div>
+                    <div className="text-[11px] text-vxn-fg-5">Biên tập viên VXN</div>
                   </div>
                 </div>
                 <span className="text-vxn-fg-5">·</span>
-                <span>
-                  {dayjs(blog.publishedAt || blog.createdAt).format(
-                    'DD/MM/YYYY'
-                  )}
-                </span>
+                <span>{dayjs(blog.publishedAt || blog.createdAt).format('DD/MM/YYYY')}</span>
                 <span className="text-vxn-fg-5">·</span>
                 <span>Đọc {readTime} phút</span>
                 <span className="ml-auto flex gap-2">
@@ -232,11 +201,7 @@ const BlogDetailPage = () => {
                         : 'border-vxn-border bg-white text-vxn-fg-2 hover:border-vxn-saffron-400'
                     }`}
                   >
-                    {liked ? (
-                      <HeartFilled style={{ color: '#E89B26' }} />
-                    ) : (
-                      <HeartOutlined />
-                    )}
+                    {liked ? <HeartFilled style={{ color: '#E89B26' }} /> : <HeartOutlined />}
                     {likeCount}
                   </button>
                   <button

@@ -11,7 +11,6 @@ import {
   PlusSquareOutlined,
   QrcodeOutlined,
   QuestionCircleOutlined,
-  ReadOutlined,
   StarOutlined,
 } from '@ant-design/icons';
 import { toast } from 'react-hot-toast';
@@ -23,7 +22,7 @@ const sidebarNav = [
     key: 'explore',
     label: 'Khám phá',
     icon: GlobalOutlined,
-    path: '/kham-pha',
+    path: '/tin-tuc',
   },
   { key: 'home', label: 'Trang chủ', icon: EnvironmentOutlined, path: '/' },
   { key: 'trips', label: 'Mua vé', icon: FileTextOutlined, path: '/trips' },
@@ -56,12 +55,6 @@ const sidebarSupport = [
     path: '/khieu-nai',
   },
   {
-    key: 'news',
-    label: 'Cẩm nang & tin tức',
-    icon: ReadOutlined,
-    path: '/tin-tuc',
-  },
-  {
     key: 'faq',
     label: 'Câu hỏi thường gặp',
     icon: QuestionCircleOutlined,
@@ -89,12 +82,17 @@ const resolveActiveKey = (pathname, activeKey) => {
     pathname.startsWith('/hanh-trinh')
   )
     return 'tickets';
-  if (pathname.startsWith('/news') || pathname.startsWith('/tin-tuc')) return 'news';
+  if (
+    pathname.startsWith('/kham-pha') ||
+    pathname.startsWith('/explore') ||
+    pathname.startsWith('/news') ||
+    pathname.startsWith('/tin-tuc')
+  )
+    return 'explore';
   if (pathname.startsWith('/faq') || pathname.startsWith('/cau-hoi-thuong-gap'))
     return 'faq';
   if (pathname.startsWith('/complaints') || pathname.startsWith('/khieu-nai')) return 'complaints';
   if (pathname.startsWith('/dich-vu-bo-tro')) return 'addons';
-  if (pathname.startsWith('/kham-pha') || pathname.startsWith('/explore')) return 'explore';
   if (
     pathname.startsWith('/profile') ||
     pathname.startsWith('/settings') ||

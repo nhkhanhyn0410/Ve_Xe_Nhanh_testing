@@ -18,6 +18,7 @@ import {
 import dayjs from 'dayjs';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import bookingApi from '../services/bookingApi';
 
 const REASONS = [
@@ -663,25 +664,13 @@ const CancelTicketPage = () => {
       {/* Page header with breadcrumb */}
       <div className="border-b border-vxn-border bg-white">
         <div className="px-4 pt-6 lg:px-8">
-          <nav className="mb-3 flex items-center gap-1 text-[13px] text-vxn-fg-4">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="flex items-center gap-1 border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-            >
-              <HomeOutlined style={{ fontSize: 12 }} /> Trang chủ
-            </button>
-            <span>·</span>
-            <button
-              type="button"
-              onClick={() => navigate('/tra-cuu-ve')}
-              className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-            >
-              Tra cứu vé
-            </button>
-            <span>·</span>
-            <span className="text-vxn-fg-2">Hủy vé khách</span>
-          </nav>
+          <CustomerBreadcrumb
+            className="mb-3"
+            items={[
+              { label: 'Tra cứu vé', to: '/tra-cuu-ve' },
+              { label: 'Hủy vé khách' },
+            ]}
+          />
 
           <div className="flex flex-wrap items-center justify-between gap-2 pb-4">
             <button

@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Empty, Spin, message } from 'antd';
 import {
   ArrowLeftOutlined,
-  ArrowRightOutlined,
   CarOutlined,
   CheckOutlined,
   ClockCircleOutlined,
@@ -12,6 +11,7 @@ import {
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import SeatMapComponent from '../components/SeatMapComponent';
 import { getAvailableSeats, getTripDetails } from '../services/bookingApi';
 import useBookingStore from '../store/bookingStore';
@@ -249,25 +249,16 @@ const SeatSelectionPage = () => {
       <div className="sticky top-16 z-30 bg-white shadow-sm lg:top-0">
         <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2 text-sm text-vxn-fg-3">
-              <button type="button" className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800" onClick={() => navigate('/')}>
-                Trang chủ
-              </button>
-              <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-              <button type="button" className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800" onClick={() => navigate('/trips')}>
-                Tìm chuyến
-              </button>
-              <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-              <button
-                type="button"
-                className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800"
-                onClick={() => navigate(`/trips/${tripId}`)}
-              >
-                {view.route.fromCity} → {view.route.toCity}
-              </button>
-              <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-              <span>Chọn ghế</span>
-            </div>
+            <CustomerBreadcrumb
+              items={[
+                { label: 'Tìm chuyến', to: '/trips' },
+                {
+                  label: `${view.route.fromCity} → ${view.route.toCity}`,
+                  to: `/trips/${tripId}`,
+                },
+                { label: 'Chọn ghế' },
+              ]}
+            />
             <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(`/trips/${tripId}`)}>
               Quay lại chi tiết chuyến
             </Button>

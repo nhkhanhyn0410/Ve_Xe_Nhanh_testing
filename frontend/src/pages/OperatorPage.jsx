@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Empty, Spin } from 'antd';
 import {
   ArrowLeftOutlined,
-  ArrowRightOutlined,
   CalendarOutlined,
   CarOutlined,
   CheckCircleOutlined,
@@ -17,6 +16,7 @@ import {
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import { publicOperatorsApi } from '../services/operatorApi';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
@@ -120,15 +120,12 @@ const OperatorPage = () => {
     <CustomerShell activeKey="explore" mainClassName="bg-vxn-bg-soft">
       <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-wrap items-center gap-2 text-sm text-vxn-fg-3">
-            <button type="button" className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800" onClick={() => navigate('/')}>
-              Trang chủ
-            </button>
-            <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-            <span>Nhà xe</span>
-            <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-            <span>{operator.companyName}</span>
-          </div>
+          <CustomerBreadcrumb
+            items={[
+              { label: 'Nhà xe' },
+              { label: operator.companyName },
+            ]}
+          />
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
             Quay lại
           </Button>

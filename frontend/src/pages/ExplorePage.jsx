@@ -44,7 +44,7 @@ const exploreSections = [
     description: 'Bài viết mới, hướng dẫn đi xe, chính sách và thông báo dịch vụ.',
     icon: FileTextOutlined,
     cta: 'Đọc tin tức',
-    path: '/news',
+    path: '/tin-tuc',
     todo: 'TODO: Dùng content API cho blog/news/FAQ thay cho skeleton.',
   },
 ];

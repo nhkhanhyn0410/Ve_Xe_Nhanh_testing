@@ -17,6 +17,7 @@ import api from '../services/api';
 import useBookingStore from '../store/bookingStore';
 import useAuthStore from '../store/authStore';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import SaffronTicketCard from '../components/customer/SaffronTicketCard';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
@@ -283,27 +284,13 @@ const BookingConfirmationPage = () => {
     <CustomerShell activeKey="tickets">
       <div className="border-b border-vxn-border bg-white">
         <div className="px-4 pt-6 lg:px-8">
-          <nav className="mb-4 flex flex-wrap items-center gap-1 text-[13px] text-vxn-fg-4">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-            >
-              Trang chủ
-            </button>
-            <span>·</span>
-            <button
-              type="button"
-              onClick={() => navigate('/my-tickets')}
-              className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-            >
-              Vé của tôi
-            </button>
-            <span>·</span>
-            <span className="text-vxn-fg-2">
-              {fromCity} → {toCity}
-            </span>
-          </nav>
+          <CustomerBreadcrumb
+            className="mb-4"
+            items={[
+              { label: 'Vé của tôi', to: '/my-tickets' },
+              { label: `${fromCity} → ${toCity}` },
+            ]}
+          />
 
           <div className="flex flex-wrap items-end justify-between gap-3 pb-5">
             <div className="min-w-0">

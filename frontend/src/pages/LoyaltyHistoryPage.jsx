@@ -11,6 +11,8 @@ import {
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
+import { accountBreadcrumbItem } from '../components/customer/accountMenu';
 import { getLoyaltyHistory, getLoyaltyOverview } from '../services/loyaltyApi';
 
 dayjs.locale('vi');
@@ -289,25 +291,14 @@ const LoyaltyHistoryPage = () => {
       {/* Page header */}
       <div className="border-b border-vxn-border bg-white">
         <div className="px-4 pt-6 lg:px-8">
-          <nav className="mb-3 flex items-center gap-1 text-[13px] text-vxn-fg-4">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-            >
-              Trang chủ
-            </button>
-            <span>·</span>
-            <button
-              type="button"
-              onClick={() => navigate('/loyalty')}
-              className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-            >
-              VXN Plus
-            </button>
-            <span>·</span>
-            <span className="text-vxn-fg-2">Lịch sử điểm</span>
-          </nav>
+          <CustomerBreadcrumb
+            className="mb-3"
+            items={[
+              accountBreadcrumbItem(),
+              { label: 'VXN Plus', to: '/loyalty' },
+              { label: 'Lịch sử điểm' },
+            ]}
+          />
           <div className="flex flex-wrap items-end justify-between gap-3 pb-5">
             <div>
               <h1 className="m-0 flex items-center gap-2 text-[26px] font-semibold tracking-tight text-vxn-ink sm:text-[28px]">

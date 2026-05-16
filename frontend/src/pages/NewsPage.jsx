@@ -4,6 +4,7 @@ import { Empty, Input, Spin, message } from 'antd';
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import BlogCard, { BLOG_CAT_LABELS } from '../components/content/BlogCard';
 import { getBlogs } from '../services/contentApi';
 
@@ -13,12 +14,7 @@ const HERO_IMG =
 // Tab order mirrors flow-content.jsx BLOG_CATEGORIES.
 const CAT_ORDER = ['news', 'guide', 'promotion', 'travel_tips', 'company', 'other'];
 
-const norm = (s = '') =>
-  s
-    .toString()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
+const norm = (s = '') => s.toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 const authorName = (author) =>
   (author && typeof author === 'object' && author.fullName) || 'VXN Editorial';
@@ -86,31 +82,19 @@ const NewsPage = () => {
     <CustomerShell activeKey="news">
       {/* Breadcrumb */}
       <div className="border-b border-vxn-border bg-white">
-        <nav className="flex items-center gap-1 px-4 py-3 text-[13px] text-vxn-fg-4 lg:px-8">
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-          >
-            Trang chủ
-          </button>
-          <span>·</span>
-          <span className="text-vxn-fg-2">Cẩm nang &amp; tin tức</span>
-        </nav>
+        <CustomerBreadcrumb
+          className="px-4 py-3 lg:px-8"
+          items={[{ label: 'Cẩm nang & tin tức' }]}
+        />
       </div>
 
       {/* Hero */}
       <div className="relative h-[240px] overflow-hidden sm:h-[280px]">
-        <img
-          src={HERO_IMG}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-        />
+        <img src={HERO_IMG} alt="" className="absolute inset-0 h-full w-full object-cover" />
         <div
           className="absolute inset-0 flex flex-col justify-center px-6 lg:px-14"
           style={{
-            background:
-              'linear-gradient(90deg, rgba(0,30,45,.78) 0%, rgba(0,30,45,.32) 100%)',
+            background: 'linear-gradient(90deg, rgba(0,30,45,.78) 0%, rgba(0,30,45,.32) 100%)',
           }}
         >
           <span
@@ -123,15 +107,14 @@ const NewsPage = () => {
             Đi xa hơn với mỗi hành trình
           </h1>
           <p className="m-0 mt-3 max-w-[540px] text-[14px] text-white/85 sm:text-[16px]">
-            Mẹo chọn xe, gợi ý cung đường đẹp, ưu đãi và quy định mới từ Vé Xe
-            Nhanh.
+            Mẹo chọn xe, gợi ý cung đường đẹp, ưu đãi và quy định mới từ Vé Xe Nhanh.
           </p>
         </div>
       </div>
 
       {/* Body */}
       <div className="px-4 py-6 lg:px-8">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+        <div className="mx-auto flex w-full max-w-[108rem] flex-col gap-6">
           {/* Tabs + search */}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="flex flex-wrap items-center gap-2">
@@ -142,11 +125,7 @@ const NewsPage = () => {
                     key={t.key}
                     type="button"
                     onClick={() => setActiveCat(t.key)}
-                    style={
-                      on
-                        ? { background: '#E89B26', borderColor: '#E89B26' }
-                        : undefined
-                    }
+                    style={on ? { background: '#E89B26', borderColor: '#E89B26' } : undefined}
                     className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[13px] transition ${
                       on
                         ? 'font-semibold text-white'
@@ -154,11 +133,7 @@ const NewsPage = () => {
                     }`}
                   >
                     {t.label}
-                    <span
-                      className={`text-[11px] ${
-                        on ? 'text-white/75' : 'text-vxn-fg-5'
-                      }`}
-                    >
+                    <span className={`text-[11px] ${on ? 'text-white/75' : 'text-vxn-fg-5'}`}>
                       {t.count}
                     </span>
                   </button>
@@ -220,8 +195,7 @@ const NewsPage = () => {
                   <div
                     className="absolute inset-0"
                     style={{
-                      background:
-                        'linear-gradient(180deg, rgba(0,40,60,0) 28%, rgba(0,40,60,.88))',
+                      background: 'linear-gradient(180deg, rgba(0,40,60,0) 28%, rgba(0,40,60,.88))',
                     }}
                   />
                   <div className="relative">
@@ -230,9 +204,7 @@ const NewsPage = () => {
                         className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide text-white"
                         style={{ background: '#E89B26' }}
                       >
-                        {(
-                          BLOG_CAT_LABELS[featured.category] || 'Tin tức'
-                        ).toUpperCase()}
+                        {(BLOG_CAT_LABELS[featured.category] || 'Tin tức').toUpperCase()}
                       </span>
                       <span className="inline-flex items-center rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-white">
                         BÀI NỔI BẬT
@@ -248,16 +220,12 @@ const NewsPage = () => {
                       <span>{authorName(featured.author)}</span>
                       <span>·</span>
                       <span>
-                        {dayjs(
-                          featured.publishedAt || featured.createdAt
-                        ).format('DD/MM/YYYY')}
+                        {dayjs(featured.publishedAt || featured.createdAt).format('DD/MM/YYYY')}
                       </span>
                       <span>·</span>
                       <span className="inline-flex items-center gap-1">
                         <EyeOutlined style={{ fontSize: 12 }} />
-                        {Number(featured.viewCount || 0).toLocaleString(
-                          'vi-VN'
-                        )}
+                        {Number(featured.viewCount || 0).toLocaleString('vi-VN')}
                       </span>
                     </div>
                   </div>
@@ -289,8 +257,8 @@ const NewsPage = () => {
                     Chưa tìm thấy điều bạn cần?
                   </h3>
                   <p className="m-0 mt-1.5 text-[14px] text-white/75">
-                    Xem giải đáp nhanh hơn 100 câu hỏi thường gặp về đặt vé,
-                    thanh toán và đổi/huỷ vé.
+                    Xem giải đáp nhanh hơn 100 câu hỏi thường gặp về đặt vé, thanh toán và đổi/huỷ
+                    vé.
                   </p>
                 </div>
                 <button

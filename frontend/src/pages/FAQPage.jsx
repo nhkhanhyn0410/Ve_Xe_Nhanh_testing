@@ -8,6 +8,7 @@ import {
   UpOutlined,
 } from '@ant-design/icons';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import { getFAQs, markFAQHelpful } from '../services/contentApi';
 
 const FAQ_CAT_LABELS = {
@@ -216,17 +217,10 @@ const FAQPage = () => {
     <CustomerShell activeKey="faq">
       {/* Breadcrumb */}
       <div className="border-b border-vxn-border bg-white">
-        <nav className="flex items-center gap-1 px-4 py-3 text-[13px] text-vxn-fg-4 lg:px-8">
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-          >
-            Trang chủ
-          </button>
-          <span>·</span>
-          <span className="text-vxn-fg-2">Câu hỏi thường gặp</span>
-        </nav>
+        <CustomerBreadcrumb
+          className="px-4 py-3 lg:px-8"
+          items={[{ label: 'Câu hỏi thường gặp' }]}
+        />
       </div>
 
       {/* Hero */}

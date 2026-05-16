@@ -2,6 +2,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import CustomerShell from '../../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../../components/customer/CustomerBreadcrumb';
 import PaymentResultCard from '../../components/customer/PaymentResultCard';
 
 const BOOKING_STEPS = [
@@ -127,17 +128,14 @@ const BookingFailure = () => {
 
       <div className="px-4 py-6 lg:px-8 lg:py-10">
         <div className="mx-auto max-w-5xl">
-          <nav className="mb-5 flex items-center gap-1 text-[13px] text-vxn-fg-4">
-            <span>Trang chủ</span>
-            <span>·</span>
-            <span>Hành trình</span>
-            <span>·</span>
-            <span>Thanh toán</span>
-            <span>·</span>
-            <span className="text-vxn-fg-2">
-              {kind === 'error' ? 'Lỗi cổng' : 'Thất bại'}
-            </span>
-          </nav>
+          <CustomerBreadcrumb
+            className="mb-5"
+            items={[
+              { label: 'Hành trình', to: '/my-tickets' },
+              { label: 'Thanh toán' },
+              { label: kind === 'error' ? 'Lỗi cổng' : 'Thất bại' },
+            ]}
+          />
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
             <PaymentResultCard

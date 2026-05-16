@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button,
   DatePicker,
@@ -33,6 +33,11 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import CustomerShell from '../../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../../components/customer/CustomerBreadcrumb';
+import {
+  ACCOUNT_MENU_ITEMS,
+  accountBreadcrumbItem,
+} from '../../components/customer/accountMenu';
 import useAuthStore from '../../store/authStore';
 import {
   addSavedPassenger,
@@ -62,11 +67,9 @@ const GENDER_LABEL = {
   other: 'Khác',
 };
 
-const formatDateLong = (value) =>
-  value ? dayjs(value).format('DD/MM/YYYY') : '—';
+const formatDateLong = (value) => (value ? dayjs(value).format('DD/MM/YYYY') : '—');
 
-const formatMonthYear = (value) =>
-  value ? dayjs(value).format('[tháng] M, YYYY') : '—';
+const formatMonthYear = (value) => (value ? dayjs(value).format('[tháng] M, YYYY') : '—');
 
 const initialsOf = (name = '') => {
   if (!name) return '?';
@@ -86,8 +89,7 @@ const maskIdCard = (id = '') => {
   return `${trimmed.slice(0, 6)}••••${trimmed.slice(-4)}`;
 };
 
-const getResponseUser = (response) =>
-  response?.data?.user || response?.user || null;
+const getResponseUser = (response) => response?.data?.user || response?.user || null;
 
 // ============================================================================
 // Account sidebar
@@ -154,6 +156,51 @@ const AccountSidebar = ({ activeKey = 'profile', onScrollTo, onNavigate }) => {
   );
 };
 
+const AccountFeatureGrid = ({ onNavigate }) => {
+  const actions = ACCOUNT_MENU_ITEMS.filter((item) => item.key !== 'profile');
+
+  return (
+    <section className="rounded-2xl border border-vxn-border bg-white p-4 shadow-sm sm:p-5">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <h3 className="m-0 text-[16px] font-semibold text-vxn-ink">
+            Tiện ích tài khoản
+          </h3>
+          <p className="m-0 mt-0.5 text-[12px] text-vxn-fg-4">
+            Chuyển nhanh đến các chức năng cá nhân thường dùng.
+          </p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {actions.map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => onNavigate(item.to)}
+              className="group flex items-start gap-3 rounded-xl border border-vxn-border bg-vxn-bg-soft p-4 text-left transition hover:-translate-y-0.5 hover:border-vxn-saffron-300 hover:bg-white hover:shadow-sm"
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white text-vxn-teal-700 shadow-sm transition group-hover:bg-vxn-saffron-50 group-hover:text-vxn-saffron-700">
+                <Icon style={{ fontSize: 17 }} />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-[14px] font-semibold text-vxn-ink">
+                  {item.label}
+                </span>
+                <span className="mt-1 block text-[12px] leading-5 text-vxn-fg-4">
+                  {item.description}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+};
+
 // ============================================================================
 // Hero card
 // ============================================================================
@@ -205,9 +252,7 @@ const HeroCard = ({ profile, totalTrips, uploading, uploadProps }) => {
               {profile.email}
             </span>
           )}
-          {profile?.email && profile?.phone && (
-            <span className="text-vxn-fg-5">·</span>
-          )}
+          {profile?.email && profile?.phone && <span className="text-vxn-fg-5">·</span>}
           {profile?.phone && (
             <span className="inline-flex items-center gap-1.5">
               <PhoneOutlined style={{ fontSize: 13 }} />
@@ -239,22 +284,16 @@ const HeroCard = ({ profile, totalTrips, uploading, uploadProps }) => {
       {/* Meta */}
       <div className="grid grid-cols-2 gap-4 border-t border-dashed border-vxn-border pt-4 text-center sm:grid-cols-2 lg:border-l lg:border-t-0 lg:border-dashed lg:pl-6 lg:pt-0 lg:text-right">
         <div>
-          <div className="text-[11px] tracking-wide text-vxn-fg-5">
-            Thành viên từ
-          </div>
+          <div className="text-[11px] tracking-wide text-vxn-fg-5">Thành viên từ</div>
           <div className="mt-0.5 text-[14px] font-semibold text-vxn-ink">
             {formatMonthYear(profile?.createdAt)}
           </div>
         </div>
         <div>
-          <div className="text-[11px] tracking-wide text-vxn-fg-5">
-            Đã đi cùng VXN
-          </div>
+          <div className="text-[11px] tracking-wide text-vxn-fg-5">Đã đi cùng VXN</div>
           <div className="mt-0.5 text-[20px] font-bold text-vxn-saffron-700 sm:text-[22px]">
             {totalTrips ?? '—'}{' '}
-            <span className="text-[12px] font-medium text-vxn-fg-4">
-              chuyến
-            </span>
+            <span className="text-[12px] font-medium text-vxn-fg-4">chuyến</span>
           </div>
         </div>
       </div>
@@ -271,9 +310,7 @@ const Pair = ({ label, value, verified }) => (
     <div className="text-[12px] font-medium text-vxn-fg-5">{label}</div>
     <div className="mt-1 flex items-center gap-1.5 text-[15px] font-medium text-vxn-ink">
       <span className="truncate">{value || '—'}</span>
-      {verified && (
-        <CheckCircleFilled style={{ fontSize: 14, color: '#0F8458' }} />
-      )}
+      {verified && <CheckCircleFilled style={{ fontSize: 14, color: '#0F8458' }} />}
     </div>
   </div>
 );
@@ -289,9 +326,7 @@ const PersonalInfoCard = ({ profile, onEdit }) => (
   >
     <div className="mb-5 flex items-center justify-between gap-2">
       <div>
-        <h3 className="m-0 text-[18px] font-semibold text-vxn-ink">
-          Thông tin cá nhân
-        </h3>
+        <h3 className="m-0 text-[18px] font-semibold text-vxn-ink">Thông tin cá nhân</h3>
         <p className="m-0 mt-1 text-[12.5px] text-vxn-fg-4">
           Email và SĐT đã xác thực sẽ được dùng để gửi vé và OTP.
         </p>
@@ -311,24 +346,10 @@ const PersonalInfoCard = ({ profile, onEdit }) => (
         label="Ngày sinh"
         value={profile?.dateOfBirth ? formatDateLong(profile.dateOfBirth) : ''}
       />
-      <Pair
-        label="Giới tính"
-        value={GENDER_LABEL[profile?.gender] || ''}
-      />
-      <Pair
-        label="CMND/CCCD"
-        value={profile?.idCard ? maskIdCard(profile.idCard) : ''}
-      />
-      <Pair
-        label="Email"
-        value={profile?.email}
-        verified={profile?.isEmailVerified}
-      />
-      <Pair
-        label="Số điện thoại"
-        value={profile?.phone}
-        verified={profile?.isPhoneVerified}
-      />
+      <Pair label="Giới tính" value={GENDER_LABEL[profile?.gender] || ''} />
+      <Pair label="CMND/CCCD" value={profile?.idCard ? maskIdCard(profile.idCard) : ''} />
+      <Pair label="Email" value={profile?.email} verified={profile?.isEmailVerified} />
+      <Pair label="Số điện thoại" value={profile?.phone} verified={profile?.isPhoneVerified} />
     </div>
   </section>
 );
@@ -345,12 +366,7 @@ const PASSENGER_COLORS = [
   { bg: '#FCE9D2', text: '#B86A1B' },
 ];
 
-const SavedPassengersCard = ({
-  passengers = [],
-  onAdd,
-  onRemove,
-  removingId,
-}) => {
+const SavedPassengersCard = ({ passengers = [], onAdd, onRemove, removingId }) => {
   const count = passengers.length;
   const max = 5;
   const remaining = Math.max(max - count, 0);
@@ -362,12 +378,10 @@ const SavedPassengersCard = ({
     >
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="m-0 text-[18px] font-semibold text-vxn-ink">
-            Hành khách thường đi
-          </h3>
+          <h3 className="m-0 text-[18px] font-semibold text-vxn-ink">Hành khách thường đi</h3>
           <p className="m-0 mt-1 text-[13px] text-vxn-fg-3">
-            Lưu <strong className="text-vxn-ink">{count}/5</strong> hành khách
-            để đặt vé nhanh hơn lần sau.
+            Lưu <strong className="text-vxn-ink">{count}/5</strong> hành khách để đặt vé nhanh hơn
+            lần sau.
           </p>
         </div>
         <Button
@@ -387,16 +401,14 @@ const SavedPassengersCard = ({
             <TeamOutlined style={{ fontSize: 20, color: '#94A3B8' }} />
           </div>
           <p className="m-0 text-[13px] text-vxn-fg-3">
-            Bạn chưa lưu hành khách nào. Lưu sẵn để bước chọn ghế nhanh hơn ở
-            lần đặt vé sau.
+            Bạn chưa lưu hành khách nào. Lưu sẵn để bước chọn ghế nhanh hơn ở lần đặt vé sau.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {passengers.map((p, idx) => {
             const color = PASSENGER_COLORS[idx % PASSENGER_COLORS.length];
-            const lastInitial =
-              p.fullName?.split(' ').filter(Boolean).slice(-1)[0]?.[0] || '?';
+            const lastInitial = p.fullName?.split(' ').filter(Boolean).slice(-1)[0]?.[0] || '?';
             const isRemoving = removingId === p._id;
             return (
               <div
@@ -608,15 +620,10 @@ const EditProfileModal = ({ open, profile, onCancel, onSubmit, loading }) => {
           </Form.Item>
         </div>
         <Form.Item label="Email">
-          <Input
-            prefix={<MailOutlined />}
-            value={profile?.email || ''}
-            disabled
-          />
+          <Input prefix={<MailOutlined />} value={profile?.email || ''} disabled />
         </Form.Item>
         <p className="m-0 -mt-2 text-[12px] text-vxn-fg-5">
-          Email là định danh chính, không thể thay đổi. Liên hệ hỗ trợ nếu cần
-          cập nhật.
+          Email là định danh chính, không thể thay đổi. Liên hệ hỗ trợ nếu cần cập nhật.
         </p>
       </Form>
     </Modal>
@@ -689,9 +696,7 @@ const ChangePasswordModal = ({ open, onCancel, onSubmit, loading }) => {
                 if (!value || getFieldValue('newPassword') === value) {
                   return Promise.resolve();
                 }
-                return Promise.reject(
-                  new Error('Mật khẩu xác nhận không khớp')
-                );
+                return Promise.reject(new Error('Mật khẩu xác nhận không khớp'));
               },
             }),
           ]}
@@ -771,8 +776,7 @@ const AddPassengerModal = ({ open, onCancel, onSubmit, loading }) => {
           <Input prefix={<IdcardOutlined />} placeholder="0790951234567" maxLength={12} />
         </Form.Item>
         <p className="m-0 -mt-1 text-[12px] text-vxn-fg-5">
-          Thông tin được mã hoá và chỉ dùng để điền nhanh khi đặt vé. Tối đa 5
-          hành khách.
+          Thông tin được mã hoá và chỉ dùng để điền nhanh khi đặt vé. Tối đa 5 hành khách.
         </p>
       </Form>
     </Modal>
@@ -785,6 +789,7 @@ const AddPassengerModal = ({ open, onCancel, onSubmit, loading }) => {
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user: storedUser, updateUser } = useAuthStore();
   const [profile, setProfile] = useState(storedUser);
   const [loading, setLoading] = useState(true);
@@ -977,7 +982,7 @@ const ProfilePage = () => {
   };
 
   // ----- Sidebar scroll
-  const handleScrollTo = (target) => {
+  const handleScrollTo = useCallback((target) => {
     const map = {
       top: topRef,
       passengers: passengersRef,
@@ -987,24 +992,46 @@ const ProfilePage = () => {
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  };
+  }, []);
+
+  const handleAccountNavigate = useCallback(
+    (to) => {
+      navigate(to);
+
+      const hashTarget = {
+        '/profile#passengers': 'passengers',
+        '/profile#security': 'security',
+      }[to];
+
+      if (hashTarget) {
+        requestAnimationFrame(() => handleScrollTo(hashTarget));
+      }
+    },
+    [handleScrollTo, navigate]
+  );
+
+  useEffect(() => {
+    if (loading) return;
+
+    const hashTarget = {
+      '#passengers': 'passengers',
+      '#security': 'security',
+    }[location.hash];
+
+    if (hashTarget) {
+      requestAnimationFrame(() => handleScrollTo(hashTarget));
+    }
+  }, [handleScrollTo, location.hash, loading]);
 
   return (
     <CustomerShell activeKey="member">
       {/* Page header */}
       <div className="border-b border-vxn-border bg-white">
         <div className="px-4 pt-6 lg:px-8" ref={topRef}>
-          <nav className="mb-3 flex items-center gap-1 text-[13px] text-vxn-fg-4">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-            >
-              Trang chủ
-            </button>
-            <span>·</span>
-            <span className="text-vxn-fg-2">Tài khoản</span>
-          </nav>
+          <CustomerBreadcrumb
+            className="mb-3"
+            items={[accountBreadcrumbItem()]}
+          />
           <div className="flex flex-wrap items-end justify-between gap-3 pb-5">
             <div>
               <h1 className="m-0 text-[28px] font-semibold tracking-tight text-vxn-ink">
@@ -1039,7 +1066,7 @@ const ProfilePage = () => {
 
       {/* Body */}
       <div className="px-4 py-6 lg:px-8">
-        <div className="mx-auto grid w-full max-w-7xl gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <div className="mx-auto grid w-full max-w-[108rem] gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
           <AccountSidebar
             activeKey="profile"
             onScrollTo={handleScrollTo}
@@ -1058,6 +1085,7 @@ const ProfilePage = () => {
                 uploading={uploadingAvatar}
                 uploadProps={uploadProps}
               />
+              <AccountFeatureGrid onNavigate={handleAccountNavigate} />
               <PersonalInfoCard
                 profile={profile}
                 onEdit={() => setEditOpen(true)}
@@ -1071,10 +1099,7 @@ const ProfilePage = () => {
                 />
               </div>
               <div ref={securityRef}>
-                <SecurityCard
-                  profile={profile}
-                  onChangePassword={() => setPasswordOpen(true)}
-                />
+                <SecurityCard profile={profile} onChangePassword={() => setPasswordOpen(true)} />
               </div>
             </div>
           )}

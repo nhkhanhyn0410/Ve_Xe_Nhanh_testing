@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Form, Input, Spin, message } from 'antd';
 import {
   ArrowLeftOutlined,
-  ArrowRightOutlined,
   BankOutlined,
   CarOutlined,
   CalendarOutlined,
@@ -22,6 +21,7 @@ import {
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import useBookingStore from '../store/bookingStore';
 import useAuthStore from '../store/authStore';
 import { holdSeats, validateVoucher, createPayment } from '../services/bookingApi';
@@ -532,33 +532,13 @@ const PassengerInfoPage = () => {
       <div className="sticky top-16 z-30 bg-white shadow-sm lg:top-0">
         <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2 text-sm text-vxn-fg-3">
-              <button
-                type="button"
-                className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800"
-                onClick={() => navigate('/')}
-              >
-                Trang chủ
-              </button>
-              <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-              <button
-                type="button"
-                className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800"
-                onClick={() => navigate('/trips')}
-              >
-                Tìm chuyến
-              </button>
-              <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-              <button
-                type="button"
-                className="border-0 bg-transparent p-0 font-medium text-vxn-teal-800"
-                onClick={() => navigate(`/booking/seats/${tripView.id}`)}
-              >
-                Chọn ghế
-              </button>
-              <ArrowRightOutlined className="text-[10px] text-vxn-fg-5" />
-              <span>{currentStep === 0 ? 'Thông tin hành khách' : 'Thanh toán'}</span>
-            </div>
+            <CustomerBreadcrumb
+              items={[
+                { label: 'Tìm chuyến', to: '/trips' },
+                { label: 'Chọn ghế', to: `/booking/seats/${tripView.id}` },
+                { label: currentStep === 0 ? 'Thông tin hành khách' : 'Thanh toán' },
+              ]}
+            />
             <div className="flex flex-wrap items-center gap-3">
               {currentStep === 1 && (
                 <span className="inline-flex items-center gap-2 rounded-[10px] bg-[#FFF1D6] px-3 py-2 text-[13px] font-semibold text-vxn-saffron-700">

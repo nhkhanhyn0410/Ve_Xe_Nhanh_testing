@@ -19,6 +19,7 @@ import {
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import CustomerShell from '../components/customer/CustomerShell';
+import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import heroImage from '../assets/brand/hero-landscape.jpg';
 import {
   requestTicketLookupOTP,
@@ -711,17 +712,10 @@ const GuestTicketLookupPage = () => {
     <CustomerShell activeKey="lookup">
       <div className="border-b border-vxn-border bg-white">
         <div className="px-4 pt-6 lg:px-8">
-          <nav className="mb-4 flex items-center gap-1 text-[13px] text-vxn-fg-4">
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="border-0 bg-transparent p-0 text-vxn-fg-4 hover:text-vxn-ink"
-            >
-              Trang chủ
-            </button>
-            <span>·</span>
-            <span className="text-vxn-fg-2">Tra cứu vé khách</span>
-          </nav>
+          <CustomerBreadcrumb
+            className="mb-4"
+            items={[{ label: 'Tra cứu vé khách' }]}
+          />
         </div>
       </div>
 
