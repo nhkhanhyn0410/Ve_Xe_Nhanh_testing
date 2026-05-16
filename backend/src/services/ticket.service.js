@@ -10,6 +10,35 @@ const { getRedisClient } = require('../config/redis');
 
 const logger = require('../utils/logger');
 
+const normalizeLookupPhone = (phone = '') => {
+  const normalized = String(phone).replace(/[\s().-]/g, '');
+  if (/^84\d{9}$/.test(normalized)) return `0${normalized.slice(2)}`;
+  if (normalized.startsWith('+84')) return `0${normalized.slice(3)}`;
+  return normalized;
+};
+
+const getPhoneLookupValues = (phone) => {
+  if (!phone) return [];
+
+  const localPhone = normalizeLookupPhone(phone);
+  const internationalPhone = localPhone.startsWith('0') ? `+84${localPhone.slice(1)}` : phone;
+
+  return Array.from(new Set([phone, localPhone, internationalPhone].filter(Boolean)));
+};
+
+const maskLookupContact = (value, method) => {
+  const text = String(value || '');
+  if (method === 'email') {
+    const [local, domain] = text.split('@');
+    if (!local || !domain) return '***';
+    return `${local.slice(0, 2)}***@${domain}`;
+  }
+
+  const digits = text.replace(/\D/g, '');
+  if (digits.length <= 4) return '***';
+  return `${digits[0]}***${digits.slice(-3)}`;
+};
+
 // Lazy-load BookingService to avoid circular dependency
 let BookingService = null;
 const getBookingService = () => {
@@ -347,11 +376,15 @@ class TicketService {
       throw new Error('Phải cung cấp số điện thoại hoặc email');
     }
 
+    const phoneValues = getPhoneLookupValues(phone);
+
     // Find bookings by phone or email
     const bookings = await Booking.find({
       $or: [
-        phone ? { 'contactInfo.phone': phone } : null,
-        phone ? { 'guestInfo.phone': phone } : null,
+        ...phoneValues.flatMap((value) => [
+          { 'contactInfo.phone': value },
+          { 'guestInfo.phone': value },
+        ]),
         email ? { 'contactInfo.email': email } : null,
         email ? { 'guestInfo.email': email } : null,
       ].filter(Boolean),
@@ -363,7 +396,7 @@ class TicketService {
 
     // Determine contact method and value
     const contactMethod = phone ? 'phone' : 'email';
-    const contactValue = phone || email;
+    const contactValue = phone ? normalizeLookupPhone(phone) : email;
 
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -373,14 +406,16 @@ class TicketService {
     const redis = getRedisClient();
     await redis.setEx(otpKey, 300, otp); // 5 minutes
 
-    logger.info(`🔐 OTP tra cứu vé cho ${contactMethod} ${contactValue}: ${otp} (Demo: use 123456)`);
+    logger.info(
+      `OTP tra cứu vé cho ${contactMethod} ${maskLookupContact(contactValue, contactMethod)} (Demo: use 123456)`
+    );
 
     const sentMethods = [];
 
     // Send OTP via SMS if phone provided
     if (contactMethod === 'phone') {
       try {
-        await SMSService.sendOTP(phone, otp);
+        await SMSService.sendOTP(normalizeLookupPhone(phone), otp);
         sentMethods.push('SMS');
       } catch (error) {
         logger.error(`Không thể gửi OTP SMS: ${error.message}`);
@@ -440,8 +475,8 @@ class TicketService {
       throw new Error('Phải cung cấp số điện thoại hoặc email');
     }
 
-    // Get OTP key - use whatever was provided (phone or email)
-    const contactValue = phone || email;
+    // Get OTP key - use normalized phone or email
+    const contactValue = phone ? normalizeLookupPhone(phone) : email;
     const otpKey = `ticket_lookup_otp:${contactValue}`;
 
     // Demo mode: Accept 123456 as valid OTP
@@ -464,11 +499,15 @@ class TicketService {
       logger.warn('Demo OTP (123456) accepted cho kiểm tra');
     }
 
+    const phoneValues = getPhoneLookupValues(phone);
+
     // Find all bookings by phone or email
     const bookings = await Booking.find({
       $or: [
-        phone ? { 'contactInfo.phone': phone } : null,
-        phone ? { 'guestInfo.phone': phone } : null,
+        ...phoneValues.flatMap((value) => [
+          { 'contactInfo.phone': value },
+          { 'guestInfo.phone': value },
+        ]),
         email ? { 'contactInfo.email': email } : null,
         email ? { 'guestInfo.email': email } : null,
       ].filter(Boolean),

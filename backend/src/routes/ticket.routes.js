@@ -4,8 +4,12 @@ const router = express.Router();
 const { body, param } = require('express-validator');
 const TicketController = require('../controllers/ticket.controller');
 
-const normalizePhone = (value) =>
-  typeof value === 'string' ? value.replace(/[\s().-]/g, '') : value;
+const normalizePhone = (value) => {
+  if (typeof value !== 'string') return value;
+
+  const normalized = value.replace(/[\s().-]/g, '');
+  return /^84\d{9}$/.test(normalized) ? `+${normalized}` : normalized;
+};
 
 // Note: auth middleware should be imported from your middleware folder
 // const { protect, authorize } = require('../middleware/auth.middleware');

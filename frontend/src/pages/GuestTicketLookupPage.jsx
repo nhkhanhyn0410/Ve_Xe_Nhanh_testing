@@ -42,7 +42,10 @@ const formatCurrency = (v = 0) => `${Number(v || 0).toLocaleString('vi-VN')}đ`;
 const formatTime = (v) => (v ? dayjs(v).format('HH:mm') : '--:--');
 const formatDateShort = (v) =>
   v ? dayjs(v).format('ddd, DD/MM/YYYY') : '—';
-const normalizePhone = (value = '') => value.replace(/[\s().-]/g, '');
+const normalizePhone = (value = '') => {
+  const normalized = value.replace(/[\s().-]/g, '');
+  return /^84\d{9}$/.test(normalized) ? `+${normalized}` : normalized;
+};
 
 /**
  * Compute refund estimate based on backend cancellation policy:
@@ -488,7 +491,9 @@ const GuestTicketLookupPage = () => {
     if (method === 'phone') {
       const v = normalizePhone(contact);
       if (!/^(0\d{9}|\+84\d{9})$/.test(v)) {
-        message.error('Số điện thoại phải có dạng 0901234567 hoặc +84901234567');
+        message.error(
+          'Số điện thoại phải có dạng 0901234567, +84901234567 hoặc 84901234567'
+        );
         return false;
       }
       return true;
