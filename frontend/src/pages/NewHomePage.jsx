@@ -24,6 +24,13 @@ import {
 import dayjs from 'dayjs';
 import { toast } from 'react-hot-toast';
 import heroImage from '../assets/brand/hero-landscape.jpg';
+import danangHueImage from '../assets/img/Da Nang-Hue.jpg';
+import hanoiHaLongImage from '../assets/img/Ha Noi-Ha Long.jpg';
+import hanoiNinhBinhImage from '../assets/img/HA NOI-NINH BINH.png';
+import hanoiSapaImage from '../assets/img/HA NOI-SAPA.jpg';
+import hcmDaLatImage from '../assets/img/TH HCM-DA LAT.png';
+import hcmNhaTrangImage from '../assets/img/TP HCM-NHA TRANG.jpg';
+import hcmVungTauImage from '../assets/img/TP HCM-VUNG TAU.png';
 import CustomerShell from '../components/customer/CustomerShell';
 import useBookingStore from '../store/bookingStore';
 
@@ -53,9 +60,26 @@ const popularRoutesFallback = [
     hours: '7 tiếng',
     fromPrice: 280000,
     rating: '4.8',
+    image: hcmDaLatImage,
   },
-  { from: 'Hà Nội', to: 'Sapa', km: 320, hours: '5 tiếng', fromPrice: 350000, rating: '4.8' },
-  { from: 'Hà Nội', to: 'Hạ Long', km: 165, hours: '3 tiếng', fromPrice: 180000, rating: '4.7' },
+  {
+    from: 'Hà Nội',
+    to: 'Sapa',
+    km: 320,
+    hours: '5 tiếng',
+    fromPrice: 350000,
+    rating: '4.8',
+    image: hanoiSapaImage,
+  },
+  {
+    from: 'Hà Nội',
+    to: 'Hạ Long',
+    km: 165,
+    hours: '3 tiếng',
+    fromPrice: 180000,
+    rating: '4.7',
+    image: hanoiHaLongImage,
+  },
   {
     from: 'TP. Hồ Chí Minh',
     to: 'Vũng Tàu',
@@ -63,8 +87,17 @@ const popularRoutesFallback = [
     hours: '2 tiếng',
     fromPrice: 120000,
     rating: '4.6',
+    image: hcmVungTauImage,
   },
-  { from: 'Đà Nẵng', to: 'Huế', km: 100, hours: '2 tiếng', fromPrice: 110000, rating: '4.6' },
+  {
+    from: 'Đà Nẵng',
+    to: 'Huế',
+    km: 100,
+    hours: '2 tiếng',
+    fromPrice: 110000,
+    rating: '4.6',
+    image: danangHueImage,
+  },
   {
     from: 'TP. Hồ Chí Minh',
     to: 'Nha Trang',
@@ -72,8 +105,17 @@ const popularRoutesFallback = [
     hours: '9 tiếng',
     fromPrice: 420000,
     rating: '4.7',
+    image: hcmNhaTrangImage,
   },
-  { from: 'Hà Nội', to: 'Ninh Bình', km: 95, hours: '2 tiếng', fromPrice: 130000, rating: '4.7' },
+  {
+    from: 'Hà Nội',
+    to: 'Ninh Bình',
+    km: 95,
+    hours: '2 tiếng',
+    fromPrice: 130000,
+    rating: '4.7',
+    image: hanoiNinhBinhImage,
+  },
 ];
 
 const operatorFallback = [
@@ -276,7 +318,7 @@ const RouteCardLarge = ({ route, onFill, onSubmit }) => (
   <div
     className="relative flex min-h-[280px] overflow-hidden rounded-2xl bg-cover bg-[40%_45%] p-7 text-white"
     style={{
-      backgroundImage: `linear-gradient(180deg, rgba(0,40,60,.10) 0%, rgba(0,40,60,.76) 100%), url(${heroImage})`,
+      backgroundImage: `linear-gradient(180deg, rgba(0,40,60,.10) 0%, rgba(0,40,60,.76) 100%), url(${route.image || heroImage})`,
     }}
   >
     <div className="relative z-10 flex w-full flex-col justify-between">
@@ -325,35 +367,81 @@ const RouteCardLarge = ({ route, onFill, onSubmit }) => (
   </div>
 );
 
-const RouteCardSmall = ({ route, compact = false, onSubmit }) => (
-  <button
-    type="button"
-    className={`flex flex-col rounded-xl border border-vxn-border bg-white text-left transition hover:border-vxn-teal-300 hover:shadow-md ${
-      compact ? 'gap-2 p-4' : 'min-h-[130px] gap-3 p-5'
-    }`}
-    onClick={() => onSubmit(route)}
-  >
-    <div className="flex items-center gap-2 text-base font-semibold text-vxn-ink">
-      <span className="truncate">{route.from}</span>
-      <ArrowRightOutlined className="shrink-0 text-[13px] text-vxn-fg-5" />
-      <span className="truncate">{route.to}</span>
-    </div>
-    <div className="text-xs text-vxn-fg-5">
-      {route.km} km · {route.hours}
-    </div>
-    <div className="mt-auto flex items-baseline justify-between gap-3">
-      <div>
-        <span className="text-[11px] text-vxn-fg-5">Từ </span>
-        <span className="text-base font-bold text-vxn-saffron-700">
-          {formatCurrency(route.fromPrice)}
-        </span>
+const getSmallRouteCardSizeClass = (hasImage, compact) => {
+  if (hasImage) {
+    return compact ? 'min-h-[190px] p-5 text-white' : 'min-h-[280px] p-5 text-white';
+  }
+
+  if (compact) {
+    return 'gap-2 p-4';
+  }
+
+  return 'min-h-[130px] gap-3 p-5';
+};
+
+const RouteCardSmall = ({ route, compact = false, onSubmit }) => {
+  const hasImage = Boolean(route.image);
+  const sizeClass = getSmallRouteCardSizeClass(hasImage, compact);
+
+  return (
+    <button
+      type="button"
+      className={`relative flex flex-col overflow-hidden rounded-xl border border-vxn-border bg-white text-left transition hover:border-vxn-teal-300 hover:shadow-md ${sizeClass}`}
+      style={
+        hasImage
+          ? {
+              backgroundImage: `linear-gradient(180deg, rgba(0,40,60,.08) 0%, rgba(0,40,60,.48) 44%, rgba(0,40,60,.84) 100%), url(${route.image})`,
+              backgroundPosition: 'center',
+              backgroundSize: 'cover',
+            }
+          : undefined
+      }
+      onClick={() => onSubmit(route)}
+    >
+      <div className="relative z-10 flex flex-1 flex-col gap-2">
+        {hasImage ? (
+          <span className="w-fit rounded-full bg-black/30 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur">
+            <StarFilled className="mr-1 text-vxn-saffron-500" />
+            {route.rating}
+          </span>
+        ) : null}
+        <div className={`flex flex-col gap-2 ${hasImage ? 'mt-auto' : 'flex-1'}`}>
+          <div
+            className={`flex items-center gap-2 text-base font-semibold ${
+              hasImage ? 'text-white' : 'text-vxn-ink'
+            }`}
+          >
+            <span className="truncate">{route.from}</span>
+            <ArrowRightOutlined
+              className={`shrink-0 text-[13px] ${hasImage ? 'text-vxn-saffron-500' : 'text-vxn-fg-5'}`}
+            />
+            <span className="truncate">{route.to}</span>
+          </div>
+          <div className={`text-xs ${hasImage ? 'text-white/80' : 'text-vxn-fg-5'}`}>
+            {route.km} km · {route.hours}
+          </div>
+          <div className={`${hasImage ? 'mt-3' : 'mt-auto'} flex items-baseline justify-between gap-3`}>
+            <div>
+              <span className={`text-[11px] ${hasImage ? 'text-white/70' : 'text-vxn-fg-5'}`}>
+                Từ{' '}
+              </span>
+              <span className="text-base font-bold text-vxn-saffron-700">
+                {formatCurrency(route.fromPrice)}
+              </span>
+            </div>
+            <span
+              className={`whitespace-nowrap text-[13px] font-medium ${
+                hasImage ? 'text-white' : 'text-vxn-teal-800'
+              }`}
+            >
+              Xem chuyến →
+            </span>
+          </div>
+        </div>
       </div>
-      <span className="whitespace-nowrap text-[13px] font-medium text-vxn-teal-800">
-        Xem chuyến →
-      </span>
-    </div>
-  </button>
-);
+    </button>
+  );
+};
 
 const ValueProps = () => (
   <section className="bg-vxn-bg-soft px-4 py-8 lg:px-14">
