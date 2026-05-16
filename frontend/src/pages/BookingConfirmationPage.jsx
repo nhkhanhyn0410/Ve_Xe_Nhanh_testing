@@ -165,7 +165,14 @@ const BookingConfirmationPage = () => {
     );
   }
 
-  const seats = booking?.seats || [];
+  let rawSeats = booking?.seats;
+  if (!rawSeats || rawSeats.length === 0) {
+    rawSeats = booking?.seatNumbers || ticket?.seatNumbers;
+  }
+  if (!rawSeats || rawSeats.length === 0) {
+    rawSeats = ticket?.passengers?.map((p) => p.seatNumber);
+  }
+  const seats = Array.isArray(rawSeats) ? rawSeats : [];
   const totalPrice = booking?.totalPrice ?? booking?.finalPrice ?? 0;
   const finalPrice = booking?.finalPrice ?? totalPrice;
   const discount = (booking?.discount || 0) + (booking?.voucherDiscount || 0);

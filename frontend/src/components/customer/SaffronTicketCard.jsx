@@ -23,8 +23,19 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
   const departureTime = trip?.departureTime || booking?.tripInfo?.departureTime;
   const arrivalTime = trip?.arrivalTime || booking?.tripInfo?.arrivalTime;
 
-  const seatLabels =
-    booking?.seats?.map((s) => s.seatNumber || s).filter(Boolean).join(', ') || '—';
+  const seatLabels = useMemo(() => {
+    let rawSeats = booking?.seats;
+    if (!rawSeats || rawSeats.length === 0) {
+      rawSeats = booking?.seatNumbers || ticket?.seatNumbers;
+    }
+    if (!rawSeats || rawSeats.length === 0) {
+      rawSeats = ticket?.passengers?.map((p) => p.seatNumber);
+    }
+    if (Array.isArray(rawSeats) && rawSeats.length > 0) {
+      return rawSeats.map((s) => s?.seatNumber || s).filter(Boolean).join(', ');
+    }
+    return '—';
+  }, [booking, ticket]);
 
   const operatorName =
     booking?.operatorId?.companyName ||

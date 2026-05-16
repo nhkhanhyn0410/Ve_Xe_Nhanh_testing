@@ -30,6 +30,8 @@ import NewHomePage from './pages/NewHomePage';
 import ExplorePage from './pages/ExplorePage';
 import AddonsPage from './pages/AddonsPage';
 import NewsPage from './pages/NewsPage';
+import BlogDetailPage from './pages/BlogDetailPage';
+import FAQPage from './pages/FAQPage';
 import TripsPage from './pages/TripsPage';
 import TripDetailPage from './pages/TripDetailPage';
 import SeatSelectionPage from './pages/SeatSelectionPage';
@@ -40,7 +42,6 @@ import ProfilePage from './pages/customer/ProfilePage';
 import MyTicketsPage from './pages/customer/MyTicketsPage';
 import MyReviewsPage from './pages/MyReviewsPage';
 import MyComplaintsPage from './pages/MyComplaintsPage';
-import ComplaintDetailPage from './pages/ComplaintDetailPage';
 import LoyaltyOverviewPage from './pages/LoyaltyOverviewPage';
 import LoyaltyHistoryPage from './pages/LoyaltyHistoryPage';
 import GuestTicketLookupPage from './pages/GuestTicketLookupPage';
@@ -125,6 +126,10 @@ function App() {
         <Route path="/dich-vu-bo-tro" element={<AddonsPage />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/tin-tuc" element={<NewsPage />} />
+        <Route path="/news/:slug" element={<BlogDetailPage />} />
+        <Route path="/tin-tuc/:slug" element={<BlogDetailPage />} />
+        <Route path="/faq" element={<FAQPage />} />
+        <Route path="/cau-hoi-thuong-gap" element={<Navigate to="/faq" replace />} />
         <Route path="/trips" element={<TripsPage />} />
         <Route path="/hanh-trinh" element={<Navigate to="/trips" replace />} />
         <Route path="/search-results" element={<TripsPage />} />
@@ -183,7 +188,7 @@ function App() {
           path="/complaints/:id"
           element={
             <ProtectedRoute allowedRoles={['customer']}>
-              <ComplaintDetailPage />
+              <MyComplaintsPage />
             </ProtectedRoute>
           }
         />

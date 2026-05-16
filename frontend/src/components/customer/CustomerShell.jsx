@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Drawer } from 'antd';
 import {
   CloseOutlined,
+  CustomerServiceOutlined,
   EnvironmentOutlined,
   FileTextOutlined,
   GlobalOutlined,
@@ -10,6 +11,7 @@ import {
   PlusSquareOutlined,
   QrcodeOutlined,
   QuestionCircleOutlined,
+  ReadOutlined,
   StarOutlined,
 } from '@ant-design/icons';
 import { toast } from 'react-hot-toast';
@@ -50,10 +52,21 @@ const sidebarSupport = [
   {
     key: 'complaints',
     label: 'Khiếu nại',
-    icon: QuestionCircleOutlined,
+    icon: CustomerServiceOutlined,
     path: '/khieu-nai',
   },
-  { key: 'news', label: 'Tin tức', icon: FileTextOutlined, path: '/tin-tuc' },
+  {
+    key: 'news',
+    label: 'Cẩm nang & tin tức',
+    icon: ReadOutlined,
+    path: '/tin-tuc',
+  },
+  {
+    key: 'faq',
+    label: 'Câu hỏi thường gặp',
+    icon: QuestionCircleOutlined,
+    path: '/faq',
+  },
 ];
 
 const getInitials = (user) => {
@@ -77,6 +90,8 @@ const resolveActiveKey = (pathname, activeKey) => {
   )
     return 'tickets';
   if (pathname.startsWith('/news') || pathname.startsWith('/tin-tuc')) return 'news';
+  if (pathname.startsWith('/faq') || pathname.startsWith('/cau-hoi-thuong-gap'))
+    return 'faq';
   if (pathname.startsWith('/complaints') || pathname.startsWith('/khieu-nai')) return 'complaints';
   if (pathname.startsWith('/dich-vu-bo-tro')) return 'addons';
   if (pathname.startsWith('/kham-pha') || pathname.startsWith('/explore')) return 'explore';
