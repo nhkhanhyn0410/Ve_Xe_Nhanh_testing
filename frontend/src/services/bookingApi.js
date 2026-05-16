@@ -47,10 +47,17 @@ export const confirmBooking = async (bookingId, sessionId) => {
   return api.post(`/bookings/${bookingId}/confirm`, { sessionId });
 };
 
-// Get booking by code (optional phone for guest lookup)
-export const getBookingByCode = async (bookingCode, phone) => {
+// Get booking by code (optional phone/email for guest lookup)
+export const getBookingByCode = async (bookingCode, verification) => {
+  const params =
+    typeof verification === 'string'
+      ? { phone: verification }
+      : Object.fromEntries(
+          Object.entries(verification || {}).filter(([, value]) => Boolean(value))
+        );
+
   return api.get(`/bookings/code/${bookingCode}`, {
-    params: phone ? { phone } : undefined,
+    params: Object.keys(params).length > 0 ? params : undefined,
   });
 };
 

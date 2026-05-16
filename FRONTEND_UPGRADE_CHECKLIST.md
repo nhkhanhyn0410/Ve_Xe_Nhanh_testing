@@ -71,7 +71,7 @@ Nguồn tham chiếu chính:
 - [~] Nâng cấp `TripsPage.jsx` theo prototype `SearchResultsScreen` - đã tách `/trips` thành trang bộ lọc tổng hiển thị toàn bộ chuyến tương lai, chưa hoàn tất visual full prototype.
 - [ ] Giữ API `searchTrips`, filter, sort, pagination hiện có.
 - [~] Tách trip normalization ra helper để tránh lặp và dễ test - hiện vẫn là helper nội bộ trong `TripsPage.jsx`, chưa tách file riêng.
-- [~] Port trip result card: timeline, operator, rating, amenities, seat left, price, CTA - đã sửa để mọi chuyến trong `/trips` và `/search-results` đều hiển thị đầy đủ phần lịch trình/tiện ích/chính sách, không chỉ item đầu tiên; thiết kế lại card gọn hơn với operator/timeline/price tách rõ, CTA nổi bật, bỏ tiện ích khỏi badge giữa timeline và cập nhật số chỗ định kỳ qua API ghế trống.
+- [~] Port trip result card: timeline, operator, rating, amenities, seat left, price, CTA - đã sửa để mọi chuyến trong `/trips` và `/search-results` đều hiển thị đầy đủ phần lịch trình/tiện ích, không chỉ item đầu tiên; thiết kế lại card gọn hơn với operator/timeline/price tách rõ, CTA nằm cùng cột giá ở hàng đáy, chữ timeline tăng cỡ khoảng 25%, số ghế còn nằm cạnh giá, tiện ích dạng icon + label lớn hơn; chính sách đã chuyển sang `TripDetailPage.jsx`.
 - [x] Hiển thị đầy đủ điểm dừng trung gian trên trip card - `TripsPage.jsx` đọc `route.stops`, sắp xếp theo `order`, tính giờ theo `estimatedArrivalMinutes` và render timeline đầy đủ; `npm.cmd run build` trong `frontend/` thành công.
 - [~] Đồng bộ hiển thị số ghế thực tế trên trip card/detail/seat selection - thêm `utils/seatAvailability.js` để tính ghế trống từ `seatLayout.layout`, `bookedSeats`, `lockedSeats`, rồi merge vào `TripsPage.jsx`, `TripDetailPage.jsx`, `SeatSelectionPage.jsx`; cần smoke test với chuyến có ghế đang giữ/đã đặt.
 - [~] Thiết kế lại filter panel: khoảng giá, loại xe, nhà xe, giờ đi, tiện ích - thêm bộ lọc tổng điểm đi/điểm đến/khoảng ngày và sticky heading ở `TripsPage.jsx`.
@@ -112,7 +112,7 @@ Nguồn tham chiếu chính:
 - [ ] Nâng cấp ticket detail/QR nếu route hoặc component hiện có hỗ trợ.
 - [ ] Nâng cấp `GuestTicketLookupPage.jsx` theo prototype `GuestLookupScreen`.
 - [ ] Nâng cấp `CancelTicketPage.jsx` theo prototype `GuestCancelScreen` và policy hiện có.
-- [~] Giữ API ticket lookup, OTP, cancel, download PDF, QR - đã sửa `GuestTicketLookupPage.jsx` không gửi field phone/email rỗng, normalize phone, chấp nhận `0...`, `+84...`, `84...`, hiển thị lỗi backend dạng string; backend `ticket.routes.js` bỏ qua field rỗng, normalize phone trước validate, `ticket.service.js` lookup các format phone tương đương để tránh 400 khi nhập số có khoảng trắng/khác format lưu.
+- [~] Giữ API ticket lookup, OTP, cancel, download PDF, QR - đã sửa `GuestTicketLookupPage.jsx` không gửi field phone/email rỗng, normalize phone, chấp nhận `0...`, `+84...`, `84...`, hiển thị lỗi backend dạng string; backend `ticket.routes.js` bỏ qua field rỗng, normalize phone trước validate, `ticket.service.js` lookup các format phone tương đương để tránh 400 khi nhập số có khoảng trắng/khác format lưu; `bookings/code/:bookingCode` nay nhận `phone` hoặc `email` để luồng OTP email mở chi tiết booking không bị 400.
 - [ ] Hiển thị trạng thái vé: valid, used, cancelled, refund processing.
 - [ ] Kiểm tra quyền xem vé: customer chỉ xem vé của mình, guest qua OTP.
 

@@ -25,6 +25,11 @@ const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-V
 
 const formatDateTime = (value) => (value ? dayjs(value).format('HH:mm · DD/MM/YYYY') : 'Đang cập nhật');
 
+const defaultPolicyItems = [
+  'Đổi chuyến miễn phí trước 24h',
+  'Trẻ em dưới 1m miễn vé',
+];
+
 const formatDuration = (departureTime, arrivalTime) => {
   if (!departureTime || !arrivalTime) return 'Đang cập nhật';
 
@@ -437,16 +442,24 @@ const TripDetailPage = () => {
               </div>
             </InfoCard>
 
-            {(view.policies || view.cancellationPolicy || view.notes) && (
-              <InfoCard>
-                <SectionTitle eyebrow="Chính sách" title="Lưu ý trước khi đặt" />
-                <div className="space-y-3 text-sm leading-6 text-vxn-fg-2">
+            <InfoCard>
+              <SectionTitle eyebrow="Chính sách" title="Lưu ý trước khi đặt" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                {defaultPolicyItems.map((item) => (
+                  <div key={item} className="flex items-start gap-3 rounded-xl bg-vxn-bg-soft p-4">
+                    <CheckCircleOutlined className="mt-0.5 text-vxn-teal-700" />
+                    <span className="text-sm font-medium leading-6 text-vxn-ink">{item}</span>
+                  </div>
+                ))}
+              </div>
+              {(view.policies || view.cancellationPolicy || view.notes) && (
+                <div className="mt-4 space-y-3 border-t border-vxn-border pt-4 text-sm leading-6 text-vxn-fg-2">
                   {view.policies && <p className="m-0 whitespace-pre-line">{view.policies}</p>}
                   {view.cancellationPolicy && <p className="m-0 whitespace-pre-line">{view.cancellationPolicy}</p>}
                   {view.notes && <p className="m-0 whitespace-pre-line">{view.notes}</p>}
                 </div>
-              </InfoCard>
-            )}
+              )}
+            </InfoCard>
 
             <InfoCard>
               <SectionTitle eyebrow="Đánh giá" title="Trải nghiệm hành khách" />

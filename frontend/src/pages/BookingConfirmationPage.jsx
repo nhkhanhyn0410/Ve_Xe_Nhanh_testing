@@ -95,9 +95,13 @@ const BookingConfirmationPage = () => {
   const [cancelling, setCancelling] = useState(false);
 
   const phoneParam = searchParams.get('phone') || user?.phone;
+  const emailParam = searchParams.get('email') || user?.email;
 
   const loadBooking = async () => {
-    const response = await getBookingByCode(bookingCode, phoneParam || undefined);
+    const response = await getBookingByCode(bookingCode, {
+      phone: phoneParam || undefined,
+      email: emailParam || undefined,
+    });
     if ((response.success || response.status === 'success') && response.data) {
       return response.data.booking || response.data;
     }

@@ -19,7 +19,7 @@ import dayjs from 'dayjs';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CustomerShell from '../components/customer/CustomerShell';
 import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
-import bookingApi from '../services/bookingApi';
+import { cancelBookingGuest, getBookingByCode } from '../services/bookingApi';
 
 const REASONS = [
   'Tôi đổi kế hoạch',
@@ -502,34 +502,19 @@ const CancelTicketPage = () => {
     }
     setLoading(true);
     try {
-      // Backend lookup requires phone. If only email is provided, skip lookup
-      // and let the cancel API verify by email instead.
-      if (phone.trim()) {
-        const response = await bookingApi.getBookingByCode(
-          bookingCode.trim(),
-          phone.trim()
-        );
-        const data =
-          response.data?.booking || response.booking || response.data;
-        if (!data) {
-          message.error('Không tìm thấy vé khớp với thông tin trên');
-          return;
-        }
-        setBooking(data);
-        message.success('Đã tìm thấy vé');
-      } else {
-        // Email-only path: synthesize a minimal booking object so the user
-        // still sees what they're about to cancel, but warn that we couldn't
-        // pre-load trip details.
-        setBooking({
-          bookingCode: bookingCode.trim(),
-          tripInfo: {},
-          finalPrice: 0,
-        });
-        message.info(
-          'Vui lòng nhập số điện thoại để xem chi tiết vé và số tiền hoàn dự kiến.'
-        );
+      const response = await getBookingByCode(bookingCode.trim(), {
+        phone: phone.trim(),
+        email: email.trim(),
+      });
+      const data = response.data?.booking || response.booking || response.data;
+
+      if (!data) {
+        message.error('Không tìm thấy vé khớp với thông tin trên');
+        return;
       }
+
+      setBooking(data);
+      message.success('Đã tìm thấy vé');
     } catch (error) {
       console.error('Lookup booking error:', error);
       message.error(
@@ -602,7 +587,7 @@ const CancelTicketPage = () => {
       onOk: async () => {
         setLoading(true);
         try {
-          const response = await bookingApi.cancelBookingGuest({
+          const response = await cancelBookingGuest({
             bookingId: booking.bookingCode || bookingCode.trim(),
             email: email.trim(),
             phone: phone.trim(),

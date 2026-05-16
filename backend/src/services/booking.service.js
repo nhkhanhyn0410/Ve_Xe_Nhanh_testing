@@ -442,13 +442,26 @@ class BookingService {
     return booking;
   }
 
+  static normalizePhoneForCompare(value) {
+    if (!value) return '';
+    const normalized = String(value).replace(/[\s().-]/g, '');
+    if (/^\+84\d{9}$/.test(normalized)) return `0${normalized.slice(3)}`;
+    if (/^84\d{9}$/.test(normalized)) return `0${normalized.slice(2)}`;
+    return normalized;
+  }
+
   /**
    * Get booking by code (for guests)
    * @param {string} bookingCode - Booking code
-   * @param {string} phone - Contact phone for verification
+   * @param {string|Object} verification - Phone string or { phone, email }
    * @returns {Promise<Booking>} Booking details
    */
-  static async getBookingByCode(bookingCode, phone) {
+  static async getBookingByCode(bookingCode, verification = {}) {
+    const contact =
+      typeof verification === 'string' ? { phone: verification } : verification || {};
+    const phone = contact.phone ? this.normalizePhoneForCompare(contact.phone) : '';
+    const email = contact.email ? String(contact.email).trim().toLowerCase() : '';
+
     const booking = await Booking.findOne({ bookingCode })
       .populate({
         path: 'tripId',
@@ -457,15 +470,33 @@ class BookingService {
           select: 'fromCity toCity origin destination',
         },
       })
-      .populate('operatorId', 'companyName phone email');
+      .populate('operatorId', 'companyName phone email')
+      .populate('customerId', 'email phone');
 
     if (!booking) {
       throw new Error('Không tìm thấy booking');
     }
 
-    // Verify phone number
-    if (booking.contactInfo.phone !== phone) {
-      throw new Error('Số điện thoại không khớp');
+    const bookingPhones = [
+      booking.contactInfo?.phone,
+      booking.guestInfo?.phone,
+      booking.customerId?.phone,
+    ]
+      .filter(Boolean)
+      .map((value) => this.normalizePhoneForCompare(value));
+    const bookingEmails = [
+      booking.contactInfo?.email,
+      booking.guestInfo?.email,
+      booking.customerId?.email,
+    ]
+      .filter(Boolean)
+      .map((value) => String(value).trim().toLowerCase());
+
+    const phoneMatch = phone && bookingPhones.includes(phone);
+    const emailMatch = email && bookingEmails.includes(email);
+
+    if (!phoneMatch && !emailMatch) {
+      throw new Error('Thông tin xác thực không khớp');
     }
 
     return booking;

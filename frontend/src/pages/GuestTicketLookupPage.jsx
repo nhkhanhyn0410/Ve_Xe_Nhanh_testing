@@ -915,7 +915,16 @@ const GuestTicketLookupPage = () => {
       ticket.bookingId?.contactInfo?.phone ||
       ticket.contactInfo?.phone ||
       (method === 'phone' ? contact.replace(/\D/g, '') : '');
-    const queryStr = phone ? `?phone=${encodeURIComponent(phone)}` : '';
+    const email =
+      ticket.bookingId?.contactInfo?.email ||
+      ticket.contactInfo?.email ||
+      (method === 'email' ? contact.trim() : '');
+    const detailParams = new URLSearchParams();
+
+    if (phone) detailParams.set('phone', phone);
+    if (!phone && email) detailParams.set('email', email);
+
+    const queryStr = detailParams.toString() ? `?${detailParams.toString()}` : '';
     navigate(`/booking/confirmation/${code}${queryStr}`);
   };
 

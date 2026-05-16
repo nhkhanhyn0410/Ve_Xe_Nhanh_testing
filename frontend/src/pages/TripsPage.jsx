@@ -136,21 +136,6 @@ const normalizeRouteStops = (stops = []) =>
 const getStopTitle = (stop, fallback = 'Điểm dừng') =>
   stop?.name || stop?.station || stop?.address || fallback;
 
-const getStopAddress = (stop) => {
-  const title = getStopTitle(stop, '');
-  return stop?.address && stop.address !== title ? stop.address : '';
-};
-
-const getStopTimeValue = (departureTime, stop) => {
-  const estimatedMinutes = Number(stop?.estimatedArrivalMinutes);
-
-  if (departureTime && Number.isFinite(estimatedMinutes)) {
-    return dayjs(departureTime).add(estimatedMinutes, 'minute').toISOString();
-  }
-
-  return stop?.arrivalTime || stop?.time || null;
-};
-
 const getEntityId = (entity) => {
   if (!entity || typeof entity !== 'object') return entity;
   return entity.id || Reflect.get(entity, '_id');
@@ -172,6 +157,20 @@ const normalizeAmenity = (amenity = '') => {
   if (value.includes('charger') || value.includes('usb') || value.includes('sạc')) return 'charger';
   if (value.includes('water') || value.includes('nước')) return 'water';
   return value;
+};
+
+const amenityMeta = {
+  wifi: { label: 'WiFi', icon: WifiOutlined },
+  ac: { label: 'Máy lạnh', icon: SafetyCertificateOutlined },
+  charger: { label: 'Sạc USB', icon: ThunderboltOutlined },
+  water: { label: 'Nước uống', icon: SafetyCertificateOutlined },
+  toilet: { label: 'Toilet', icon: SafetyCertificateOutlined },
+  blanket: { label: 'Chăn ấm', icon: SafetyCertificateOutlined },
+};
+
+const getAmenityMeta = (amenity) => {
+  if (amenityMeta[amenity]) return amenityMeta[amenity];
+  return { label: amenity || 'Đang cập nhật', icon: SafetyCertificateOutlined };
 };
 
 const normalizeTrip = (trip) => {
@@ -494,37 +493,18 @@ const TripCard = ({ trip, onSelect, onOperatorClick }) => {
   const seatCountLabel = trip.totalSeats
     ? `${trip.availableSeats}/${trip.totalSeats}`
     : `${trip.availableSeats}`;
-  const scheduleItems = [
-    {
-      key: 'origin',
-      type: 'start',
-      time: trip.departureTime,
-      title: trip.fromStation,
-      subtitle: trip.fromCity,
-    },
-    ...trip.stops.map((stop, index) => ({
-      key: getEntityId(stop) || `${stop.name || stop.address}-${index}`,
-      type: 'stop',
-      time: getStopTimeValue(trip.departureTime, stop),
-      title: getStopTitle(stop, `Điểm dừng ${index + 1}`),
-      subtitle: getStopAddress(stop),
-      meta: stop.stopDuration ? `Dừng ${stop.stopDuration} phút` : 'Điểm dừng trung gian',
-    })),
-    {
-      key: 'destination',
-      type: 'end',
-      time: trip.arrivalTime,
-      title: trip.toStation,
-      subtitle: trip.toCity,
-    },
-  ];
+  const stopCountLabel =
+    trip.stops.length > 0
+      ? `${trip.stops.length} điểm dừng trung gian`
+      : 'Không có điểm dừng trung gian';
+  const seatUrgent = trip.availableSeats > 0 && trip.availableSeats < 5;
 
   return (
     <article className="overflow-hidden rounded-[18px] border border-vxn-border bg-white shadow-[0_18px_44px_-30px_rgba(15,23,42,0.55)] transition hover:-translate-y-0.5 hover:border-vxn-teal-300 hover:shadow-[0_24px_54px_-32px_rgba(0,100,129,0.42)]">
       <div className="grid xl:grid-cols-[178px_minmax(0,1fr)_218px]">
         <button
           type="button"
-          className="flex items-center gap-3 border-0 border-b border-vxn-border bg-[#F4FAFB] p-4 text-left transition hover:bg-[#EDF7F9] xl:flex-col xl:items-start xl:justify-between xl:border-b-0 xl:border-r xl:p-5"
+          className="flex items-center gap-3 border-0 border-b border-[#E8EDF4] bg-[#F4FAFB] p-4 text-left transition hover:bg-[#EDF7F9] xl:flex-col xl:items-start xl:justify-between xl:border-b-0 xl:border-r xl:p-5"
           onClick={onOperatorClick}
         >
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-[12px] bg-vxn-teal-700 text-base font-bold text-white shadow-sm xl:h-14 xl:w-14 xl:text-lg">
@@ -550,30 +530,30 @@ const TripCard = ({ trip, onSelect, onOperatorClick }) => {
         </button>
 
         <div className="min-w-0 p-4 xl:p-5">
-          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-vxn-ink">
-              <EnvironmentOutlined className="shrink-0 text-vxn-teal-700" />
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-2 text-[17px] font-semibold text-vxn-ink">
+              <EnvironmentOutlined className="shrink-0 text-[15px] text-vxn-teal-700" />
               <span className="truncate">{trip.fromCity}</span>
-              <ArrowRightOutlined className="shrink-0 text-[11px] text-vxn-fg-5" />
+              <ArrowRightOutlined className="shrink-0 text-[14px] text-vxn-fg-5" />
               <span className="truncate">{trip.toCity}</span>
             </div>
-            <span className="inline-flex w-fit items-center rounded-full bg-vxn-bg-soft px-3 py-1 text-xs font-medium text-vxn-fg-3">
+            <span className="inline-flex w-fit items-center rounded-full bg-vxn-bg-soft px-3 py-1 text-[13px] font-medium text-vxn-fg-3">
               {trip.dateLabel} · {trip.busType}
             </span>
           </div>
 
-          <div className="grid grid-cols-[72px_minmax(0,1fr)_72px] items-start gap-4 sm:grid-cols-[92px_minmax(0,1fr)_92px]">
+          <div className="grid grid-cols-[90px_minmax(0,1fr)_90px] items-start gap-4 sm:grid-cols-[116px_minmax(0,1fr)_116px]">
             <div className="text-right">
-              <div className="text-[28px] font-bold leading-none text-vxn-ink">
+              <div className="text-[35px] font-bold leading-none text-vxn-ink">
                 {trip.departLabel}
               </div>
-              <div className="mt-1 line-clamp-2 text-xs leading-5 text-vxn-fg-5">
+              <div className="mt-1 line-clamp-2 text-[15px] leading-6 text-vxn-fg-5">
                 {trip.fromStation}
               </div>
             </div>
 
             <div className="pt-3">
-              <div className="mb-2 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-vxn-fg-5">
+              <div className="mb-2 flex items-center justify-center gap-2 text-[14px] font-semibold uppercase tracking-[0.04em] text-vxn-fg-5">
                 <span>{trip.duration}</span>
               </div>
               <div className="relative h-2">
@@ -589,33 +569,26 @@ const TripCard = ({ trip, onSelect, onOperatorClick }) => {
                 ))}
                 <span className="absolute right-0 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full border-2 border-white bg-vxn-teal-700 shadow" />
               </div>
-              <div className="mt-3 rounded-[10px] border border-dashed border-vxn-border bg-[#FAFCFF] px-3 py-2">
-                <div className="flex items-center justify-center text-xs text-vxn-fg-3">
-                  <span
-                    className={`inline-flex items-center gap-2 rounded-full px-2.5 py-1 font-semibold ${trip.availableSeats < 5 ? 'bg-red-50 text-red-500' : 'bg-[#E7F4FA] text-vxn-teal-800'}`}
-                  >
-                    <span className={`h-2 w-2 rounded-full ${trip.availableSeats < 5 ? 'bg-red-500' : 'bg-vxn-teal-700'}`} />
-                    Còn {seatCountLabel} chỗ
-                  </span>
-                </div>
+              <div className="mt-3 text-center text-[15px] font-medium text-vxn-fg-4">
+                {stopCountLabel}
               </div>
             </div>
 
             <div>
-              <div className="text-[28px] font-bold leading-none text-vxn-ink">
+              <div className="text-[35px] font-bold leading-none text-vxn-ink">
                 {trip.arriveLabel}
               </div>
-              <div className="mt-1 line-clamp-2 text-xs leading-5 text-vxn-fg-5">
+              <div className="mt-1 line-clamp-2 text-[15px] leading-6 text-vxn-fg-5">
                 {trip.toStation}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-vxn-border bg-[#FFF9ED] p-4 xl:border-l xl:border-t-0 xl:p-5">
-          <div className="xl:text-right">
+        <div className="flex flex-col items-center justify-center gap-3 border-t border-vxn-border bg-[#FFF9ED] p-4 text-center xl:border-l xl:border-t-0 xl:p-5">
+          <div className="w-full">
             {trip.discount > 0 && (
-              <div className="mb-1 flex items-center gap-2 xl:justify-end">
+              <div className="mb-1 flex items-center justify-center gap-2">
                 <span className="text-xs text-vxn-fg-5 line-through">
                   {formatCurrency(trip.basePrice)}
                 </span>
@@ -628,87 +601,54 @@ const TripCard = ({ trip, onSelect, onOperatorClick }) => {
               {formatCurrency(trip.finalPrice)}
             </div>
             <div className="mt-1 text-[11px] text-vxn-fg-5">/ vé · đã gồm thuế</div>
+            <div
+              className={`mx-auto mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold ${
+                seatUrgent
+                  ? 'border-red-200 bg-red-50 text-red-600'
+                  : 'border-vxn-teal-100 bg-[#E7F4FA] text-vxn-teal-900'
+              }`}
+            >
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${
+                  seatUrgent ? 'bg-red-500' : 'bg-vxn-teal-700'
+                }`}
+              />
+              Còn {seatCountLabel} chỗ
+            </div>
           </div>
+        </div>
+      </div>
 
+      <div className="grid gap-4 border-t border-vxn-border bg-[#F7FAFC] px-4 py-4 xl:grid-cols-[178px_minmax(0,1fr)_218px] xl:items-stretch xl:gap-0 xl:p-0">
+        <div className="xl:col-span-2 xl:px-5 xl:py-4">
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-vxn-fg-5">
+            Tiện ích
+          </div>
+          <div className="flex flex-wrap gap-2.5">
+            {amenityItems.slice(0, 4).map((amenity) => {
+              const { label, icon: Icon } = getAmenityMeta(amenity);
+
+              return (
+                <span
+                  key={amenity}
+                  className="inline-flex items-center gap-2 rounded-lg border border-vxn-border bg-white px-3 py-2 text-sm font-medium text-vxn-ink"
+                >
+                  <Icon className="text-[14px] text-vxn-teal-700" />
+                  {label}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+        <div className="flex flex-col justify-center xl:w-[218px] xl:px-0 xl:py-4">
           <Button
             type="primary"
-            className="mt-auto h-11 rounded-md border-0 bg-vxn-teal-700 text-[15px] font-semibold hover:!bg-vxn-teal-800"
+            className="h-11 rounded-md border-0 bg-vxn-teal-700 text-[15px] font-semibold hover:!bg-vxn-teal-800 xl:w-full"
             onClick={onSelect}
             block
           >
             Chọn chuyến <ArrowRightOutlined className="text-xs" />
           </Button>
-          <button
-            type="button"
-            className="border-0 bg-transparent text-center text-xs font-medium text-vxn-teal-800"
-            onClick={onSelect}
-          >
-            Xem chi tiết & sơ đồ ghế
-          </button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 border-t border-vxn-border bg-[#F7FAFC] px-4 py-4 xl:grid-cols-[1fr_1fr_1.25fr] xl:px-5">
-        <div>
-          <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-vxn-fg-5">
-            <span>Lịch trình</span>
-            {trip.stops.length > 0 && (
-              <span className="rounded-full bg-white px-2 py-0.5 text-[10px] tracking-normal text-vxn-teal-800">
-                {trip.stops.length} điểm dừng
-              </span>
-            )}
-          </div>
-          <div className="space-y-2 text-[13px] text-vxn-fg-2">
-            {scheduleItems.map((item, index) => (
-              <div key={item.key} className="grid grid-cols-[44px_12px_minmax(0,1fr)] gap-2">
-                <div className="text-right font-semibold text-vxn-ink">
-                  {item.time ? dayjs(item.time).format('HH:mm') : '--:--'}
-                </div>
-                <div className="relative flex justify-center pt-1.5">
-                  <span
-                    className={`relative z-10 h-2.5 w-2.5 rounded-full ${
-                      item.type === 'stop' ? 'bg-vxn-saffron-600' : 'bg-vxn-teal-700'
-                    }`}
-                  />
-                  {index < scheduleItems.length - 1 && (
-                    <span className="absolute top-4 h-[calc(100%+0.5rem)] w-px bg-vxn-border-strong" />
-                  )}
-                </div>
-                <div className="min-w-0 pb-1">
-                  <div className="font-medium text-vxn-ink">{item.title}</div>
-                  {item.subtitle && item.subtitle !== item.title && (
-                    <div className="mt-0.5 break-words text-xs leading-5 text-vxn-fg-4">
-                      {item.subtitle}
-                    </div>
-                  )}
-                  {item.meta && <div className="mt-0.5 text-xs text-vxn-fg-5">{item.meta}</div>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-vxn-fg-5">
-            Tiện ích
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {amenityItems.slice(0, 4).map((amenity) => (
-              <span
-                key={amenity}
-                className="rounded-full border border-vxn-border bg-white px-2.5 py-1 text-xs font-medium text-vxn-fg-2"
-              >
-                {amenity}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div>
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-vxn-fg-5">
-            Chính sách
-          </div>
-          <div className="text-[13px] leading-6 text-vxn-fg-2">
-            Đổi chuyến miễn phí trước 24h · Trẻ em dưới 1m miễn vé
-          </div>
         </div>
       </div>
     </article>
@@ -903,7 +843,11 @@ const TripsPage = () => {
   ]);
 
   const visibleTripIds = useMemo(
-    () => filteredTrips.map((trip) => trip.id).filter(Boolean).join('|'),
+    () =>
+      filteredTrips
+        .map((trip) => trip.id)
+        .filter(Boolean)
+        .join('|'),
     [filteredTrips]
   );
 
@@ -934,11 +878,7 @@ const TripsPage = () => {
 
       if (cancelled) return;
 
-      const updateMap = new Map(
-        updates
-          .filter(Boolean)
-          .map((update) => [update.tripId, update])
-      );
+      const updateMap = new Map(updates.filter(Boolean).map((update) => [update.tripId, update]));
 
       if (updateMap.size === 0) return;
 
@@ -948,10 +888,7 @@ const TripsPage = () => {
           if (!update) return trip;
 
           const nextTotalSeats = update.totalSeats || trip.totalSeats;
-          if (
-            trip.availableSeats === update.availableSeats &&
-            trip.totalSeats === nextTotalSeats
-          ) {
+          if (trip.availableSeats === update.availableSeats && trip.totalSeats === nextTotalSeats) {
             return trip;
           }
 
