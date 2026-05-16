@@ -177,6 +177,8 @@
 }
 
 html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
   background: var(--vxn-bg-soft);
 }
 

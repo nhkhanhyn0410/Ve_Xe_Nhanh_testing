@@ -71,7 +71,7 @@ Nguồn tham chiếu chính:
 - [~] Tách trip normalization ra helper để tránh lặp và dễ test - hiện vẫn là helper nội bộ trong `TripsPage.jsx`, chưa tách file riêng.
 - [~] Port trip result card: timeline, operator, rating, amenities, seat left, price, CTA - đã sửa để mọi chuyến trong `/trips` và `/search-results` đều hiển thị đầy đủ phần lịch trình/tiện ích/chính sách, không chỉ item đầu tiên; thiết kế lại card gọn hơn với operator/timeline/price tách rõ, CTA nổi bật, bỏ tiện ích khỏi badge giữa timeline và cập nhật số chỗ định kỳ qua API ghế trống.
 - [~] Thiết kế lại filter panel: khoảng giá, loại xe, nhà xe, giờ đi, tiện ích - thêm bộ lọc tổng điểm đi/điểm đến/khoảng ngày và sticky heading ở `TripsPage.jsx`.
-- [~] Điều chỉnh filter aside của `TripsPage.jsx` để không đổi vị trí/chiều cao bất thường khi scroll - đã thêm sticky offset theo search bar, `self-start` và vùng cuộn riêng; cần smoke test trực quan trên desktop/tablet.
+- [~] Điều chỉnh filter aside của `TripsPage.jsx` để không đổi vị trí/chiều cao bất thường khi scroll/chọn filter - đã reserve scrollbar viewport trong `frontend/src/index.css`; sticky offset của sidebar giữ đúng bằng chiều cao search bar (`114px` desktop rộng, `198px` desktop hẹp) để không nhảy 24px giữa trạng thái sticky và normal flow; cần smoke test trực quan trên desktop/tablet.
 - [ ] Hiển thị loading/empty/error theo style VXN.
 - [~] Không làm mất route `/trips` và `/search-results` - `/trips` browse all, `/search-results` vẫn đọc search từ booking store; build chưa xác nhận được do lỗi Node/WSL 1.
 - [ ] Kiểm tra chọn chuyến dẫn đúng `/trips/:tripId`.

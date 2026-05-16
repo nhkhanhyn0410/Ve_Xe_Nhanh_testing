@@ -178,9 +178,13 @@ const BookingConfirmationPage = () => {
   const origin = route?.origin || {};
   const destination = route?.destination || {};
 
-  const fromCity = origin.city || booking?.pickupPoint?.name || booking?.tripInfo?.origin?.city || 'Điểm đi';
+  const fromCity =
+    origin.city || booking?.pickupPoint?.name || booking?.tripInfo?.origin?.city || 'Điểm đi';
   const toCity =
-    destination.city || booking?.dropoffPoint?.name || booking?.tripInfo?.destination?.city || 'Điểm đến';
+    destination.city ||
+    booking?.dropoffPoint?.name ||
+    booking?.tripInfo?.destination?.city ||
+    'Điểm đến';
 
   const depTime = trip?.departureTime || booking?.tripInfo?.departureTime;
   const arrTime = trip?.arrivalTime || booking?.tripInfo?.arrivalTime;
@@ -191,8 +195,7 @@ const BookingConfirmationPage = () => {
   const toAddress = booking?.dropoffPoint?.address || destination.address || '';
 
   const durationMin =
-    trip?.duration ||
-    (depTime && arrTime ? dayjs(arrTime).diff(dayjs(depTime), 'minute') : 0);
+    trip?.duration || (depTime && arrTime ? dayjs(arrTime).diff(dayjs(depTime), 'minute') : 0);
   const durationText = formatDuration(durationMin);
 
   const operator = booking?.operatorId || {};
@@ -206,7 +209,11 @@ const BookingConfirmationPage = () => {
   if (!rawSeats || rawSeats.length === 0) rawSeats = booking?.seatNumbers || ticket?.seatNumbers;
   if (!rawSeats || rawSeats.length === 0) rawSeats = ticket?.passengers?.map((p) => p.seatNumber);
   const seats = Array.isArray(rawSeats) ? rawSeats : [];
-  const seatLabel = seats.map((s) => s?.seatNumber || s).filter(Boolean).join(', ') || '—';
+  const seatLabel =
+    seats
+      .map((s) => s?.seatNumber || s)
+      .filter(Boolean)
+      .join(', ') || '—';
 
   const totalPrice = booking?.totalPrice ?? booking?.finalPrice ?? 0;
   const finalPrice = booking?.finalPrice ?? totalPrice;
@@ -331,11 +338,7 @@ const BookingConfirmationPage = () => {
                 Chia sẻ
               </Button>
               {canCancel && (
-                <Button
-                  danger
-                  onClick={() => setCancelOpen(true)}
-                  className="!h-10 !rounded-lg"
-                >
+                <Button danger onClick={() => setCancelOpen(true)} className="!h-10 !rounded-lg">
                   Huỷ vé
                 </Button>
               )}
@@ -345,13 +348,13 @@ const BookingConfirmationPage = () => {
       </div>
 
       <div className="px-4 py-6 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1fr_360px]">
+        <div className="mx-auto grid max-w-[108rem] gap-6 lg:grid-cols-[1fr_360px]">
           {/* Left column */}
-          <div className="flex min-w-0 flex-col gap-5">
+          <div className="flex min-w-0 flex-col gap-5 ">
             {isCancelled && (
               <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[13px] font-medium text-rose-700">
-                Vé này đã bị huỷ. Nếu cần hỗ trợ hoàn tiền, vui lòng liên hệ nhà xe hoặc tổng đài
-                Vé Xe Nhanh.
+                Vé này đã bị huỷ. Nếu cần hỗ trợ hoàn tiền, vui lòng liên hệ nhà xe hoặc tổng đài Vé
+                Xe Nhanh.
               </div>
             )}
 
@@ -576,11 +579,7 @@ const BookingConfirmationPage = () => {
             </Card>
 
             <div className="flex flex-col gap-2">
-              <Button
-                onClick={() => navigate('/my-tickets')}
-                className="!h-11 !rounded-lg"
-                block
-              >
+              <Button onClick={() => navigate('/my-tickets')} className="!h-11 !rounded-lg" block>
                 Vé của tôi
               </Button>
               <Button
