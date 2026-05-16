@@ -56,8 +56,9 @@ export const refreshToken = async (token) => api.post('/auth/refresh-token', { r
 // Forgot password
 export const forgotPassword = async (email) => api.post('/auth/forgot-password', { email });
 
-// Reset password
-export const resetPassword = async (token, newPassword) => api.post('/auth/reset-password', { token, newPassword });
+// Reset password — backend expects { resetToken, newPassword }
+export const resetPassword = async (resetToken, newPassword) =>
+  api.post('/auth/reset-password', { resetToken, newPassword });
 
 // Verify email
 export const verifyEmail = async (token) => api.get(`/auth/verify-email/${token}`);

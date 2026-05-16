@@ -14,6 +14,9 @@ import TripManagerLoginPage from './pages/auth/TripManagerLoginPage';
 import AdminLoginPage from './pages/auth/AdminLoginPage';
 import CustomerLoginPage from './pages/auth/CustomerLoginPage';
 import CustomerRegisterPage from './pages/auth/CustomerRegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
+import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 
 // Operator Dashboard Pages
 import DashboardPage from './pages/operator/DashboardPage';
@@ -117,6 +120,12 @@ function App() {
         {/* Customer Auth Routes */}
         <Route path="/login" element={<CustomerLoginPage />} />
         <Route path="/register" element={<CustomerRegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/quen-mat-khau" element={<Navigate to="/forgot-password" replace />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/dat-lai-mat-khau" element={<ResetPasswordPage />} />
+        <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+        <Route path="/xac-thuc-email/:token" element={<VerifyEmailPage />} />
 
         {/* Customer Booking Flow */}
         <Route path="/" element={<NewHomePage />} />
