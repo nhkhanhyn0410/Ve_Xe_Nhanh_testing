@@ -42,6 +42,7 @@ const formatCurrency = (v = 0) => `${Number(v || 0).toLocaleString('vi-VN')}đ`;
 const formatTime = (v) => (v ? dayjs(v).format('HH:mm') : '--:--');
 const formatDateShort = (v) =>
   v ? dayjs(v).format('ddd, DD/MM/YYYY') : '—';
+const normalizePhone = (value = '') => value.replace(/[\s().-]/g, '');
 
 /**
  * Compute refund estimate based on backend cancellation policy:
@@ -465,10 +466,10 @@ const GuestTicketLookupPage = () => {
   }, [secondsLeft]);
 
   const lookupData = useMemo(
-    () => ({
-      phone: method === 'phone' ? contact.trim() : '',
-      email: method === 'email' ? contact.trim() : '',
-    }),
+    () =>
+      method === 'phone'
+        ? { phone: normalizePhone(contact) }
+        : { email: contact.trim() },
     [method, contact]
   );
 
@@ -485,9 +486,9 @@ const GuestTicketLookupPage = () => {
 
   const validateContact = () => {
     if (method === 'phone') {
-      const v = contact.replace(/\D/g, '');
-      if (!/^0\d{9}$/.test(v)) {
-        message.error('Số điện thoại phải bắt đầu bằng 0 và có 10 chữ số');
+      const v = normalizePhone(contact);
+      if (!/^(0\d{9}|\+84\d{9})$/.test(v)) {
+        message.error('Số điện thoại phải có dạng 0901234567 hoặc +84901234567');
         return false;
       }
       return true;
@@ -517,7 +518,8 @@ const GuestTicketLookupPage = () => {
     } catch (error) {
       console.error('Request OTP error:', error);
       message.error(
-        error?.response?.data?.message ||
+        (typeof error === 'string' && error) ||
+          error?.response?.data?.message ||
           error?.message ||
           'Không thể gửi OTP. Vui lòng kiểm tra lại thông tin.'
       );
@@ -538,7 +540,7 @@ const GuestTicketLookupPage = () => {
       }
     } catch (error) {
       console.error('Resend OTP error:', error);
-      message.error('Không thể gửi lại OTP');
+      message.error((typeof error === 'string' && error) || 'Không thể gửi lại OTP');
     } finally {
       setLoading(false);
     }
@@ -568,6 +570,7 @@ const GuestTicketLookupPage = () => {
     } catch (error) {
       console.error('Verify OTP error:', error);
       const msg =
+        (typeof error === 'string' && error) ||
         error?.response?.data?.message ||
         error?.message ||
         'Mã OTP không đúng hoặc đã hết hạn';
@@ -758,7 +761,7 @@ const GuestTicketLookupPage = () => {
                     value={contact}
                     onChange={(e) => setContact(e.target.value)}
                     onPressEnter={handleRequestOTP}
-                    maxLength={method === 'phone' ? 12 : 80}
+                    maxLength={method === 'phone' ? 16 : 80}
                     type={method === 'phone' ? 'tel' : 'email'}
                     className="!h-12 !rounded-lg"
                   />

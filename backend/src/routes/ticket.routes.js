@@ -4,6 +4,8 @@ const router = express.Router();
 const { body, param } = require('express-validator');
 const TicketController = require('../controllers/ticket.controller');
 
+const normalizePhone = (value) =>
+  typeof value === 'string' ? value.replace(/[\s().-]/g, '') : value;
 
 // Note: auth middleware should be imported from your middleware folder
 // const { protect, authorize } = require('../middleware/auth.middleware');
@@ -25,6 +27,7 @@ const validateGenerateTicket = [
 const validateLookupTicket = [
   body('ticketCode').notEmpty().withMessage('Mã vé là bắt buộc'),
   body('phone')
+    .customSanitizer(normalizePhone)
     .notEmpty()
     .withMessage('Số điện thoại là bắt buộc')
     .matches(/^(0|\+84)[0-9]{9,10}$/)
@@ -33,11 +36,13 @@ const validateLookupTicket = [
 
 const validateRequestOTP = [
   body('phone')
-    .optional()
+    .optional({ checkFalsy: true })
+    .customSanitizer(normalizePhone)
     .matches(/^(0|\+84)[0-9]{9,10}$/)
     .withMessage('Số điện thoại không hợp lệ'),
   body('email')
-    .optional()
+    .optional({ checkFalsy: true })
+    .trim()
     .isEmail()
     .withMessage('Email không hợp lệ'),
   body().custom((value, { req }) => {
@@ -50,11 +55,13 @@ const validateRequestOTP = [
 
 const validateVerifyOTP = [
   body('phone')
-    .optional()
+    .optional({ checkFalsy: true })
+    .customSanitizer(normalizePhone)
     .matches(/^(0|\+84)[0-9]{9,10}$/)
     .withMessage('Số điện thoại không hợp lệ'),
   body('email')
-    .optional()
+    .optional({ checkFalsy: true })
+    .trim()
     .isEmail()
     .withMessage('Email không hợp lệ'),
   body().custom((value, { req }) => {

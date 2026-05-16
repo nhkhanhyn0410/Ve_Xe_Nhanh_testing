@@ -17,8 +17,9 @@ import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import CustomerShell from '../components/customer/CustomerShell';
 import ReviewsSection from '../components/ReviewsSection';
-import { getTripDetails } from '../services/bookingApi';
+import { getAvailableSeats, getTripDetails } from '../services/bookingApi';
 import useBookingStore from '../store/bookingStore';
+import { extractSeatAvailability, mergeSeatAvailabilityIntoTrip } from '../utils/seatAvailability';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
@@ -157,11 +158,15 @@ const TripDetailPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const detailResponse = await getTripDetails(tripId);
+        const [detailResponse, seatsResponse] = await Promise.all([
+          getTripDetails(tripId),
+          getAvailableSeats(tripId).catch(() => null),
+        ]);
         if (!active) return;
 
         if (detailResponse.status === 'success' && detailResponse.data?.trip) {
-          const nextTrip = detailResponse.data.trip;
+          const availability = extractSeatAvailability(seatsResponse);
+          const nextTrip = mergeSeatAvailabilityIntoTrip(detailResponse.data.trip, availability);
           setTrip(nextTrip);
           setSelectedTrip(nextTrip);
         } else {

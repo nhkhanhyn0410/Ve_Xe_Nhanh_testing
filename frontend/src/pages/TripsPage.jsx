@@ -20,6 +20,7 @@ import { toast } from 'react-hot-toast';
 import CustomerShell from '../components/customer/CustomerShell';
 import useBookingStore from '../store/bookingStore';
 import { getAvailableSeats, searchTrips } from '../services/bookingApi';
+import { extractSeatAvailability } from '../utils/seatAvailability';
 
 const cityOptions = [
   'Hà Nội',
@@ -115,16 +116,6 @@ const formatDuration = (departureTime, arrivalTime) => {
   const minutes = diff % 60;
 
   return `${hours}h ${minutes}m`;
-};
-
-const getLiveAvailableSeatCount = (response) => {
-  const data = response?.data || {};
-
-  if (Array.isArray(data.availableSeatNumbers)) return data.availableSeatNumbers.length;
-  if (Array.isArray(data.availableSeats)) return data.availableSeats.length;
-  if (typeof data.availableSeats === 'number') return data.availableSeats;
-  if (typeof data.available === 'number') return data.available;
-  return null;
 };
 
 const getInitials = (name = 'NX') =>
@@ -853,11 +844,14 @@ const TripsPage = () => {
         tripIds.map(async (tripId) => {
           try {
             const response = await getAvailableSeats(tripId);
-            const availableSeats = getLiveAvailableSeatCount(response);
-            const totalSeats = response?.data?.totalSeats;
+            const availability = extractSeatAvailability(response);
 
-            if (availableSeats === null) return null;
-            return { tripId, availableSeats, totalSeats };
+            if (!availability) return null;
+            return {
+              tripId,
+              availableSeats: availability.availableSeats,
+              totalSeats: availability.totalSeats,
+            };
           } catch {
             return null;
           }

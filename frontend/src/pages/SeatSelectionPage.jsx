@@ -15,6 +15,7 @@ import CustomerShell from '../components/customer/CustomerShell';
 import SeatMapComponent from '../components/SeatMapComponent';
 import { getAvailableSeats, getTripDetails } from '../services/bookingApi';
 import useBookingStore from '../store/bookingStore';
+import { extractSeatAvailability, mergeSeatAvailabilityIntoTrip } from '../utils/seatAvailability';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
@@ -172,10 +173,11 @@ const SeatSelectionPage = () => {
         if (!active) return;
 
         if (detailResponse.status === 'success' && detailResponse.data?.trip) {
-          const nextTrip = detailResponse.data.trip;
+          const availability = extractSeatAvailability(seatsResponse);
+          const nextTrip = mergeSeatAvailabilityIntoTrip(detailResponse.data.trip, availability);
           setTrip(nextTrip);
           setSelectedTrip(nextTrip);
-          setAvailableSeats(seatsResponse?.data?.availableSeats || seatsResponse?.data?.available || []);
+          setAvailableSeats(availability?.availableSeatNumbers || []);
         } else {
           toast.error('Không tìm thấy thông tin chuyến xe');
           navigate('/trips');
