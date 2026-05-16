@@ -481,7 +481,7 @@ const MyComplaintsPage = () => {
     !detail.satisfactionRating;
 
   return (
-    <CustomerShell activeKey="member">
+    <CustomerShell activeKey="complaints">
       {/* Header */}
       <div className="border-b border-vxn-border bg-white">
         <div className="px-4 pt-6 lg:px-8">

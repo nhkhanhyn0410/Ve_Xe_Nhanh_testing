@@ -324,7 +324,7 @@ const CustomerShell = ({
 
   return (
     <div className={`min-h-screen bg-vxn-bg-soft font-sans text-vxn-fg-1 lg:flex ${className}`}>
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 self-start lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-72 shrink-0 self-start lg:flex">
         <CustomerSidebarContent
           activeKey={activeKey}
           signedIn={isAuthenticated}

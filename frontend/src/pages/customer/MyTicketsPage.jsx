@@ -588,7 +588,7 @@ const MyTicketsPage = () => {
   };
 
   return (
-    <CustomerShell activeKey="member">
+    <CustomerShell activeKey="tickets">
       <div className="border-b border-vxn-border bg-white">
         <div className="px-4 pt-6 lg:px-8">
           <CustomerBreadcrumb

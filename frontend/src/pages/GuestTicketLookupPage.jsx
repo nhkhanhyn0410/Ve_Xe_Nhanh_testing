@@ -10,10 +10,13 @@ import {
   InfoCircleOutlined,
   MailOutlined,
   PhoneOutlined,
+  PlusOutlined,
   QrcodeOutlined,
   ReloadOutlined,
   SearchOutlined,
   StopOutlined,
+  SyncOutlined,
+  TagOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -39,10 +42,19 @@ const CANCEL_REASONS = [
   'Khác',
 ];
 
+const TABS = [
+  { key: 'upcoming', label: 'Sắp tới' },
+  { key: 'past', label: 'Đã đi' },
+  { key: 'cancelled', label: 'Đã huỷ' },
+  { key: 'all', label: 'Tất cả' },
+];
+
 const formatCurrency = (v = 0) => `${Number(v || 0).toLocaleString('vi-VN')}đ`;
 const formatTime = (v) => (v ? dayjs(v).format('HH:mm') : '--:--');
 const formatDateShort = (v) =>
   v ? dayjs(v).format('ddd, DD/MM/YYYY') : '—';
+const formatDateLong = (v) =>
+  v ? dayjs(v).format('dddd, D [tháng] M, YYYY') : '—';
 const normalizePhone = (value = '') => {
   const normalized = value.replace(/[\s().-]/g, '');
   return /^84\d{9}$/.test(normalized) ? `+${normalized}` : normalized;
@@ -130,6 +142,31 @@ const operatorInitials = (name = '') => {
     .map((w) => w[0])
     .join('')
     .toUpperCase();
+};
+
+/** Bucket a looked-up ticket into the same tabs MyTicketsPage uses. */
+const ticketBucket = (t) => {
+  if (t.status === 'cancelled') return 'cancelled';
+  if (t.status === 'used' || t.status === 'expired') return 'past';
+  const dep = t.tripInfo?.departureTime;
+  if (dep && dayjs(dep).isBefore(dayjs())) return 'past';
+  return 'upcoming';
+};
+
+const relativeDeparture = (departureTime, status) => {
+  if (!departureTime) return '';
+  const dep = dayjs(departureTime);
+  const now = dayjs();
+  if (status === 'cancelled') return 'Đã huỷ';
+  if (status === 'used' || dep.isBefore(now)) {
+    const diffDays = now.diff(dep, 'day');
+    return `Đã đi · cách đây ${diffDays} ngày`;
+  }
+  const diffDays = dep.diff(now, 'day');
+  const diffHours = dep.diff(now, 'hour');
+  if (diffDays >= 1) return `Còn ${diffDays} ngày`;
+  if (diffHours >= 1) return `Còn ${diffHours} giờ`;
+  return 'Sắp khởi hành';
 };
 
 const STATUS_META = {
@@ -309,7 +346,120 @@ const HeroPanel = () => (
   </div>
 );
 
-const TicketRow = ({ ticket, onShowQR, onCancel, canCancel }) => {
+const TabBar = ({ activeKey, counts, onChange, search, onSearch }) => (
+  <div className="border-b border-vxn-border bg-white px-4 lg:px-8">
+    <div className="flex flex-wrap items-center gap-x-1 gap-y-2">
+      {TABS.map((tab) => {
+        const on = activeKey === tab.key;
+        const n = counts[tab.key] ?? 0;
+        return (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => onChange(tab.key)}
+            className={`relative inline-flex h-12 items-center gap-2 border-0 bg-transparent px-4 text-[14px] transition ${
+              on ? 'font-semibold text-vxn-ink' : 'font-medium text-vxn-fg-3 hover:text-vxn-ink'
+            }`}
+          >
+            <span>{tab.label}</span>
+            <span
+              className={`inline-grid h-[22px] min-w-[22px] place-items-center rounded-full px-[7px] text-[11px] font-semibold ${
+                on ? 'bg-vxn-saffron-600 text-white' : 'bg-vxn-bg-cloud text-vxn-fg-3'
+              }`}
+            >
+              {n}
+            </span>
+            <span
+              className={`absolute inset-x-2 bottom-0 h-[2px] rounded-t-full transition ${
+                on ? 'bg-vxn-saffron-600' : 'bg-transparent'
+              }`}
+            />
+          </button>
+        );
+      })}
+
+      <div className="ml-auto flex items-center gap-2 py-2">
+        <Input
+          allowClear
+          prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+          placeholder="Tìm mã vé hoặc tuyến"
+          value={search}
+          onChange={(e) => onSearch(e.target.value)}
+          className="!h-9 !rounded-lg"
+          style={{ width: 240 }}
+        />
+      </div>
+    </div>
+  </div>
+);
+
+const FeaturedBanner = ({ ticket, onView }) => {
+  if (!ticket) return null;
+  const dep = ticket.tripInfo?.departureTime;
+  const diffDays = dayjs(dep).diff(dayjs(), 'day');
+  const eyebrow = `CHUYẾN GẦN NHẤT · ${diffDays >= 1 ? `${diffDays} NGÀY NỮA` : 'HÔM NAY'}`;
+  const route = `${ticket.tripInfo?.origin?.city || ''} → ${ticket.tripInfo?.destination?.city || ''}`;
+  const operatorName = ticket.operatorId?.companyName || 'Nhà xe';
+  const seats =
+    ticket.passengers
+      ?.map((p) => p.seatNumber)
+      .filter(Boolean)
+      .join(', ') || '—';
+  return (
+    <div
+      className="flex flex-col gap-4 rounded-2xl px-6 py-5 text-white sm:flex-row sm:items-center sm:gap-6"
+      style={{
+        background: 'linear-gradient(110deg, #00476B 0%, #00506A 60%, #036672 100%)',
+      }}
+    >
+      <div
+        className="grid h-14 w-14 shrink-0 place-items-center rounded-xl"
+        style={{ background: 'rgba(255,255,255,.15)' }}
+      >
+        <CarOutlined style={{ fontSize: 26, color: '#fff' }} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-[12px] font-medium tracking-[0.06em] text-[#FFD078]">{eyebrow}</div>
+        <div className="mt-1 truncate text-[18px] font-semibold">
+          {route} · {operatorName}
+        </div>
+        <div className="mt-0.5 text-[13px] text-white/75">
+          {formatDateLong(dep)} · {formatTime(dep)} · Ghế {seats}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => onView(ticket)}
+        className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg border-0 bg-vxn-saffron-600 px-5 text-[14px] font-semibold text-white transition hover:bg-vxn-saffron-700"
+      >
+        Xem QR vé →
+      </button>
+    </div>
+  );
+};
+
+const TimelineBetween = ({ date, hint }) => (
+  <div className="flex min-w-[120px] flex-1 flex-col items-center">
+    <div className="text-[11px] text-vxn-fg-5">{date}</div>
+    <div className="relative my-1.5 h-[2px] w-full bg-vxn-bg-fog">
+      <CarOutlined
+        style={{
+          position: 'absolute',
+          top: -7,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#fff',
+          padding: '0 4px',
+          fontSize: 14,
+          color: '#E89B26',
+        }}
+      />
+    </div>
+    <div className="text-[11px] text-vxn-fg-5">{hint}</div>
+  </div>
+);
+
+const TicketRow = ({ ticket, onShowQR, onCancel, onRebook, onOpenDetail, canCancel }) => {
   const status = ticket.status;
   const accentBar =
     status === 'cancelled'
@@ -317,24 +467,63 @@ const TicketRow = ({ ticket, onShowQR, onCancel, canCancel }) => {
       : status === 'used' || status === 'expired'
         ? '#94A3B8'
         : '#E89B26';
+
+  const handleStopBubble = (e) => {
+    e.stopPropagation();
+  };
+  const handleRowKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onOpenDetail?.(ticket);
+    }
+  };
+
   const operatorName = ticket.operatorId?.companyName || 'Nhà xe';
   const opColor = operatorColor(operatorName);
   const opInitials = operatorInitials(operatorName);
   const busType = ticket.tripInfo?.busType || '';
   const plate = ticket.tripInfo?.busNumber || '';
+
   const fromCity = ticket.tripInfo?.origin?.city || '—';
   const toCity = ticket.tripInfo?.destination?.city || '—';
+  const fromStation = ticket.tripInfo?.pickupPoint?.name || ticket.tripInfo?.origin?.station || '';
+  const toStation =
+    ticket.tripInfo?.dropoffPoint?.name || ticket.tripInfo?.destination?.station || '';
+
   const dep = ticket.tripInfo?.departureTime;
   const arr = ticket.tripInfo?.arrivalTime;
   const seats =
-    ticket.passengers?.map((p) => p.seatNumber).filter(Boolean).join(', ') ||
-    '—';
+    ticket.passengers
+      ?.map((p) => p.seatNumber)
+      .filter(Boolean)
+      .join(', ') || '—';
   const passengerCount = ticket.passengers?.length || 0;
 
+  // Honest payment label — only assert a state we actually know.
+  const payStatus = ticket.paymentStatus || ticket.bookingId?.paymentStatus;
+  const payLabel =
+    payStatus === 'paid'
+      ? 'Đã thanh toán'
+      : payStatus === 'pending' || payStatus === 'unpaid'
+        ? 'Chưa thanh toán'
+        : null;
+
+  // Only show a refund pill when the backend actually reported one.
+  const refundAmount =
+    typeof ticket.refundAmount === 'number' ? ticket.refundAmount : null;
+
   return (
-    <div className="grid overflow-hidden rounded-2xl border border-vxn-border bg-white shadow-sm transition hover:shadow-md lg:grid-cols-[4px_minmax(0,1fr)_180px]">
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpenDetail?.(ticket)}
+      onKeyDown={handleRowKey}
+      className="group grid cursor-pointer overflow-hidden rounded-2xl border border-vxn-border bg-white shadow-sm outline-none transition hover:-translate-y-[1px] hover:border-vxn-saffron-300 hover:shadow-md focus-visible:ring-2 focus-visible:ring-vxn-saffron-400/60 lg:grid-cols-[4px_minmax(0,1fr)_220px]"
+    >
       <div style={{ background: accentBar }} />
-      <div className="flex flex-col gap-3 p-5">
+
+      {/* Middle pane */}
+      <div className="flex flex-col gap-3.5 p-5">
         <div className="flex flex-wrap items-center gap-3">
           <div
             className="grid h-9 w-9 place-items-center rounded-lg text-[13px] font-bold text-white"
@@ -343,9 +532,7 @@ const TicketRow = ({ ticket, onShowQR, onCancel, canCancel }) => {
             {opInitials}
           </div>
           <div className="min-w-0">
-            <div className="truncate text-[14px] font-semibold text-vxn-ink">
-              {operatorName}
-            </div>
+            <div className="truncate text-[15px] font-semibold text-vxn-ink">{operatorName}</div>
             <div className="truncate text-[12px] text-vxn-fg-5">
               {busType}
               {plate ? ` · ${plate}` : ''}
@@ -357,77 +544,142 @@ const TicketRow = ({ ticket, onShowQR, onCancel, canCancel }) => {
           <StatusChip status={status} />
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="min-w-[90px]">
+        <div className="flex items-center gap-4">
+          <div className="min-w-[110px]">
             <div className="text-[11px] font-medium tracking-wide text-vxn-fg-5">
               {formatTime(dep)}
             </div>
-            <div className="text-[18px] font-bold leading-[1.1] text-vxn-ink">
-              {fromCity}
-            </div>
+            <div className="text-[22px] font-bold leading-[1.1] text-vxn-ink">{fromCity}</div>
+            <div className="mt-0.5 text-[12px] text-vxn-fg-5">{fromStation}</div>
           </div>
-          <div className="flex flex-1 items-center gap-2 text-[12px] text-vxn-fg-5">
-            <span>{formatDateShort(dep)}</span>
-            <div className="relative h-[2px] flex-1 bg-vxn-bg-fog">
-              <CarOutlined
-                style={{
-                  position: 'absolute',
-                  top: -7,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: '#fff',
-                  padding: '0 4px',
-                  fontSize: 14,
-                  color: '#E89B26',
-                }}
-              />
-            </div>
-          </div>
-          <div className="min-w-[90px] text-right">
+
+          <TimelineBetween
+            date={dayjs(dep).format('ddd, DD/MM/YYYY')}
+            hint={relativeDeparture(dep, status)}
+          />
+
+          <div className="min-w-[110px] text-right">
             <div className="text-[11px] font-medium tracking-wide text-vxn-fg-5">
               {formatTime(arr)}
             </div>
-            <div className="text-[18px] font-bold leading-[1.1] text-vxn-ink">
-              {toCity}
-            </div>
+            <div className="text-[22px] font-bold leading-[1.1] text-vxn-ink">{toCity}</div>
+            <div className="mt-0.5 text-[12px] text-vxn-fg-5">{toStation}</div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-dashed border-vxn-border pt-2.5 text-[12px] text-vxn-fg-3">
-          <span>
-            <strong className="text-vxn-ink">{passengerCount}</strong> hành
-            khách · ghế <strong className="text-vxn-ink">{seats}</strong>
+        <div className="flex flex-wrap items-center gap-3 border-t border-dashed border-vxn-border pt-3">
+          <span className="text-[12px] text-vxn-fg-3">
+            <strong className="text-vxn-ink">{passengerCount}</strong> hành khách · ghế{' '}
+            <strong className="text-vxn-ink">{seats}</strong>
           </span>
-          <span className="text-vxn-fg-5">·</span>
-          <span>
-            <strong className="text-vxn-ink">
-              {formatCurrency(ticket.totalPrice || 0)}
-            </strong>
+          {status === 'cancelled' && refundAmount != null && refundAmount > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
+              <SyncOutlined spin style={{ fontSize: 11 }} /> Hoàn {formatCurrency(refundAmount)}{' '}
+              đang xử lý
+            </span>
+          )}
+          <span className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-vxn-fg-4 transition group-hover:text-vxn-saffron-700">
+            Xem chi tiết
+            <span aria-hidden="true" className="transition group-hover:translate-x-0.5">
+              →
+            </span>
           </span>
         </div>
       </div>
 
-      <div className="flex flex-col items-stretch justify-center gap-2 border-t border-vxn-border bg-vxn-bg-soft p-4 lg:border-l lg:border-t-0 lg:border-dashed">
-        <Button
-          type="primary"
-          icon={<QrcodeOutlined />}
-          onClick={() => onShowQR(ticket)}
-          className="!h-9 !rounded-lg"
-          style={{ background: '#036672', borderColor: '#036672' }}
-          disabled={status !== 'valid'}
-        >
-          Xem QR
-        </Button>
-        {canCancel && (
+      {/* Right pane */}
+      <div
+        className="flex flex-col items-end justify-center gap-1.5 border-t border-vxn-border bg-vxn-bg-soft p-5 lg:border-l lg:border-t-0 lg:border-dashed"
+        onClick={handleStopBubble}
+      >
+        <div className="text-[22px] font-bold text-vxn-ink">
+          {formatCurrency(ticket.totalPrice || 0)}
+        </div>
+        {payLabel && <div className="mb-2 text-[11px] text-vxn-fg-5">{payLabel}</div>}
+
+        {status === 'valid' && (
+          <>
+            <Button
+              type="primary"
+              size="middle"
+              icon={<QrcodeOutlined />}
+              onClick={(e) => {
+                e.stopPropagation();
+                onShowQR(ticket);
+              }}
+              className="!h-9 !w-full !rounded-lg"
+              style={{ background: '#036672', borderColor: '#036672' }}
+            >
+              Xem QR vé
+            </Button>
+            {canCancel && (
+              <Button
+                size="middle"
+                danger
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCancel(ticket);
+                }}
+                className="!h-9 !w-full !rounded-lg"
+              >
+                Huỷ vé
+              </Button>
+            )}
+          </>
+        )}
+        {(status === 'used' || status === 'expired') && (
           <Button
-            danger
-            onClick={() => onCancel(ticket)}
-            className="!h-9 !rounded-lg"
+            size="middle"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRebook(ticket);
+            }}
+            className="!h-9 !w-full !rounded-lg"
           >
-            Huỷ vé
+            Đặt lại chuyến này
+          </Button>
+        )}
+        {status === 'cancelled' && (
+          <Button
+            type="primary"
+            size="middle"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRebook(ticket);
+            }}
+            className="!h-9 !w-full !rounded-lg"
+            style={{ background: '#036672', borderColor: '#036672' }}
+          >
+            Đặt vé lại
           </Button>
         )}
       </div>
+    </div>
+  );
+};
+
+const EmptyState = ({ activeTab, noneAtAll, searching }) => {
+  let copy;
+  if (noneAtAll) {
+    copy =
+      'Không tìm thấy vé nào khớp với thông tin của bạn. Vui lòng kiểm tra lại số điện thoại / email đã dùng khi đặt vé.';
+  } else if (searching) {
+    copy = 'Không có vé nào khớp với từ khoá tìm kiếm.';
+  } else {
+    copy =
+      {
+        upcoming: 'Không có vé sắp tới trong số vé tra cứu được.',
+        past: 'Chưa có vé đã đi trong số vé tra cứu được.',
+        cancelled: 'Không có vé đã huỷ trong số vé tra cứu được.',
+        all: 'Không có vé nào.',
+      }[activeTab] || 'Không có vé nào.';
+  }
+  return (
+    <div className="rounded-2xl border border-dashed border-vxn-border bg-white p-10 text-center">
+      <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-vxn-bg-mist">
+        <TagOutlined style={{ fontSize: 22, color: '#475569' }} />
+      </div>
+      <p className="m-0 text-[14px] text-vxn-fg-3">{copy}</p>
     </div>
   );
 };
@@ -446,6 +698,10 @@ const GuestTicketLookupPage = () => {
   const [tickets, setTickets] = useState([]);
   const [qrTicket, setQrTicket] = useState(null);
   const [qrOpen, setQrOpen] = useState(false);
+
+  // Client-side tab + search over the verified ticket set.
+  const [activeTab, setActiveTab] = useState('upcoming');
+  const [searchText, setSearchText] = useState('');
 
   // Cancel modal state
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -487,6 +743,49 @@ const GuestTicketLookupPage = () => {
     if (!u || !d) return contact;
     return `${u[0]}${'•'.repeat(Math.max(u.length - 2, 1))}${u.slice(-1)}@${d}`;
   }, [method, contact]);
+
+  // Tab buckets + counts + search, all derived from the verified set.
+  const buckets = useMemo(() => {
+    const b = { upcoming: [], past: [], cancelled: [] };
+    tickets.forEach((t) => {
+      b[ticketBucket(t)].push(t);
+    });
+    return b;
+  }, [tickets]);
+
+  const tabCounts = {
+    upcoming: buckets.upcoming.length,
+    past: buckets.past.length,
+    cancelled: buckets.cancelled.length,
+    all: tickets.length,
+  };
+
+  const filteredTickets = useMemo(() => {
+    const base = activeTab === 'all' ? tickets : buckets[activeTab] || [];
+    const q = searchText.trim().toLowerCase();
+    if (!q) return base;
+    return base.filter((t) => {
+      const code = (t.ticketCode || '').toLowerCase();
+      const from = (t.tripInfo?.origin?.city || '').toLowerCase();
+      const to = (t.tripInfo?.destination?.city || '').toLowerCase();
+      const op = (t.operatorId?.companyName || '').toLowerCase();
+      return (
+        code.includes(q) ||
+        from.includes(q) ||
+        to.includes(q) ||
+        op.includes(q) ||
+        `${from} ${to}`.includes(q)
+      );
+    });
+  }, [activeTab, searchText, tickets, buckets]);
+
+  const featuredTicket = useMemo(
+    () =>
+      [...buckets.upcoming].sort((a, b) =>
+        dayjs(a.tripInfo?.departureTime).diff(dayjs(b.tripInfo?.departureTime))
+      )[0],
+    [buckets]
+  );
 
   const validateContact = () => {
     if (method === 'phone') {
@@ -566,6 +865,8 @@ const GuestTicketLookupPage = () => {
       });
       if (response.status === 'success' || response.success) {
         setTickets(response.data?.tickets || []);
+        setActiveTab('upcoming');
+        setSearchText('');
         setStep(3);
         message.success(
           response.data?.tickets?.length
@@ -593,11 +894,37 @@ const GuestTicketLookupPage = () => {
     setOtp('');
     setOtpError('');
     setTickets([]);
+    setActiveTab('upcoming');
+    setSearchText('');
   };
 
   const handleShowQR = (ticket) => {
     setQrTicket(ticket);
     setQrOpen(true);
+  };
+
+  const handleOpenDetail = (ticket) => {
+    if (!ticket) return;
+    const code =
+      ticket.bookingId?.bookingCode || ticket.bookingCode || ticket.ticketCode;
+    if (!code) {
+      message.warning('Không tìm thấy mã đặt vé');
+      return;
+    }
+    const phone =
+      ticket.bookingId?.contactInfo?.phone ||
+      ticket.contactInfo?.phone ||
+      (method === 'phone' ? contact.replace(/\D/g, '') : '');
+    const queryStr = phone ? `?phone=${encodeURIComponent(phone)}` : '';
+    navigate(`/booking/confirmation/${code}${queryStr}`);
+  };
+
+  const handleRebook = (ticket) => {
+    const origin = ticket.tripInfo?.origin?.city || '';
+    const destination = ticket.tripInfo?.destination?.city || '';
+    navigate(
+      `/search-results?from=${encodeURIComponent(origin)}&to=${encodeURIComponent(destination)}`
+    );
   };
 
   const canCancelTicket = (ticket) => {
@@ -707,218 +1034,252 @@ const GuestTicketLookupPage = () => {
   };
 
   const totalSteps = 2;
+  const hasSearch = searchText.trim().length > 0;
 
   return (
     <CustomerShell activeKey="lookup">
-      <div className="border-b border-vxn-border bg-white">
-        <div className="px-4 pt-6 lg:px-8">
-          <CustomerBreadcrumb
-            className="mb-4"
-            items={[{ label: 'Tra cứu vé khách' }]}
-          />
-        </div>
-      </div>
+      {step !== 3 ? (
+        <>
+          <div className="border-b border-vxn-border bg-white">
+            <div className="px-4 pt-6 lg:px-8">
+              <CustomerBreadcrumb
+                className="mb-4"
+                items={[{ label: 'Tra cứu vé khách' }]}
+              />
+            </div>
+          </div>
 
-      <div className="px-4 py-8 lg:px-8">
-        <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,480px)_minmax(0,1fr)]">
-          {/* LEFT: form column */}
-          <div className="flex flex-col gap-6">
-            {step === 1 && (
-              <>
-                <div>
-                  <StepIndicator current={1} total={totalSteps} />
-                  <h1 className="m-0 mt-3 text-[34px] font-semibold leading-tight tracking-tight text-vxn-ink">
-                    Tra cứu vé khách
-                  </h1>
-                  <p className="m-0 mt-3 text-[15px] leading-relaxed text-vxn-fg-3">
-                    Nhập số điện thoại hoặc email đã dùng khi đặt vé. Hệ thống
-                    sẽ gửi <strong className="text-vxn-ink">mã OTP 6 số</strong>{' '}
-                    để xác thực, và hiển thị toàn bộ vé liên kết.
-                  </p>
-                </div>
+          <div className="px-4 py-8 lg:px-8">
+            <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,480px)_minmax(0,1fr)]">
+              {/* LEFT: form column */}
+              <div className="flex flex-col gap-6">
+                {step === 1 && (
+                  <>
+                    <div>
+                      <StepIndicator current={1} total={totalSteps} />
+                      <h1 className="m-0 mt-3 text-[34px] font-semibold leading-tight tracking-tight text-vxn-ink">
+                        Tra cứu vé khách
+                      </h1>
+                      <p className="m-0 mt-3 text-[15px] leading-relaxed text-vxn-fg-3">
+                        Nhập số điện thoại hoặc email đã dùng khi đặt vé. Hệ thống
+                        sẽ gửi <strong className="text-vxn-ink">mã OTP 6 số</strong>{' '}
+                        để xác thực, và hiển thị toàn bộ vé liên kết.
+                      </p>
+                    </div>
 
-                <div className="rounded-2xl border border-vxn-border bg-white p-6 shadow-sm">
-                  <div className="mb-4">
-                    <ContactPicker method={method} onChange={setMethod} />
-                  </div>
+                    <div className="rounded-2xl border border-vxn-border bg-white p-6 shadow-sm">
+                      <div className="mb-4">
+                        <ContactPicker method={method} onChange={setMethod} />
+                      </div>
 
-                  <label className="mb-1.5 block text-[12px] font-medium text-vxn-fg-3">
-                    {method === 'phone' ? 'Số điện thoại đặt vé *' : 'Email đặt vé *'}
-                  </label>
-                  <Input
-                    size="large"
-                    prefix={
-                      method === 'phone' ? (
-                        <PhoneOutlined style={{ color: '#94A3B8' }} />
-                      ) : (
-                        <MailOutlined style={{ color: '#94A3B8' }} />
-                      )
-                    }
-                    placeholder={
-                      method === 'phone' ? '0901 234 567' : 'ban@example.com'
-                    }
-                    value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                    onPressEnter={handleRequestOTP}
-                    maxLength={method === 'phone' ? 16 : 80}
-                    type={method === 'phone' ? 'tel' : 'email'}
-                    className="!h-12 !rounded-lg"
-                  />
+                      <label className="mb-1.5 block text-[12px] font-medium text-vxn-fg-3">
+                        {method === 'phone' ? 'Số điện thoại đặt vé *' : 'Email đặt vé *'}
+                      </label>
+                      <Input
+                        size="large"
+                        prefix={
+                          method === 'phone' ? (
+                            <PhoneOutlined style={{ color: '#94A3B8' }} />
+                          ) : (
+                            <MailOutlined style={{ color: '#94A3B8' }} />
+                          )
+                        }
+                        placeholder={
+                          method === 'phone' ? '0901 234 567' : 'ban@example.com'
+                        }
+                        value={contact}
+                        onChange={(e) => setContact(e.target.value)}
+                        onPressEnter={handleRequestOTP}
+                        maxLength={method === 'phone' ? 16 : 80}
+                        type={method === 'phone' ? 'tel' : 'email'}
+                        className="!h-12 !rounded-lg"
+                      />
 
-                  <Button
-                    type="primary"
-                    block
-                    size="large"
-                    icon={<SearchOutlined />}
-                    onClick={handleRequestOTP}
-                    loading={loading}
-                    className="!mt-5 !h-12 !rounded-lg !text-[15px] !font-semibold"
-                    style={{ background: '#036672', borderColor: '#036672' }}
-                  >
-                    Gửi mã OTP
-                  </Button>
+                      <Button
+                        type="primary"
+                        block
+                        size="large"
+                        icon={<SearchOutlined />}
+                        onClick={handleRequestOTP}
+                        loading={loading}
+                        className="!mt-5 !h-12 !rounded-lg !text-[15px] !font-semibold"
+                        style={{ background: '#036672', borderColor: '#036672' }}
+                      >
+                        Gửi mã OTP
+                      </Button>
 
-                  <div className="mt-4 rounded-xl border-l-4 border-vxn-teal-400 bg-vxn-teal-50 p-3.5 text-[12.5px] leading-relaxed text-vxn-teal-800">
-                    <strong>Lưu ý:</strong> Chỉ cần một trong hai (SĐT hoặc
-                    email) bạn đã dùng khi đặt vé. Mã OTP có hiệu lực 5 phút.
-                  </div>
-                </div>
-              </>
-            )}
+                      <div className="mt-4 rounded-xl border-l-4 border-vxn-teal-400 bg-vxn-teal-50 p-3.5 text-[12.5px] leading-relaxed text-vxn-teal-800">
+                        <strong>Lưu ý:</strong> Chỉ cần một trong hai (SĐT hoặc
+                        email) bạn đã dùng khi đặt vé. Mã OTP có hiệu lực 5 phút.
+                      </div>
+                    </div>
+                  </>
+                )}
 
-            {step === 2 && (
-              <>
-                <div>
-                  <StepIndicator current={2} total={totalSteps} />
-                  <h1 className="m-0 mt-3 text-[34px] font-semibold leading-tight tracking-tight text-vxn-ink">
-                    Nhập mã OTP để xem vé
-                  </h1>
-                  <p className="m-0 mt-3 text-[15px] leading-relaxed text-vxn-fg-3">
-                    Đã gửi mã 6 số tới{' '}
-                    <strong className="text-vxn-ink">{maskedTarget}</strong>.
-                    Mã có hiệu lực 5 phút.
-                  </p>
-                </div>
+                {step === 2 && (
+                  <>
+                    <div>
+                      <StepIndicator current={2} total={totalSteps} />
+                      <h1 className="m-0 mt-3 text-[34px] font-semibold leading-tight tracking-tight text-vxn-ink">
+                        Nhập mã OTP để xem vé
+                      </h1>
+                      <p className="m-0 mt-3 text-[15px] leading-relaxed text-vxn-fg-3">
+                        Đã gửi mã 6 số tới{' '}
+                        <strong className="text-vxn-ink">{maskedTarget}</strong>.
+                        Mã có hiệu lực 5 phút.
+                      </p>
+                    </div>
 
-                <div className="rounded-2xl border border-vxn-border bg-white p-7 shadow-sm">
-                  <OtpInputs
-                    value={otp}
-                    onChange={(v) => {
-                      setOtp(v);
-                      if (otpError) setOtpError('');
-                    }}
-                    error={!!otpError}
-                    disabled={loading}
-                  />
+                    <div className="rounded-2xl border border-vxn-border bg-white p-7 shadow-sm">
+                      <OtpInputs
+                        value={otp}
+                        onChange={(v) => {
+                          setOtp(v);
+                          if (otpError) setOtpError('');
+                        }}
+                        error={!!otpError}
+                        disabled={loading}
+                      />
 
-                  {otpError && (
-                    <p className="mt-3 text-center text-[12.5px] font-medium text-rose-600">
-                      {otpError}
-                    </p>
-                  )}
+                      {otpError && (
+                        <p className="mt-3 text-center text-[12.5px] font-medium text-rose-600">
+                          {otpError}
+                        </p>
+                      )}
 
-                  <div className="mt-5 flex items-center justify-center gap-4 text-[13px] text-vxn-fg-3">
-                    <span className="inline-flex items-center gap-1.5">
-                      <ClockCircleOutlined style={{ fontSize: 13 }} />
-                      Còn lại {countdownLabel}
-                    </span>
-                    <span className="text-vxn-fg-5">·</span>
-                    <button
-                      type="button"
-                      onClick={handleResend}
-                      disabled={loading || secondsLeft > OTP_TTL_SECONDS - 30}
-                      className="inline-flex items-center gap-1 border-0 bg-transparent p-0 text-[13px] font-semibold text-vxn-teal-700 hover:text-vxn-teal-800 disabled:cursor-not-allowed disabled:text-vxn-fg-5"
-                    >
-                      <ReloadOutlined style={{ fontSize: 12 }} />
-                      Gửi lại mã
-                    </button>
-                  </div>
+                      <div className="mt-5 flex items-center justify-center gap-4 text-[13px] text-vxn-fg-3">
+                        <span className="inline-flex items-center gap-1.5">
+                          <ClockCircleOutlined style={{ fontSize: 13 }} />
+                          Còn lại {countdownLabel}
+                        </span>
+                        <span className="text-vxn-fg-5">·</span>
+                        <button
+                          type="button"
+                          onClick={handleResend}
+                          disabled={loading || secondsLeft > OTP_TTL_SECONDS - 30}
+                          className="inline-flex items-center gap-1 border-0 bg-transparent p-0 text-[13px] font-semibold text-vxn-teal-700 hover:text-vxn-teal-800 disabled:cursor-not-allowed disabled:text-vxn-fg-5"
+                        >
+                          <ReloadOutlined style={{ fontSize: 12 }} />
+                          Gửi lại mã
+                        </button>
+                      </div>
 
-                  <Button
-                    type="primary"
-                    block
-                    size="large"
-                    onClick={handleVerifyOTP}
-                    loading={loading}
-                    disabled={otp.length !== OTP_LENGTH}
-                    className="!mt-5 !h-12 !rounded-lg !text-[15px] !font-semibold"
-                    style={{ background: '#036672', borderColor: '#036672' }}
-                  >
-                    Xác nhận & xem vé
-                  </Button>
+                      <Button
+                        type="primary"
+                        block
+                        size="large"
+                        onClick={handleVerifyOTP}
+                        loading={loading}
+                        disabled={otp.length !== OTP_LENGTH}
+                        className="!mt-5 !h-12 !rounded-lg !text-[15px] !font-semibold"
+                        style={{ background: '#036672', borderColor: '#036672' }}
+                      >
+                        Xác nhận & xem vé
+                      </Button>
 
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="mx-auto mt-4 flex items-center gap-1 border-0 bg-transparent p-0 text-[13px] font-medium text-vxn-teal-700 hover:text-vxn-teal-800"
-                  >
-                    <ArrowLeftOutlined style={{ fontSize: 12 }} />
-                    Đổi {method === 'phone' ? 'số điện thoại' : 'email'}
-                  </button>
-                </div>
-              </>
-            )}
+                      <button
+                        type="button"
+                        onClick={() => setStep(1)}
+                        className="mx-auto mt-4 flex items-center gap-1 border-0 bg-transparent p-0 text-[13px] font-medium text-vxn-teal-700 hover:text-vxn-teal-800"
+                      >
+                        <ArrowLeftOutlined style={{ fontSize: 12 }} />
+                        Đổi {method === 'phone' ? 'số điện thoại' : 'email'}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
 
-            {step === 3 && (
-              <>
+              {/* RIGHT: hero */}
+              <HeroPanel />
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* MyTickets-style header band */}
+          <div className="border-b border-vxn-border bg-white">
+            <div className="px-4 pt-6 lg:px-8">
+              <CustomerBreadcrumb
+                className="mb-4"
+                items={[{ label: 'Tra cứu vé khách' }]}
+              />
+              <div className="flex flex-wrap items-end justify-between gap-3 pb-5">
                 <div>
                   <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-emerald-100 px-3 text-[11px] font-semibold tracking-[0.08em] text-emerald-700">
                     <CheckCircleOutlined style={{ fontSize: 12 }} />
                     XÁC THỰC THÀNH CÔNG
                   </span>
-                  <h1 className="m-0 mt-3 text-[30px] font-semibold leading-tight tracking-tight text-vxn-ink">
-                    {tickets.length > 0
-                      ? `Tìm thấy ${tickets.length} vé`
-                      : 'Không tìm thấy vé nào'}
+                  <h1 className="m-0 mt-2.5 text-[28px] font-semibold tracking-tight text-vxn-ink">
+                    Vé tra cứu của bạn
                   </h1>
-                  <p className="m-0 mt-2.5 text-[14px] text-vxn-fg-3">
+                  <p className="m-0 mt-1 text-[13px] text-vxn-fg-3">
                     {method === 'phone' ? 'Số điện thoại' : 'Email'}:{' '}
-                    <strong className="text-vxn-ink">{maskedTarget}</strong>
+                    <strong className="text-vxn-ink">{maskedTarget}</strong> ·{' '}
+                    {tickets.length} vé liên kết
                   </p>
                 </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    icon={<ReloadOutlined />}
+                    onClick={handleReset}
+                    className="!h-10 !rounded-lg"
+                  >
+                    Tra cứu vé khác
+                  </Button>
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => navigate('/')}
+                    className="!h-10 !rounded-lg"
+                    style={{ background: '#036672', borderColor: '#036672' }}
+                  >
+                    Đặt vé mới
+                  </Button>
+                </div>
+              </div>
+            </div>
 
-                <Button
-                  size="large"
-                  icon={<ReloadOutlined />}
-                  onClick={handleReset}
-                  className="!h-11 !w-fit !rounded-lg"
-                >
-                  Tra cứu vé khác
-                </Button>
-              </>
+            {tickets.length > 0 && (
+              <TabBar
+                activeKey={activeTab}
+                counts={tabCounts}
+                onChange={setActiveTab}
+                search={searchText}
+                onSearch={setSearchText}
+              />
             )}
           </div>
 
-          {/* RIGHT: hero or ticket list */}
-          {step === 3 ? (
-            <div className="flex flex-col gap-4">
-              {tickets.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-vxn-border bg-white p-10 text-center">
-                  <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-vxn-bg-mist">
-                    <SearchOutlined style={{ fontSize: 22, color: '#475569' }} />
-                  </div>
-                  <p className="m-0 text-[14px] text-vxn-fg-3">
-                    Không tìm thấy vé khớp với thông tin của bạn. Vui lòng kiểm
-                    tra lại số điện thoại / email đã dùng khi đặt vé.
-                  </p>
-                </div>
-              ) : (
-                tickets.map((t) => (
+          <div className="px-4 py-6 lg:px-8">
+            <div className="mx-auto flex max-w-7xl flex-col gap-4">
+              {activeTab === 'upcoming' && !hasSearch && (
+                <FeaturedBanner ticket={featuredTicket} onView={handleShowQR} />
+              )}
+
+              {filteredTickets.length > 0 ? (
+                filteredTickets.map((t) => (
                   <TicketRow
                     key={t._id || t.ticketCode}
                     ticket={t}
                     onShowQR={handleShowQR}
                     onCancel={handleCancel}
+                    onRebook={handleRebook}
+                    onOpenDetail={handleOpenDetail}
                     canCancel={canCancelTicket(t)}
                   />
                 ))
+              ) : (
+                <EmptyState
+                  activeTab={activeTab}
+                  noneAtAll={tickets.length === 0}
+                  searching={hasSearch}
+                />
               )}
             </div>
-          ) : (
-            <HeroPanel />
-          )}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
 
       {/* QR Modal */}
       <Modal
