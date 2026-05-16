@@ -14,8 +14,6 @@ const DEFAULT_ADMIN = {
 const DB_CANDIDATES = [
   'mongodb://127.0.0.1:27017/vexenhanh',
   'mongodb://localhost:27017/vexenhanh',
-  'mongodb://127.0.0.1:27017/quikride',
-  'mongodb://localhost:27017/quikride',
   process.env.MONGODB_URI,
 ].filter(Boolean);
 
@@ -63,7 +61,7 @@ const ensureAdmin = async () => {
           blockedReason: 1,
           blockedAt: 1,
         },
-      },
+      }
     );
 
     return { action: 'updated', admin: await User.findById(admin._id) };
@@ -91,21 +89,33 @@ const main = async () => {
     const connectedUri = await connectDB();
     const { action, admin } = await ensureAdmin();
 
-    console.log(JSON.stringify({
-      status: 'success',
-      action,
-      connectedUri,
-      credentials: {
-        email: admin.email,
-        phone: admin.phone,
-        password: DEFAULT_ADMIN.password,
-      },
-    }, null, 2));
+    console.log(
+      JSON.stringify(
+        {
+          status: 'success',
+          action,
+          connectedUri,
+          credentials: {
+            email: admin.email,
+            phone: admin.phone,
+            password: DEFAULT_ADMIN.password,
+          },
+        },
+        null,
+        2
+      )
+    );
   } catch (error) {
-    console.error(JSON.stringify({
-      status: 'error',
-      message: error.message,
-    }, null, 2));
+    console.error(
+      JSON.stringify(
+        {
+          status: 'error',
+          message: error.message,
+        },
+        null,
+        2
+      )
+    );
     exitCode = 1;
   } finally {
     await mongoose.disconnect().catch(() => {});
