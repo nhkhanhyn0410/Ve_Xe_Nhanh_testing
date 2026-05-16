@@ -40,6 +40,9 @@ router.put('/routes/:id', authenticate, authorize('operator'), routeController.u
 router.delete('/routes/:id', authenticate, authorize('operator'), routeController.delete);
 router.put('/routes/:id/toggle-active', authenticate, authorize('operator'), routeController.toggleActive);
 
+// Consolidated stop/point network derived from all routes (Operator only)
+router.get('/stops', authenticate, authorize('operator'), routeController.getStops);
+
 // Pickup/Dropoff points management
 router.post('/routes/:id/pickup-points', authenticate, authorize('operator'), routeController.addPickupPoint);
 router.delete('/routes/:id/pickup-points/:pointId', authenticate, authorize('operator'), routeController.removePickupPoint);

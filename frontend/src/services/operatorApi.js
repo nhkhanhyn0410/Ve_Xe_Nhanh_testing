@@ -55,6 +55,13 @@ export const routesApi = {
   removeDropoffPoint: (id, pointId) => api.delete(`/operators/routes/${id}/dropoff-points/${pointId}`),
 };
 
+// ==================== Stops ====================
+
+export const stopsApi = {
+  // Get consolidated stop/point network derived from all routes
+  getStops: (params = {}) => api.get('/operators/stops', { params }),
+};
+
 // ==================== Buses ====================
 
 export const busesApi = {
@@ -147,6 +154,20 @@ export const tripsApi = {
   getStatistics: (params = {}) => api.get('/operators/trips/statistics', { params }),
 };
 
+// ==================== Payments / Transactions ====================
+
+export const paymentsApi = {
+  // Get all payments for the authenticated operator
+  getOperatorPayments: (params = {}) => api.get('/operators/payments', { params }),
+
+  // Payment statistics
+  getStatistics: (params = {}) => api.get('/operators/payments/statistics', { params }),
+
+  // Process a refund for a payment
+  processRefund: (paymentId, data) =>
+    api.post(`/operators/payments/${paymentId}/refund`, data),
+};
+
 // ==================== Seat Layout Templates ====================
 
 export const seatLayoutApi = {
@@ -173,8 +194,10 @@ export default {
   publicOperators: publicOperatorsApi,
   dashboard: dashboardApi,
   routes: routesApi,
+  stops: stopsApi,
   buses: busesApi,
   employees: employeesApi,
   trips: tripsApi,
+  payments: paymentsApi,
   seatLayout: seatLayoutApi,
 };

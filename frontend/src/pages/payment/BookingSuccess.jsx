@@ -187,9 +187,7 @@ const BookingSuccess = () => {
       <CustomerShell activeKey="buy">
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
           <Spin size="large" />
-          <p className="text-[14px] text-vxn-fg-3">
-            Đang tải thông tin đặt vé...
-          </p>
+          <p className="text-[14px] text-vxn-fg-3">Đang tải thông tin đặt vé...</p>
         </div>
       </CustomerShell>
     );
@@ -200,10 +198,7 @@ const BookingSuccess = () => {
     ['Mã đặt vé', booking?.bookingCode || '—'],
     [
       'Mã thanh toán',
-      booking?.paymentCode ||
-        booking?.transactionId ||
-        booking?.paymentTransactionId ||
-        '—',
+      booking?.paymentCode || booking?.transactionId || booking?.paymentTransactionId || '—',
     ],
     ['Số tiền', formatCurrency(booking?.finalPrice || booking?.totalPrice || 0)],
     ['Phương thức', paymentMethodLabel(booking?.paymentMethod)],
@@ -214,7 +209,7 @@ const BookingSuccess = () => {
       <BookingStepper current={4} />
 
       <div className="px-4 py-6 lg:px-8 lg:py-10">
-        <div className="mx-auto max-w-5xl">
+        <div className="mx-auto max-w-[108rem]">
           <CustomerBreadcrumb
             className="mb-5"
             items={[
@@ -265,27 +260,19 @@ const BookingSuccess = () => {
                         <dd className="mt-0.5 font-medium text-vxn-ink">
                           {booking?.contactInfo?.name || '—'}
                         </dd>
-                        <dd className="text-vxn-fg-4">
-                          {booking?.contactInfo?.phone || ''}
-                        </dd>
-                        <dd className="text-vxn-fg-4">
-                          {booking?.contactInfo?.email || ''}
-                        </dd>
+                        <dd className="text-vxn-fg-4">{booking?.contactInfo?.phone || ''}</dd>
+                        <dd className="text-vxn-fg-4">{booking?.contactInfo?.email || ''}</dd>
                       </div>
                       <div>
                         <dt className="text-vxn-fg-5">Khởi hành</dt>
                         <dd className="mt-0.5 font-medium text-vxn-ink">
                           {booking?.tripId?.departureTime
-                            ? dayjs(booking.tripId.departureTime).format(
-                                'HH:mm · DD/MM/YYYY'
-                              )
+                            ? dayjs(booking.tripId.departureTime).format('HH:mm · DD/MM/YYYY')
                             : '—'}
                         </dd>
                         <dt className="mt-2 text-vxn-fg-5">Trạng thái</dt>
                         <dd className="mt-0.5 font-medium text-emerald-600">
-                          {booking?.paymentStatus === 'paid'
-                            ? 'Đã thanh toán'
-                            : 'Chưa thanh toán'}
+                          {booking?.paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}
                         </dd>
                       </div>
                     </dl>
@@ -312,11 +299,7 @@ const BookingSuccess = () => {
                         Xem mã QR
                       </Button>
                     )}
-                    <Button
-                      icon={<PrinterOutlined />}
-                      onClick={() => window.print()}
-                      size="large"
-                    >
+                    <Button icon={<PrinterOutlined />} onClick={() => window.print()} size="large">
                       In vé
                     </Button>
                     <Button
@@ -327,11 +310,7 @@ const BookingSuccess = () => {
                     >
                       Gửi email
                     </Button>
-                    <Button
-                      icon={<HomeOutlined />}
-                      onClick={() => navigate('/')}
-                      size="large"
-                    >
+                    <Button icon={<HomeOutlined />} onClick={() => navigate('/')} size="large">
                       Về trang chủ
                     </Button>
                   </div>
@@ -345,17 +324,14 @@ const BookingSuccess = () => {
 
                   {booking?.paymentMethod === 'cash' && (
                     <div className="rounded-xl border-l-4 border-amber-400 bg-amber-50 p-4 text-[13px] text-amber-900">
-                      <strong>Lưu ý:</strong> Vui lòng chuẩn bị tiền mặt và
-                      thanh toán cho tài xế khi lên xe. Số tiền:{' '}
-                      <strong>{formatCurrency(booking?.finalPrice)}</strong>
+                      <strong>Lưu ý:</strong> Vui lòng chuẩn bị tiền mặt và thanh toán cho tài xế
+                      khi lên xe. Số tiền: <strong>{formatCurrency(booking?.finalPrice)}</strong>
                     </div>
                   )}
                 </>
               ) : (
                 <div className="rounded-2xl border border-vxn-border bg-white p-8 text-center">
-                  <p className="text-vxn-fg-3">
-                    Không tìm thấy thông tin đặt vé.
-                  </p>
+                  <p className="text-vxn-fg-3">Không tìm thấy thông tin đặt vé.</p>
                   <Button
                     type="primary"
                     size="large"
@@ -376,11 +352,7 @@ const BookingSuccess = () => {
         open={qrModalVisible}
         onCancel={() => setQrModalVisible(false)}
         footer={[
-          <Button
-            key="close"
-            type="primary"
-            onClick={() => setQrModalVisible(false)}
-          >
+          <Button key="close" type="primary" onClick={() => setQrModalVisible(false)}>
             Đóng
           </Button>,
         ]}
@@ -397,9 +369,7 @@ const BookingSuccess = () => {
                 style={{ width: 320, height: 320 }}
               />
             </div>
-            <p className="mt-5 font-mono text-[15px] text-vxn-ink">
-              {ticket.ticketCode}
-            </p>
+            <p className="mt-5 font-mono text-[15px] text-vxn-ink">{ticket.ticketCode}</p>
             <p className="mt-1 text-[13px] text-vxn-fg-3">
               Vui lòng xuất trình mã QR này khi lên xe
             </p>

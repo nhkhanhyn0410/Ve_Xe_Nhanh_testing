@@ -200,6 +200,16 @@ const RouteSchema = new mongoose.Schema(
       max: [2880, 'Thời gian không thể quá 48 giờ (2880 phút)'],
     },
 
+    // Giá vé mặc định của tuyến — được áp dụng tự động khi tạo chuyến.
+    // Không đặt `required` ở schema để tránh phá vỡ việc lưu các tuyến cũ
+    // chưa có giá; ràng buộc "phải > 0" được áp dụng khi tạo tuyến mới
+    // (route.service) và khi tạo chuyến (trip.service).
+    basePrice: {
+      type: Number,
+      default: 0,
+      min: [0, 'Giá vé không thể âm'],
+    },
+
     // Status
     isActive: {
       type: Boolean,

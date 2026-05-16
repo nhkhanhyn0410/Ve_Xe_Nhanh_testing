@@ -386,7 +386,14 @@ PaymentSchema.statics.findByOperator = function (operatorId, filters = {}) {
   }
 
   return this.find(query)
-    .populate('bookingId')
+    .populate({
+      path: 'bookingId',
+      populate: {
+        path: 'tripId',
+        select: 'departureTime arrivalTime routeId',
+        populate: { path: 'routeId', select: 'routeName routeCode origin destination' },
+      },
+    })
     .populate('customerId', 'fullName email phone')
     .sort({ createdAt: -1 });
 };

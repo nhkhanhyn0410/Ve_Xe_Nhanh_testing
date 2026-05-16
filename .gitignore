@@ -49,3 +49,6 @@ Thumbs.db
 
 .claude
 doc*:Zone.Identifier
+
+# local design package (not committed)
+.design-nhaxe/

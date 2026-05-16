@@ -21,9 +21,11 @@ import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 // Operator Dashboard Pages
 import DashboardPage from './pages/operator/DashboardPage';
 import RoutesPage from './pages/operator/RoutesPage';
+import StopsPage from './pages/operator/StopsPage';
 import BusesPage from './pages/operator/BusesPage';
 import OperatorTripsPage from './pages/operator/TripsPage';
 import EmployeesPage from './pages/operator/EmployeesPage';
+import TransactionsPage from './pages/operator/TransactionsPage';
 import ReportsPage from './pages/operator/ReportsPage';
 import VouchersPage from './pages/operator/VouchersPage';
 import OperatorReviewsPage from './pages/OperatorReviewsPage';
@@ -244,9 +246,11 @@ function App() {
           <Route index element={<Navigate to="/operator/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="routes" element={<RoutesPage />} />
+          <Route path="stops" element={<StopsPage />} />
           <Route path="buses" element={<BusesPage />} />
           <Route path="trips" element={<OperatorTripsPage />} />
           <Route path="employees" element={<EmployeesPage />} />
+          <Route path="transactions" element={<TransactionsPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="vouchers" element={<VouchersPage />} />
           <Route path="reviews" element={<OperatorReviewsPage />} />

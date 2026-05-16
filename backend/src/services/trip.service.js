@@ -19,7 +19,35 @@ class TripService {
    */
   static async create(operatorId, tripData) {
     // Validate references
-    const { bus } = await this.validateReferences(operatorId, tripData);
+    const { route, bus } = await this.validateReferences(operatorId, tripData);
+
+    // Validate arrival is strictly after departure (rõ ràng, sớm — trước schema)
+    const dep = new Date(tripData.departureTime);
+    const arr = new Date(tripData.arrivalTime);
+    if (Number.isNaN(dep.getTime()) || Number.isNaN(arr.getTime())) {
+      throw new Error('Ngày/giờ khởi hành hoặc giờ đến không hợp lệ');
+    }
+    if (arr <= dep) {
+      throw new Error('Ngày & giờ đến phải sau ngày & giờ khởi hành');
+    }
+
+    // Giá vé được thiết lập tự động theo tuyến đã chọn
+    if (!route.basePrice || route.basePrice <= 0) {
+      throw new Error(
+        'Tuyến đường chưa được cấu hình giá vé. Vui lòng thiết lập giá vé cho tuyến trước khi tạo chuyến.'
+      );
+    }
+    tripData.basePrice = route.basePrice;
+    delete tripData.finalPrice; // để pre-save tính lại theo basePrice của tuyến
+
+    // Không cho phép tạo chuyến trùng giờ của xe / tài xế / quản lý chuyến
+    await this.checkScheduleConflicts(operatorId, {
+      busId: tripData.busId,
+      driverId: tripData.driverId,
+      tripManagerId: tripData.tripManagerId,
+      departureTime: dep,
+      arrivalTime: arr,
+    });
 
     // Get totalSeats from bus if not provided
     if (!tripData.totalSeats && bus && bus.seatLayout) {
@@ -67,8 +95,17 @@ class TripService {
       throw new Error('Ngày bắt đầu phải trước ngày kết thúc');
     }
 
-    // Validate references once
-    await this.validateReferences(operatorId, tripData);
+    // Validate references once (lấy route để gán giá vé tự động)
+    const { route } = await this.validateReferences(operatorId, tripData);
+
+    // Giá vé được thiết lập tự động theo tuyến đã chọn
+    if (!route.basePrice || route.basePrice <= 0) {
+      throw new Error(
+        'Tuyến đường chưa được cấu hình giá vé. Vui lòng thiết lập giá vé cho tuyến trước khi tạo chuyến.'
+      );
+    }
+    tripData.basePrice = route.basePrice;
+    delete tripData.finalPrice; // để pre-save tính lại theo basePrice của tuyến
 
     // Generate group ID for recurring trips
     const recurringGroupId = uuidv4();
@@ -97,6 +134,15 @@ class TripService {
 
         // Only create trips in the future
         if (departureTime > new Date()) {
+          // Không cho phép trùng giờ xe / tài xế / quản lý chuyến
+          await this.checkScheduleConflicts(operatorId, {
+            busId: tripData.busId,
+            driverId: tripData.driverId,
+            tripManagerId: tripData.tripManagerId,
+            departureTime,
+            arrivalTime,
+          });
+
           const trip = await Trip.create({
             operatorId,
             ...tripData,
@@ -192,6 +238,95 @@ class TripService {
 
     // Return validated objects
     return { route, bus, driver, tripManager };
+  }
+
+  /**
+   * Kiểm tra xung đột lịch: không cho phép xe / tài xế / quản lý chuyến
+   * bị xếp vào 2 chuyến có khung giờ chồng lấn nhau.
+   *
+   * Hai khoảng [depA, arrA] và [depB, arrB] chồng lấn khi:
+   *   depA < arrB  AND  depB < arrA
+   *
+   * @param {ObjectId} operatorId
+   * @param {Object} params - { busId, driverId, tripManagerId, departureTime, arrivalTime, excludeTripId }
+   * @returns {Promise<void>} ném Error nếu có xung đột
+   */
+  static async checkScheduleConflicts(operatorId, params) {
+    const {
+      busId,
+      driverId,
+      tripManagerId,
+      departureTime,
+      arrivalTime,
+      excludeTripId,
+    } = params;
+
+    const dep = new Date(departureTime);
+    const arr = new Date(arrivalTime);
+
+    // Chỉ xét các chuyến còn hiệu lực (đã hủy thì giải phóng nguồn lực)
+    const baseQuery = {
+      operatorId,
+      status: { $ne: 'cancelled' },
+      departureTime: { $lt: arr },
+      arrivalTime: { $gt: dep },
+    };
+
+    if (excludeTripId) {
+      baseQuery._id = { $ne: excludeTripId };
+    }
+
+    const fmt = (d) =>
+      new Date(d).toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
+    // 1. Xung đột xe
+    if (busId) {
+      const busConflict = await Trip.findOne({ ...baseQuery, busId })
+        .populate('busId', 'busNumber')
+        .sort({ departureTime: 1 });
+      if (busConflict) {
+        throw new Error(
+          `Xe ${busConflict.busId?.busNumber || ''} đã có chuyến trùng khung giờ ` +
+            `(${fmt(busConflict.departureTime)} → ${fmt(busConflict.arrivalTime)}). ` +
+            'Vui lòng chọn xe khác hoặc đổi khung giờ.'
+        );
+      }
+    }
+
+    // 2. Xung đột tài xế
+    if (driverId) {
+      const driverConflict = await Trip.findOne({ ...baseQuery, driverId })
+        .populate('driverId', 'fullName')
+        .sort({ departureTime: 1 });
+      if (driverConflict) {
+        throw new Error(
+          `Tài xế ${driverConflict.driverId?.fullName || ''} đã có chuyến trùng khung giờ ` +
+            `(${fmt(driverConflict.departureTime)} → ${fmt(driverConflict.arrivalTime)}). ` +
+            'Vui lòng chọn tài xế khác hoặc đổi khung giờ.'
+        );
+      }
+    }
+
+    // 3. Xung đột quản lý chuyến
+    if (tripManagerId) {
+      const managerConflict = await Trip.findOne({ ...baseQuery, tripManagerId })
+        .populate('tripManagerId', 'fullName')
+        .sort({ departureTime: 1 });
+      if (managerConflict) {
+        throw new Error(
+          `Quản lý chuyến ${managerConflict.tripManagerId?.fullName || ''} đã có chuyến ` +
+            `trùng khung giờ (${fmt(managerConflict.departureTime)} → ` +
+            `${fmt(managerConflict.arrivalTime)}). Vui lòng chọn người khác hoặc đổi khung giờ.`
+        );
+      }
+    }
   }
 
   /**
@@ -310,18 +445,75 @@ class TripService {
       throw new Error('Không thể cập nhật chuyến đã có đặt chỗ');
     }
 
-    // Validate references if they're being changed
-    if (
+    // Giá trị hiệu lực sau cập nhật (ưu tiên dữ liệu mới, nếu không giữ nguyên)
+    const effectiveRouteId = updateData.routeId || trip.routeId;
+    const effectiveBusId = updateData.busId || trip.busId;
+    const effectiveDriverId = updateData.driverId || trip.driverId;
+    const effectiveManagerId = updateData.tripManagerId || trip.tripManagerId;
+
+    const refsChanged = !!(
       updateData.routeId ||
       updateData.busId ||
       updateData.driverId ||
       updateData.tripManagerId
-    ) {
-      await this.validateReferences(operatorId, {
-        routeId: updateData.routeId || trip.routeId,
-        busId: updateData.busId || trip.busId,
-        driverId: updateData.driverId || trip.driverId,
-        tripManagerId: updateData.tripManagerId || trip.tripManagerId,
+    );
+    const timesChanged = !!(updateData.departureTime || updateData.arrivalTime);
+
+    // Validate references if they're being changed (lấy lại route để đồng bộ giá)
+    let route = null;
+    if (refsChanged) {
+      ({ route } = await this.validateReferences(operatorId, {
+        routeId: effectiveRouteId,
+        busId: effectiveBusId,
+        driverId: effectiveDriverId,
+        tripManagerId: effectiveManagerId,
+      }));
+    }
+
+    // Ngày & giờ đến phải sau ngày & giờ khởi hành (khi có thay đổi giờ)
+    const effectiveDeparture = updateData.departureTime
+      ? new Date(updateData.departureTime)
+      : new Date(trip.departureTime);
+    const effectiveArrival = updateData.arrivalTime
+      ? new Date(updateData.arrivalTime)
+      : new Date(trip.arrivalTime);
+
+    if (timesChanged) {
+      if (
+        Number.isNaN(effectiveDeparture.getTime()) ||
+        Number.isNaN(effectiveArrival.getTime())
+      ) {
+        throw new Error('Ngày/giờ khởi hành hoặc giờ đến không hợp lệ');
+      }
+      if (effectiveArrival <= effectiveDeparture) {
+        throw new Error('Ngày & giờ đến phải sau ngày & giờ khởi hành');
+      }
+    }
+
+    // Giá vé đồng bộ tự động theo tuyến (khi tuyến/tham chiếu thay đổi)
+    if (route) {
+      if (route.basePrice && route.basePrice > 0) {
+        updateData.basePrice = route.basePrice;
+        delete updateData.finalPrice; // pre-save sẽ tính lại theo basePrice của tuyến
+      } else if (!(trip.basePrice > 0)) {
+        throw new Error(
+          'Tuyến đường chưa được cấu hình giá vé. Vui lòng thiết lập giá vé cho tuyến trước khi cập nhật chuyến.'
+        );
+      } else {
+        // Tuyến cũ chưa có giá nhưng chuyến đã có giá hợp lệ → giữ nguyên
+        delete updateData.basePrice;
+      }
+    }
+
+    // Không cho phép trùng giờ xe / tài xế / quản lý chuyến (loại trừ chính chuyến này)
+    if (timesChanged || refsChanged) {
+      await this.checkScheduleConflicts(operatorId, {
+        busId: effectiveBusId,
+        driverId: effectiveDriverId,
+        tripManagerId: effectiveManagerId,
+        departureTime: effectiveDeparture,
+        arrivalTime: effectiveArrival,
+        excludeTripId: trip._id,
       });
     }
 

@@ -401,7 +401,7 @@ class VoucherService {
 
     // Build query for bookings that used this voucher
     const query = {
-      voucherId: mongoose.Types.ObjectId(voucherId),
+      voucherId: new mongoose.Types.ObjectId(voucherId),
       status: { $in: ['confirmed', 'completed', 'cancelled'] },
     };
 
