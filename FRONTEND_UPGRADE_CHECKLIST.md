@@ -128,6 +128,9 @@ Nguồn tham chiếu chính:
 
 ## 9. Content và auth customer
 
+- [x] Gắn featured image cho bài `top-quan-pho-bo-doc-ql1` sang URL Long Phương trong `backend/scripts/seedContent.js`; `node --check backend/scripts/seedContent.js` thành công, frontend `NewsPage`/`BlogCard` đọc ảnh từ `featuredImage`.
+- [x] Gắn featured image theo bài cho `quy-dinh-hanh-ly-xe-khach-2026`, `sapa-mua-he-5-cung-trekking-nhe`, `khuyen-mai-he-vxn-2026`, `limousine-vs-giuong-nam-chon-loai-nao`, `san-ve-tet-2027-checklist-6-buoc`, `vxn-ra-mat-12-tuyen-mien-tay` trong `backend/scripts/seedContent.js`.
+- [x] Đổi hero image khu vực "Đi xa hơn với mỗi hành trình" trong `NewsPage.jsx` sang ảnh Lang Biang Đà Lạt; `npm.cmd run build` trong `frontend/` thành công.
 - [~] Tạo skeleton `ExplorePage.jsx` cho `/kham-pha` với TODO cho tin tức, chuyến phổ biến, nhà xe nổi bật và chương trình; chưa có thiết kế/data contract chính thức.
 - [~] Tạo skeleton `AddonsPage.jsx` cho `/dich-vu-bo-tro` để sidebar không trỏ nhầm sang Thành viên; chưa kích hoạt mua add-on ngoài booking flow.
 - [ ] Nâng cấp `NewsPage.jsx` theo prototype blog list/detail/FAQ.
