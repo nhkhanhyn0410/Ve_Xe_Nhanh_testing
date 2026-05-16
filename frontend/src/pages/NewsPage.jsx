@@ -9,7 +9,7 @@ import BlogCard, { BLOG_CAT_LABELS } from '../components/content/BlogCard';
 import { getBlogs } from '../services/contentApi';
 
 const HERO_IMG =
-  'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=1600&q=70';
+  'https://tinviettravel.com.vn/uploads/tours/2019_10/lang-biang-da-lat.jpg';
 
 // Tab order mirrors flow-content.jsx BLOG_CATEGORIES.
 const CAT_ORDER = ['news', 'guide', 'promotion', 'travel_tips', 'company', 'other'];

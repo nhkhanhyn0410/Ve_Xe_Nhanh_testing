@@ -16,13 +16,15 @@ const FAQ = require('../src/models/FAQ');
 
 const IMG = {
   seat: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1200&q=70',
-  food: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=1200&q=70',
-  luggage: 'https://images.unsplash.com/photo-1565620731358-e8c0f4f1a3a9?auto=format&fit=crop&w=1200&q=70',
-  sapa: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=1200&q=70',
-  promo: 'https://images.unsplash.com/photo-1517300119344-1f8b4d3a3a1f?auto=format&fit=crop&w=1200&q=70',
+  food: 'https://store.longphuong.vn/wp-content/uploads/2023/02/bat-to-dung-pho-su-1.jpg',
+  luggage: 'https://xekhachtuanyen.vn/wp-content/uploads/2023/06/Chuan-bi-hanh-ly-khi-di-xe-khach-duong-dai.jpg',
+  sapa: 'https://nhatotravel.vn/wp-content/uploads/2025/08/canh-dep-sapa-mua-he-1.jpg',
+  promo: 'https://viettourist.com//resources/images/680dienbien/14.jpg',
+  limousine: 'https://chatgpt.com/backend-api/estuary/public_content/enc/eyJpZCI6Im1fNmEwODMzYTc4ZTdjODE5MWJjYWNhNGQ2MzYzOTQ5Yjc6ZmlsZV8wMDAwMDAwMDE2MmM3MjA5OGU2NjM2YWU0MTBjZDkwYyIsInRzIjoiMjA1ODkiLCJwIjoicHlpIiwiY2lkIjoiMSIsInNpZyI6Ijc1ZWJlYWUzYjgyYTA0ZDlhZTc0MTBhMjJkM2Q4ZGZmNzFmNmViNGE2NjBmZmE4NWJiMjJkNWQ3MDhhOTNhOWUiLCJ2IjoiMCIsImdpem1vX2lkIjpudWxsLCJjcyI6bnVsbCwiY2RuIjpudWxsLCJmbiI6bnVsbCwiY2QiOm51bGwsImNwIjpudWxsLCJtYSI6bnVsbH0=',
   road: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=1200&q=70',
   night: 'https://images.unsplash.com/photo-1474649107449-ea4f014b7e9f?auto=format&fit=crop&w=1200&q=70',
-  tet: 'https://images.unsplash.com/photo-1546552768-9e3a94b38a59?auto=format&fit=crop&w=1200&q=70',
+  tet: 'https://bocxeptaynguyen.vn/wp-content/uploads/2026/02/checklist-chuan-bi-khi-chuyen-nha-1024x768.jpg',
+  western: 'https://1phutsaigon.vn/wp-content/uploads/2022/07/1-1.jpeg',
 };
 
 const tip = (label, body) =>
@@ -133,7 +135,7 @@ const BLOGS = [
       'Limousine nhanh, riêng tư, hợp chuyến ngắn dưới 5 giờ. Giường nằm rẻ hơn, nằm thẳng lưng cho chuyến đêm dài.',
     category: 'guide',
     tags: ['Limousine', 'Giường nằm', 'Cẩm nang'],
-    featuredImage: IMG.road,
+    featuredImage: IMG.limousine,
     readTime: 6,
     daysAgo: 18,
     views: 5120,
@@ -167,7 +169,7 @@ const BLOGS = [
       'Mở rộng mạng lưới về Cần Thơ, Cà Mau, Châu Đốc, Hà Tiên... với nhà xe đối tác đã xác thực.',
     category: 'company',
     tags: ['Tin VXN', 'Mở tuyến', 'Miền Tây'],
-    featuredImage: IMG.road,
+    featuredImage: IMG.western,
     readTime: 3,
     daysAgo: 24,
     views: 3410,
