@@ -70,10 +70,12 @@ const { RangePicker } = DatePicker;
 const PAGE_SIZE = 12;
 
 /* ───────── taxonomy (verbatim from design — matches the real enums) ──── */
+// Khóa nội bộ giữ nguyên theo enum model Banner; nhãn theo tên trang khách
+// nhìn thấy: Trang chủ (/), Mua vé (/trips), Khám phá (/tin-tuc).
 const BANNER_POSITION = {
   homepage: 'Trang chủ',
-  booking: 'Đặt vé',
-  routes: 'Tuyến',
+  booking: 'Mua vé',
+  routes: 'Khám phá',
   footer: 'Footer',
 };
 

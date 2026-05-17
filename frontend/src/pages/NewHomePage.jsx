@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AutoComplete, Button, DatePicker, Form, Select } from 'antd';
 import {
@@ -32,6 +32,7 @@ import hcmDaLatImage from '../assets/img/TH HCM-DA LAT.png';
 import hcmNhaTrangImage from '../assets/img/TP HCM-NHA TRANG.jpg';
 import hcmVungTauImage from '../assets/img/TP HCM-VUNG TAU.png';
 import CustomerShell from '../components/customer/CustomerShell';
+import ContentBanners from '../components/customer/ContentBanners';
 import useBookingStore from '../store/bookingStore';
 
 const cityOptions = [
@@ -682,6 +683,12 @@ const NewHomePage = () => {
           </div>
         </div>
       </section>
+
+      <ContentBanners
+        position="homepage"
+        className="bg-white px-4 pt-8 lg:px-14 lg:pt-6"
+        containerClassName="mx-auto grid w-full max-w-[1440px] gap-4"
+      />
 
       <section className="bg-white px-4 pb-12 pt-8 lg:px-14 lg:pt-6">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

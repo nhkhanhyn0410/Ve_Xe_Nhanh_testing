@@ -4,6 +4,7 @@ import { Empty, Input, Spin, message } from 'antd';
 import { EyeOutlined, SearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import CustomerShell from '../components/customer/CustomerShell';
+import ContentBanners from '../components/customer/ContentBanners';
 import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import BlogCard, { BLOG_CAT_LABELS } from '../components/content/BlogCard';
 import { getBlogs } from '../services/contentApi';
@@ -115,6 +116,8 @@ const NewsPage = () => {
       {/* Body */}
       <div className="px-4 py-6 lg:px-8">
         <div className="mx-auto flex w-full max-w-[108rem] flex-col gap-6">
+          <ContentBanners position="routes" containerClassName="grid gap-4" />
+
           {/* Tabs + search */}
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="flex flex-wrap items-center gap-2">

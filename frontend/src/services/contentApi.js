@@ -2,10 +2,40 @@ import api from './api';
 
 /**
  * Content API Service
- * Handles blog (Cẩm nang & tin tức) and FAQ endpoints.
+ * Handles banner (trang chủ), blog (Cẩm nang & tin tức) and FAQ endpoints.
  * The axios interceptor in services/api.js already unwraps `response.data`,
  * so each call resolves to the JSON body: { status, data, pagination }.
  */
+
+// ============================================================================
+// Banner (Trang chủ / khuyến mãi)
+// ============================================================================
+
+/**
+ * Get active banners for a position (default: homepage).
+ * Backend filters isActive + date window and sorts by `order`.
+ * @param {string} position - homepage | booking | routes | footer
+ * @returns {Promise<{ status, data: Banner[] }>}
+ */
+export const getBanners = async (position = 'homepage') => {
+  return api.get(`/content/banners?position=${encodeURIComponent(position)}`);
+};
+
+/**
+ * Track a banner impression (fire-and-forget).
+ * @param {string} id - Banner _id
+ */
+export const trackBannerView = async (id) => {
+  return api.post(`/content/banners/${id}/view`);
+};
+
+/**
+ * Track a banner click (fire-and-forget).
+ * @param {string} id - Banner _id
+ */
+export const trackBannerClick = async (id) => {
+  return api.post(`/content/banners/${id}/click`);
+};
 
 // ============================================================================
 // Blog (Cẩm nang & tin tức)
@@ -76,6 +106,9 @@ export const markFAQHelpful = async (id, helpful) => {
 };
 
 export default {
+  getBanners,
+  trackBannerView,
+  trackBannerClick,
   getBlogs,
   getBlogBySlug,
   likeBlog,

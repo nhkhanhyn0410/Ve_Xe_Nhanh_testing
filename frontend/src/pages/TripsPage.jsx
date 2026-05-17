@@ -18,6 +18,7 @@ import {
 import dayjs from 'dayjs';
 import { toast } from 'react-hot-toast';
 import CustomerShell from '../components/customer/CustomerShell';
+import ContentBanners from '../components/customer/ContentBanners';
 import useBookingStore from '../store/bookingStore';
 import { getAvailableSeats, searchTrips } from '../services/bookingApi';
 import { extractSeatAvailability } from '../utils/seatAvailability';
@@ -1054,6 +1055,8 @@ const TripsPage = () => {
 
         <section className="min-w-0 px-4 py-6 lg:px-8">
           <div className="mx-auto flex max-w-[1180px] flex-col gap-5">
+            <ContentBanners position="booking" containerClassName="grid gap-4" />
+
             <SortRow
               total={filteredTrips.length}
               criteria={activeCriteria}

@@ -1016,11 +1016,19 @@ exports.getSystemOverview = async (req, res) => {
     const start = startDate ? new Date(startDate) : new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
 
     // User Statistics
+    // Tổng người dùng = mọi role (gồm cả admin trong cùng collection User).
     const totalUsers = await User.countDocuments();
+    // Các KPI "Khách hàng" chỉ tính role 'customer' — admin nằm chung
+    // collection User nên không được lẫn vào số khách hàng.
     const newUsers = await User.countDocuments({
+      role: 'customer',
       createdAt: { $gte: start, $lte: end },
     });
-    const activeUsers = await User.countDocuments({ isActive: true, isBlocked: false });
+    const activeUsers = await User.countDocuments({
+      role: 'customer',
+      isActive: true,
+      isBlocked: false,
+    });
 
     // Operator Statistics
     const totalOperators = await BusOperator.countDocuments();
@@ -1232,6 +1240,7 @@ exports.getSystemOverview = async (req, res) => {
     });
 
     const previousUsers = await User.countDocuments({
+      role: 'customer',
       createdAt: { $gte: previousStart, $lt: previousEnd },
     });
 
