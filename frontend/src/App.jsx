@@ -267,7 +267,7 @@ function App() {
         <Route
           path="/trip-manager/dashboard"
           element={
-            <ProtectedRoute allowedRoles={['trip_manager']}>
+            <ProtectedRoute allowedRoles={['trip_manager', 'driver']}>
               <TripManagerDashboard />
             </ProtectedRoute>
           }
@@ -275,7 +275,7 @@ function App() {
         <Route
           path="/trip-manager/active-trip"
           element={
-            <ProtectedRoute allowedRoles={['trip_manager']}>
+            <ProtectedRoute allowedRoles={['trip_manager', 'driver']}>
               <ActiveTripPage />
             </ProtectedRoute>
           }
@@ -283,7 +283,7 @@ function App() {
         <Route
           path="/trip-manager/trips/:tripId/scan"
           element={
-            <ProtectedRoute allowedRoles={['trip_manager']}>
+            <ProtectedRoute allowedRoles={['trip_manager', 'driver']}>
               <QRScannerPage />
             </ProtectedRoute>
           }
@@ -291,7 +291,7 @@ function App() {
         <Route
           path="/trip-manager/trips/:tripId/passengers"
           element={
-            <ProtectedRoute allowedRoles={['trip_manager']}>
+            <ProtectedRoute allowedRoles={['trip_manager', 'driver']}>
               <PassengersPage />
             </ProtectedRoute>
           }

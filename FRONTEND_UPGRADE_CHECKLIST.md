@@ -101,6 +101,7 @@ Nguồn tham chiếu chính:
 - [~] Giữ validation passenger, phone, email, id card nếu đang có - đã sửa `PassengerInfoPage.jsx` để checkbox "Người liên hệ là hành khách 1" tự sync contact sang hành khách 1 và không bắt required riêng cho hành khách 1.
 - [ ] Tích hợp saved passengers nếu API/store đã có.
 - [~] Nâng cấp `BookingConfirmationPage.jsx` theo payment/summary style mới - đã thêm bản đồ nhỏ cho điểm đón/trả bằng `RouteMiniMap`, giữ link chỉ đường Google Maps hiện có; chưa nâng cấp toàn bộ visual payment summary.
+- [~] Cân lại sidebar xác nhận vé: giảm padding/cỡ chữ card liên hệ nhà xe, điểm đón-trả và thêm chế độ compact cho `RouteMiniMap`; cần smoke test responsive.
 - [~] Giữ luồng tạo booking và payment hiện có - đã thiết kế lại bước chọn phương thức thanh toán trong `PassengerInfoPage.jsx` theo layout phương thức/ngân hàng/tóm tắt đơn; vẫn gọi `createPayment` endpoint hiện có và map online methods qua VNPay.
 - [ ] Nâng cấp các trang `VNPayReturn`, `BookingSuccess`, `BookingFailure`.
 - [ ] Bảo đảm callback payment không bị đổi route ngoài `App.jsx`.
@@ -111,6 +112,7 @@ Nguồn tham chiếu chính:
 
 - [ ] Nâng cấp `MyTicketsPage.jsx` theo prototype `MyTicketsScreen`.
 - [ ] Nâng cấp ticket detail/QR nếu route hoặc component hiện có hỗ trợ.
+- [~] Cân lại `SaffronTicketCard`: căn giữa khung khởi hành/đến nơi, tăng padding và sửa fallback biển số xe từ `busNumber`; cần smoke test trên `/my-tickets` và `/tickets/lookup`.
 - [ ] Nâng cấp `GuestTicketLookupPage.jsx` theo prototype `GuestLookupScreen`.
 - [ ] Nâng cấp `CancelTicketPage.jsx` theo prototype `GuestCancelScreen` và policy hiện có.
 - [~] Giữ API ticket lookup, OTP, cancel, download PDF, QR - đã sửa `GuestTicketLookupPage.jsx` không gửi field phone/email rỗng, normalize phone, chấp nhận `0...`, `+84...`, `84...`, hiển thị lỗi backend dạng string; backend `ticket.routes.js` bỏ qua field rỗng, normalize phone trước validate, `ticket.service.js` lookup các format phone tương đương để tránh 400 khi nhập số có khoảng trắng/khác format lưu; `bookings/code/:bookingCode` nay nhận `phone` hoặc `email` để luồng OTP email mở chi tiết booking không bị 400.
@@ -148,6 +150,7 @@ Nguồn tham chiếu chính:
 - [ ] Đánh giá có áp dụng toàn bộ VXN tokens cho operator/admin hay chỉ harmonize nhẹ.
 - [ ] Không làm mất tính dense dashboard của operator/admin.
 - [ ] Kiểm tra operator tenant boundary: mọi thao tác operator vẫn qua API hiện có.
+- [~] Bỏ nút hủy chuyến khỏi `TripManagerDashboard.jsx`; cần smoke test route `/trip-manager/dashboard` với tài khoản trip-manager.
 - [ ] Kiểm tra trip-manager QR scanner trên mobile/tablet.
 - [ ] Kiểm tra admin table, filter, modal, content management sau khi đổi token toàn cục.
 
@@ -168,4 +171,5 @@ Nguồn tham chiếu chính:
 - [ ] Ghi lại component nào được port từ prototype và component nào giữ production.
 - [ ] Ghi lại mọi route mới hoặc API assumption mới.
 - [ ] Ghi lại mọi điểm còn mock/fallback.
+- [~] Backend email: đồng bộ cấu hình SMTP cho OTP/ticket/notification và để ticket email gửi thật khi `EMAIL_ENABLED=true` dù `DEMO_MODE=true`; cần smoke test thanh toán tạo vé với SMTP thật.
 - [ ] Ghi lại rủi ro còn lại trước khi bàn giao.

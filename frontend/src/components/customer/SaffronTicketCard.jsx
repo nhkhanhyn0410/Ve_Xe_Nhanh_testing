@@ -3,7 +3,11 @@ import { ArrowRightOutlined, TagOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const formatTime = (value) => (value ? dayjs(value).format('HH:mm') : '--:--');
-const formatDate = (value) => (value ? dayjs(value).format('dddd · DD/MM/YYYY') : '');
+const formatDate = (value) => {
+  if (!value) return '';
+  const dateText = dayjs(value).format('dddd · DD/MM/YYYY');
+  return dateText.charAt(0).toUpperCase() + dateText.slice(1);
+};
 const cityOf = (info) =>
   info?.city || info?.station || info?.name || info?.address?.split(',').pop()?.trim() || '';
 
@@ -32,7 +36,10 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
       rawSeats = ticket?.passengers?.map((p) => p.seatNumber);
     }
     if (Array.isArray(rawSeats) && rawSeats.length > 0) {
-      return rawSeats.map((s) => s?.seatNumber || s).filter(Boolean).join(', ');
+      return rawSeats
+        .map((s) => s?.seatNumber || s)
+        .filter(Boolean)
+        .join(', ');
     }
     return '—';
   }, [booking, ticket]);
@@ -46,13 +53,15 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
   const code = booking?.bookingCode || ticket?.ticketCode || '—';
 
   const plate =
+    trip?.busId?.busNumber ||
     trip?.busId?.licensePlate ||
+    trip?.busInfo?.busNumber ||
     trip?.busInfo?.licensePlate ||
+    booking?.tripInfo?.busNumber ||
+    ticket?.tripInfo?.busNumber ||
+    booking?.tripInfo?.bus?.busNumber ||
     booking?.tripInfo?.bus?.licensePlate ||
     '—';
-
-  const pickupName = booking?.pickupPoint?.name || booking?.pickupPoint?.address || '';
-  const dropoffName = booking?.dropoffPoint?.name || booking?.dropoffPoint?.address || '';
 
   // Honest status — a cash booking that is confirmed is NOT yet paid.
   const cancelled = booking?.status === 'cancelled';
@@ -70,8 +79,7 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
     <div
       className={`relative overflow-hidden rounded-[18px] ${className}`}
       style={{
-        background:
-          'linear-gradient(135deg, #FFF6E2 0%, #FFE9C4 60%, #FFD9A0 100%)',
+        background: 'linear-gradient(135deg, #FFF6E2 0%, #FFE9C4 60%, #FFD9A0 100%)',
         border: '1px solid #F2C677',
         boxShadow: '0 12px 30px -10px rgba(232,155,38,.4)',
       }}
@@ -84,8 +92,7 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
           width: 200,
           height: 200,
           borderRadius: '50%',
-          background:
-            'radial-gradient(circle, rgba(243,177,50,.5), transparent 70%)',
+          background: 'radial-gradient(circle, rgba(243,177,50,.5), transparent 70%)',
         }}
       />
 
@@ -100,9 +107,7 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
               <div className="text-[14px] font-bold tracking-[0.06em] text-[#A8741A]">
                 VÉ XE NHANH
               </div>
-              <div className="text-[12px] text-vxn-fg-3 truncate">
-                Vé chuyến · {operatorName}
-              </div>
+              <div className="text-[12px] text-vxn-fg-3 truncate">Vé chuyến · {operatorName}</div>
             </div>
             <span
               className="rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide"
@@ -119,39 +124,27 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
             >
               {fromCity} <span className="text-[#A8741A]">→</span> {toCity}
             </div>
-            <div className="mt-1.5 text-[15px] font-medium text-vxn-fg-2">
+            <div className="mt-2 text-[17px] font-semibold text-vxn-fg-2">
               {formatDate(departureTime)}
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
             <div
-              className="rounded-[10px] bg-white px-4 py-2.5"
+              className="min-w-[136px] rounded-[10px] bg-white px-8 py-3"
               style={{ border: '1px solid rgba(232,155,38,.3)' }}
             >
-              <div className="text-[11px] uppercase text-vxn-fg-5 tracking-wide">
-                Khởi hành
-              </div>
-              <div className="text-[22px] font-bold text-vxn-ink">
+              <div className="text-[24px] font-bold leading-none text-vxn-ink">
                 {formatTime(departureTime)}
-              </div>
-              <div className="text-[11px] text-vxn-fg-5 truncate max-w-[200px]">
-                {pickupName || '—'}
               </div>
             </div>
             <ArrowRightOutlined style={{ fontSize: 20, color: '#A8741A' }} />
             <div
-              className="rounded-[10px] bg-white px-4 py-2.5"
+              className="min-w-[136px] rounded-[10px] bg-white px-8 py-3"
               style={{ border: '1px solid rgba(232,155,38,.3)' }}
             >
-              <div className="text-[11px] uppercase text-vxn-fg-5 tracking-wide">
-                Đến nơi
-              </div>
-              <div className="text-[22px] font-bold text-vxn-ink">
+              <div className="text-[24px] font-bold leading-none text-vxn-ink">
                 {formatTime(arrivalTime)}
-              </div>
-              <div className="text-[11px] text-vxn-fg-5 truncate max-w-[200px]">
-                {dropoffName || '—'}
               </div>
             </div>
           </div>
@@ -183,12 +176,12 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
         >
           {/* perforation dots */}
           <span
-            className="absolute -left-1.5 top-3 h-3 w-3 rounded-full"
-            style={{ background: '#F2C677' }}
+            className="absolute -left-2.5 -top-2.5 h-5 w-5 rounded-full"
+            style={{ background: '#E89B26' }}
           />
           <span
-            className="absolute -left-1.5 bottom-3 h-3 w-3 rounded-full"
-            style={{ background: '#F2C677' }}
+            className="absolute -bottom-2.5 -left-2.5 h-5 w-5 rounded-full"
+            style={{ background: '#E89B26' }}
           />
 
           {ticket?.qrCode ? (
@@ -212,9 +205,7 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
           <span className="text-center font-mono text-[13px] tracking-[0.06em] text-vxn-ink">
             {code}
           </span>
-          <span className="text-center text-[12px] font-medium text-[#A8741A]">
-            Lên xe quét mã
-          </span>
+          <span className="text-center text-[12px] font-medium text-[#A8741A]">Lên xe quét mã</span>
         </div>
       </div>
     </div>

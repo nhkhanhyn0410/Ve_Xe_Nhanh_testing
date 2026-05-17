@@ -506,9 +506,9 @@ const BookingConfirmationPage = () => {
 
           {/* Right column */}
           <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
-            <Card title="Liên hệ nhà xe" icon={PhoneOutlined}>
-              <div className="space-y-2.5 text-[13px] text-vxn-fg-2">
-                <div className="text-[14px] font-semibold text-vxn-ink">{operatorName}</div>
+            <Card title="Liên hệ nhà xe" icon={PhoneOutlined} className="!p-5">
+              <div className="space-y-2 text-[12.5px] leading-5 text-vxn-fg-2">
+                <div className="text-[13.5px] font-semibold text-vxn-ink">{operatorName}</div>
                 {operatorPhone && (
                   <div>
                     Hotline:{' '}
@@ -540,27 +540,28 @@ const BookingConfirmationPage = () => {
               {operatorPhone && (
                 <a
                   href={`tel:${operatorPhone}`}
-                  className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-vxn-border bg-white text-[14px] font-medium text-vxn-ink transition hover:border-vxn-teal-700 hover:text-vxn-teal-700"
+                  className="mt-4 flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-vxn-border bg-white text-[13px] font-medium text-vxn-ink transition hover:border-vxn-teal-700 hover:text-vxn-teal-700"
                 >
                   <PhoneOutlined /> Gọi nhà xe
                 </a>
               )}
             </Card>
 
-            <Card title="Điểm đón & điểm trả" icon={EnvironmentOutlined}>
+            <Card title="Điểm đón & điểm trả" icon={EnvironmentOutlined} className="!p-5">
               <div className="space-y-4">
                 <RouteMiniMap
                   points={pickupDropoffMapPoints}
                   title="Bản đồ điểm đón/trả"
                   subtitle={`${fromCity} → ${toCity}`}
                   className="!rounded-xl"
-                  heightClassName="h-44"
+                  heightClassName="h-40"
+                  compact
                 />
                 <div>
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-vxn-fg-5">
                     Điểm đón
                   </div>
-                  <div className="mt-1 text-[14px] font-medium text-vxn-ink">{fromStation}</div>
+                  <div className="mt-1 text-[13.5px] font-semibold text-vxn-ink">{fromStation}</div>
                   {fromAddress && (
                     <div className="mt-0.5 text-[12.5px] leading-relaxed text-vxn-fg-3">
                       {fromAddress}
@@ -571,7 +572,7 @@ const BookingConfirmationPage = () => {
                       href={originLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-flex h-9 items-center gap-2 rounded-lg border border-vxn-border bg-white px-3 text-[13px] font-medium text-vxn-ink transition hover:border-vxn-teal-700 hover:text-vxn-teal-700"
+                      className="mt-2 inline-flex h-8 items-center gap-2 rounded-lg border border-vxn-border bg-white px-2.5 text-[12.5px] font-medium text-vxn-ink transition hover:border-vxn-teal-700 hover:text-vxn-teal-700"
                     >
                       <EnvironmentOutlined /> Chỉ đường (Google Maps)
                     </a>
@@ -582,7 +583,7 @@ const BookingConfirmationPage = () => {
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-vxn-fg-5">
                     Điểm trả
                   </div>
-                  <div className="mt-1 text-[14px] font-medium text-vxn-ink">{toStation}</div>
+                  <div className="mt-1 text-[13.5px] font-semibold text-vxn-ink">{toStation}</div>
                   {toAddress && (
                     <div className="mt-0.5 text-[12.5px] leading-relaxed text-vxn-fg-3">
                       {toAddress}
@@ -593,7 +594,7 @@ const BookingConfirmationPage = () => {
                       href={destinationLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-2 inline-flex h-9 items-center gap-2 rounded-lg border border-vxn-border bg-white px-3 text-[13px] font-medium text-vxn-ink transition hover:border-vxn-teal-700 hover:text-vxn-teal-700"
+                      className="mt-2 inline-flex h-8 items-center gap-2 rounded-lg border border-vxn-border bg-white px-2.5 text-[12.5px] font-medium text-vxn-ink transition hover:border-vxn-teal-700 hover:text-vxn-teal-700"
                     >
                       <EnvironmentOutlined /> Chỉ đường (Google Maps)
                     </a>

@@ -201,6 +201,7 @@ const RouteMiniMap = ({
   subtitle,
   className = '',
   heightClassName = 'h-56',
+  compact = false,
 }) => {
   const normalizedPoints = useMemo(() => normalizePoints(points), [points]);
   const directionsUrl = useMemo(() => buildGoogleMapsDirectionsUrl(points), [points]);
@@ -210,9 +211,17 @@ const RouteMiniMap = ({
 
   return (
     <div className={`overflow-hidden rounded-2xl border border-vxn-border bg-white ${className}`}>
-      <div className="flex items-start justify-between gap-3 border-b border-vxn-border bg-white px-4 py-3">
+      <div
+        className={`flex items-start justify-between gap-3 border-b border-vxn-border bg-white ${
+          compact ? 'px-3 py-2.5' : 'px-4 py-3'
+        }`}
+      >
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-sm font-semibold text-vxn-ink">
+          <div
+            className={`flex items-center gap-2 font-semibold text-vxn-ink ${
+              compact ? 'text-[12px]' : 'text-sm'
+            }`}
+          >
             <NodeIndexOutlined className="text-vxn-teal-700" />
             <span>{title}</span>
           </div>
@@ -223,7 +232,9 @@ const RouteMiniMap = ({
             href={directionsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-vxn-border bg-white px-2.5 text-xs font-semibold text-vxn-teal-800 transition hover:border-vxn-teal-700 hover:text-vxn-teal-900"
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-vxn-border bg-white font-semibold text-vxn-teal-800 transition hover:border-vxn-teal-700 hover:text-vxn-teal-900 ${
+              compact ? 'h-7 px-2 text-[11px]' : 'h-8 px-2.5 text-xs'
+            }`}
           >
             <EnvironmentOutlined /> Mở map
           </a>
@@ -247,7 +258,11 @@ const RouteMiniMap = ({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2 border-t border-vxn-border bg-vxn-bg-soft px-4 py-3">
+      <div
+        className={`flex flex-wrap gap-2 border-t border-vxn-border bg-vxn-bg-soft ${
+          compact ? 'px-3 py-2.5' : 'px-4 py-3'
+        }`}
+      >
         {normalizedPoints.slice(0, 4).map((point, index) => {
           const style = pointStyles[point.type] || pointStyles.stop;
           const label = style.label || String(index);

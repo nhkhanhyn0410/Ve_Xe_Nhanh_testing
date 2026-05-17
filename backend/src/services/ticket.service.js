@@ -218,24 +218,33 @@ class TicketService {
         sms: { sent: false },
       };
 
-      // Check if demo mode
-      const isDemoMode = process.env.DEMO_MODE === 'true';
+      // In demo mode, only simulate notifications when the channel is not explicitly enabled.
+      // This keeps local demo behavior but allows real ticket email when EMAIL_ENABLED=true.
+      const shouldSimulateEmail = process.env.DEMO_MODE === 'true' && process.env.EMAIL_ENABLED !== 'true';
+      const shouldSimulateSMS = process.env.DEMO_MODE === 'true' && process.env.SMS_ENABLED !== 'true';
 
-      if (isDemoMode) {
-        logger.info('📝 Demo chế độ: Simultạitrtrêngg email and SMS thông báo');
-        results.email.sent = true;
-        results.email.demo = true;
-        results.sms.sent = true;
-        results.sms.demo = true;
+      if (shouldSimulateEmail || shouldSimulateSMS) {
+        logger.info('Demo mode: mô phỏng các kênh thông báo chưa bật');
 
-        ticket.markEmailSent();
-        ticket.markSmsSent();
+        if (shouldSimulateEmail && contactEmail && !ticket.emailSent) {
+          results.email.sent = true;
+          results.email.demo = true;
+          ticket.markEmailSent();
+          logger.success(`[DEMO] Email would be đã gửi đến: ${contactEmail}`);
+        }
+
+        if (shouldSimulateSMS && contactPhone && !ticket.smsSent) {
+          results.sms.sent = true;
+          results.sms.demo = true;
+          ticket.markSmsSent();
+          logger.success(`[DEMO] SMS would be đã gửi đến: ${contactPhone}`);
+        }
+
         await ticket.save();
 
-          logger.success(`[DEMO] Email would be đã gửi đến: ${contactEmail}`);
-          logger.success(`[DEMO] SMS would be đã gửi đến: ${contactPhone}`);
-
-        return results;
+        if (shouldSimulateEmail && shouldSimulateSMS) {
+          return results;
+        }
       }
 
       // Prepare ticket data for email
