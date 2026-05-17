@@ -15,7 +15,6 @@ import {
   RiseOutlined,
   BarChartOutlined,
 } from '@ant-design/icons';
-import useOperatorAuthStore from '../../store/operatorAuthStore';
 import { operatorAuth } from '../../services/operatorApi';
 import heroLandscape from '../../assets/brand/hero-landscape.jpg';
 import logoMark from '../../assets/brand/logo-icon_background_white.svg';
@@ -24,7 +23,6 @@ const iconStyle = { fontSize: 16, color: '#5E6165', opacity: 0.7 };
 
 const OperatorRegisterPage = () => {
   const navigate = useNavigate();
-  const { login } = useOperatorAuthStore();
   const [loading, setLoading] = useState(false);
   const [reveal, setReveal] = useState(false);
   const [reveal2, setReveal2] = useState(false);
@@ -82,10 +80,15 @@ const OperatorRegisterPage = () => {
       };
       const response = await operatorAuth.register(payload);
       if (response.status === 'success') {
-        const { operator, accessToken } = response.data;
-        login({ ...operator, role: 'operator' }, accessToken);
         message.success('Đăng ký thành công! Tài khoản đang chờ xét duyệt.');
-        navigate('/operator/dashboard');
+        navigate('/operator/register-success', {
+          state: {
+            companyName: payload.companyName,
+            email: payload.email,
+            submittedAt: new Date().toISOString(),
+          },
+          replace: true,
+        });
       }
     } catch (error) {
       message.error(error?.message || error || 'Đăng ký thất bại. Vui lòng thử lại.');
