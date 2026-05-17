@@ -15,10 +15,11 @@ const { protectTripManager, authorizeTripManager } = require('../middleware/trip
 
 // Validation middleware
 const validateLogin = [
-  body('username')
-    .notEmpty()
-    .withMessage('Tên đăng nhập là bắt buộc')
-    .trim(),
+  body()
+    .custom((value) => Boolean(value.username || value.employeeCode))
+    .withMessage('Mã nhân viên là bắt buộc'),
+  body('username').optional().trim(),
+  body('employeeCode').optional().trim(),
   body('password')
     .notEmpty()
     .withMessage('Mật khẩu là bắt buộc')

@@ -172,5 +172,5 @@ Nguồn tham chiếu chính:
 - [ ] Ghi lại component nào được port từ prototype và component nào giữ production.
 - [ ] Ghi lại mọi route mới hoặc API assumption mới.
 - [ ] Ghi lại mọi điểm còn mock/fallback.
-- [~] Backend email: đồng bộ cấu hình SMTP cho OTP/ticket/notification; ticket email/resend nay gửi thật khi có SMTP/Gmail config dù `DEMO_MODE=true`, không mark sent nếu email bị tắt; payment success callback đã dispatch tạo vé + notification idempotent và trang hoàn tất bỏ nút `Gửi email` trùng, chỉ giữ resend; cần smoke test thanh toán tạo vé với SMTP thật.
+- [~] Backend email: đồng bộ cấu hình SMTP cho OTP/ticket/notification; ticket email/resend nay gửi thật khi có SMTP/Gmail config dù `DEMO_MODE=true`, không mark sent nếu email bị tắt; payment success callback nay await tạo vé + notification để log rõ kết quả, trang hoàn tất bỏ nút `Gửi email` trùng và chỉ giữ resend; cần smoke test thanh toán tạo vé với SMTP thật.
 - [ ] Ghi lại rủi ro còn lại trước khi bàn giao.

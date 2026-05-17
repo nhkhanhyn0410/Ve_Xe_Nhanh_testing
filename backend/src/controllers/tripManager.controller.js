@@ -1,4 +1,7 @@
 const logger = require('../utils/logger');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const EmployeeService = require('../services/employee.service');
 
 /**
  * Trip Manager Controller
@@ -6,6 +9,95 @@ const logger = require('../utils/logger');
  * Authentication is handled by the Employee model via POST /api/v1/employees/login.
  */
 class TripManagerController {
+  /**
+   * Trip manager login
+   * POST /api/trip-manager/login
+   */
+  static async login(req, res) {
+    try {
+      const employeeCode = req.body.employeeCode || req.body.username;
+      const { password } = req.body;
+
+      if (!employeeCode || !password) {
+        return res.status(400).json({
+          status: 'error',
+          success: false,
+          message: 'Vui lòng nhập đầy đủ mã nhân viên và mật khẩu',
+        });
+      }
+
+      const employee = await EmployeeService.findByEmployeeCode(employeeCode);
+
+      if (!employee) {
+        return res.status(401).json({
+          status: 'error',
+          success: false,
+          message: 'Mã nhân viên hoặc mật khẩu không đúng',
+        });
+      }
+
+      if (employee.role !== 'trip_manager' && employee.role !== 'driver') {
+        return res.status(403).json({
+          status: 'error',
+          success: false,
+          message: 'Chỉ Trip Manager hoặc Driver mới có quyền truy cập',
+        });
+      }
+
+      if (employee.status !== 'active') {
+        return res.status(403).json({
+          status: 'error',
+          success: false,
+          message: 'Tài khoản không hoạt động',
+        });
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, employee.password);
+      if (!isPasswordValid) {
+        return res.status(401).json({
+          status: 'error',
+          success: false,
+          message: 'Mã nhân viên hoặc mật khẩu không đúng',
+        });
+      }
+
+      const token = jwt.sign(
+        {
+          userId: employee._id,
+          role: employee.role,
+          operatorId: employee.operatorId,
+          type: 'access',
+        },
+        process.env.JWT_SECRET || 'your-secret-key',
+        {
+          expiresIn: '7d',
+          issuer: 'vexenhanh',
+        }
+      );
+
+      const employeeData = employee.toObject();
+      delete employeeData.password;
+
+      return res.status(200).json({
+        status: 'success',
+        success: true,
+        message: 'Đăng nhập thành công',
+        data: {
+          token,
+          employee: employeeData,
+          tripManager: employeeData,
+        },
+      });
+    } catch (error) {
+      logger.error('Lỗi đăng nhập quản lý chuyến:', error);
+      return res.status(500).json({
+        status: 'error',
+        success: false,
+        message: error.message || 'Đăng nhập thất bại',
+      });
+    }
+  }
+
   /**
    * Get current trip manager info
    * GET /api/trip-manager/me

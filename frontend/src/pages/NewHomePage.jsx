@@ -194,7 +194,7 @@ const UtilityPills = () => (
   </div>
 );
 
-const SearchFieldShell = ({ icon: Icon, label, hint, children, last = false }) => (
+const SearchFieldShell = ({ icon: Icon, label, children, last = false }) => (
   <div
     className={`flex min-h-[92px] flex-col justify-center gap-1 bg-white px-5 py-3 lg:min-h-[112px] ${
       last ? '' : 'border-b border-vxn-border lg:border-b-0 lg:border-r'
@@ -205,7 +205,6 @@ const SearchFieldShell = ({ icon: Icon, label, hint, children, last = false }) =
       {label}
     </div>
     {children}
-    <div className="min-h-[18px] truncate text-xs text-vxn-fg-5">{hint}</div>
   </div>
 );
 

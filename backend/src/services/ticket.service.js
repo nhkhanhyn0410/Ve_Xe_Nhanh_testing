@@ -305,6 +305,14 @@ class TicketService {
           logger.error(`Email gửi thất bại: ${error.message}`);
           results.email.error = error.message;
         }
+      } else if (!contactEmail) {
+        results.email.skipped = true;
+        results.email.reason = 'No contact email';
+        logger.warn(`Không gửi email vé vì booking thiếu email liên hệ: ${booking.bookingCode}`);
+      } else if (ticket.emailSent) {
+        results.email.skipped = true;
+        results.email.reason = 'Ticket email already marked sent';
+        logger.info(`Bỏ qua email vé vì đã đánh dấu gửi trước đó: ${ticket.ticketCode}`);
       }
 
       // Send SMS
