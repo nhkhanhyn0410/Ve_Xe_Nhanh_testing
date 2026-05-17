@@ -145,6 +145,24 @@ const valueProps = [
   { icon: PhoneOutlined, title: 'Hỗ trợ 24/7', body: 'CSKH tiếng Việt qua app, Zalo và hotline.' },
 ];
 
+const homeGuidePosts = [
+  {
+    title: 'Mẹo chọn ghế trên xe giường nằm',
+    category: 'Hành trình',
+    image: 'https://res.anvui.vn/dwi5f2bje/image/upload/v1746516142/news/images/1746515715/zwnhtezvucp2eaahuo8c.jpg',
+  },
+  {
+    title: 'Top 8 quán phở bò trứ danh dọc QL1 Bắc — Trung',
+    category: 'Du lịch',
+    image: 'https://store.longphuong.vn/wp-content/uploads/2023/02/bat-to-dung-pho-su-1.jpg',
+  },
+  {
+    title: 'Quy định mới về hành lý xe khách 2026',
+    category: 'Chính sách',
+    image: 'https://xekhachtuanyen.vn/wp-content/uploads/2023/06/Chuan-bi-hanh-ly-khi-di-xe-khach-duong-dai.jpg',
+  },
+];
+
 const passengerOptions = Array.from({ length: 6 }, (_, index) => {
   const value = index + 1;
   return {
@@ -742,18 +760,16 @@ const NewHomePage = () => {
                 Tin tức →
               </button>
             </div>
-            {[
-              ['Mẹo chọn ghế trên xe giường nằm', 'Hành trình'],
-              ['Top 8 quán phở dọc QL1 Bắc - Trung', 'Du lịch'],
-              ['Quy định mới về hành lý xe khách 2026', 'Chính sách'],
-            ].map(([title, category]) => (
+            {homeGuidePosts.map(({ title, category, image }) => (
               <button
                 key={title}
                 type="button"
                 className="flex w-full gap-3 border-0 bg-transparent py-2 text-left"
                 onClick={() => navigate('/news')}
               >
-                <span className="h-14 w-14 shrink-0 rounded-lg bg-[linear-gradient(135deg,#FDE7C2,#F9D38A)]" />
+                <span className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#FDE7C2]">
+                  <img src={image} alt={title} className="h-full w-full object-cover" />
+                </span>
                 <span>
                   <span className="block text-sm font-medium leading-snug text-vxn-ink">
                     {title}
