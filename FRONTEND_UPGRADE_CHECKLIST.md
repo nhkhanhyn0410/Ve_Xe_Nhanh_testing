@@ -45,7 +45,7 @@ Nguồn tham chiếu chính:
 - [x] Hiển thị `CustomerFooter` qua `CustomerShell` cho mọi trang customer mặc định; `NewHomePage.jsx` không còn footer cục bộ và page đặc biệt có thể ẩn bằng `hideFooter` - lint riêng footer/layout pass, `npm.cmd run build` trong `frontend/` thành công.
 - [x] Tạo primitives dùng chung: `VxnButton`, `VxnCard`, `VxnChip`, `VxnPageHeader`, `VxnFieldShell` nếu thật sự giảm lặp - chưa tạo abstraction mới vì layout/home hiện tại chưa đủ lặp để đáng tách.
 - [x] Dùng icon library hiện có thay vì nhúng global SVG từ prototype khi phù hợp - dùng Ant Design Icons trong header, footer và home.
-- [~] Bảo đảm header/footer không che nội dung ở mobile - đã dùng responsive classes và drawer, cần kiểm tra trực quan trên Chrome/mobile viewport.
+- [~] Bảo đảm header/footer không che nội dung ở mobile - đã dùng responsive classes và drawer; footer đã đổi sang nền sáng xanh nhạt, bỏ chip ngôn ngữ `VI`, tăng logo và cân lại cỡ chữ; cần kiểm tra trực quan trên Chrome/mobile viewport.
 - [x] Bảo đảm các trang customer vẫn giữ route hiện có - giữ `/`, `/trips`, `/search-results`, `/tickets/lookup`, auth/user routes; `npm run build` thành công.
 - [~] Tách sidebar customer theo route mới: `/kham-pha` cho Khám phá, `/` và `/mua-ve` cho Mua vé, `/dich-vu-bo-tro` cho Dịch vụ bổ trợ, `/my-tickets` cho Hành trình; build chưa xác nhận được do lỗi Node/WSL 1 trong môi trường hiện tại.
 - [~] Đồng bộ breadcrumb customer - thêm `CustomerBreadcrumb.jsx` dùng chung, thay breadcrumb thủ công trên các trang content, booking, vé, tài khoản và payment; đã bổ sung box menu hover cho breadcrumb `Tài khoản`; build chưa xác nhận được do lỗi Node/WSL 1 trong môi trường hiện tại.
@@ -54,7 +54,7 @@ Nguồn tham chiếu chính:
 ## 3. Trang chủ và tìm kiếm
 
 - [x] Fetch bundle từ Claude Design URL, đọc `README.md`, `chats/chat1.md`, `project/Vé Xe Nhanh.html` và các imports chính trước khi implement.
-- [x] Nâng cấp `NewHomePage.jsx` theo prototype `HomeScreen` - đã đổi sang page frame có sidebar trái, hero top utility, search card nổi và các section đúng cấu trúc prototype.
+- [x] Nâng cấp `NewHomePage.jsx` theo prototype `HomeScreen` - đã đổi sang page frame có sidebar trái, hero top utility, search card nổi, các section đúng cấu trúc prototype và cân lại thang chữ cho route/operator/promo/content sections.
 - [x] Dùng hero image thật từ prototype thay cho nền gradient/orb - dùng `frontend/src/assets/brand/hero-landscape.jpg` cho hero và route card nổi bật.
 - [x] Cố định hero theo chiều cao viewport để search card không bị cắt trên màn hình thấp - `NewHomePage.jsx` dùng `lg:h-[100svh]`, search card `lg:bottom-6` nằm trong hero và không lấn section Tuyến phổ biến; `docker compose up -d --build frontend` build thành công.
 - [x] Bỏ tự động nhập sẵn điểm đi/điểm đến trong search card - `initialValues` không còn set `fromCity/toCity`; chỉ giữ placeholder và validation bắt buộc.
@@ -102,6 +102,7 @@ Nguồn tham chiếu chính:
 - [ ] Tích hợp saved passengers nếu API/store đã có.
 - [~] Nâng cấp `BookingConfirmationPage.jsx` theo payment/summary style mới - đã thêm bản đồ nhỏ cho điểm đón/trả bằng `RouteMiniMap`, giữ link chỉ đường Google Maps hiện có; chưa nâng cấp toàn bộ visual payment summary.
 - [~] Cân lại sidebar xác nhận vé: giảm padding/cỡ chữ card liên hệ nhà xe, điểm đón-trả và thêm chế độ compact cho `RouteMiniMap`; cần smoke test responsive.
+- [~] Chỉnh card sidebar xác nhận vé chỉ hiển thị điểm đón, nút chỉ đường và bản đồ vuông; ưu tiên OpenStreetMap cho vị trí lên xe, fallback sơ đồ tuyến khi thiếu tọa độ.
 - [~] Giữ luồng tạo booking và payment hiện có - đã thiết kế lại bước chọn phương thức thanh toán trong `PassengerInfoPage.jsx` theo layout phương thức/ngân hàng/tóm tắt đơn; vẫn gọi `createPayment` endpoint hiện có và map online methods qua VNPay.
 - [ ] Nâng cấp các trang `VNPayReturn`, `BookingSuccess`, `BookingFailure`.
 - [ ] Bảo đảm callback payment không bị đổi route ngoài `App.jsx`.
@@ -139,8 +140,8 @@ Nguồn tham chiếu chính:
 - [~] Tạo skeleton `AddonsPage.jsx` cho `/dich-vu-bo-tro` để sidebar không trỏ nhầm sang Thành viên; chưa kích hoạt mua add-on ngoài booking flow.
 - [ ] Nâng cấp `NewsPage.jsx` theo prototype blog list/detail/FAQ.
 - [ ] Nếu chưa có route FAQ/blog-detail, tạo route rõ ràng hoặc giữ trong NewsPage theo scope.
-- [ ] Nâng cấp `CustomerLoginPage.jsx` theo prototype `LoginScreen`.
-- [ ] Nâng cấp `CustomerRegisterPage.jsx` theo prototype `RegisterScreen`.
+- [~] Nâng cấp `CustomerLoginPage.jsx` theo prototype `LoginScreen` - auth shell đã thêm nút về trang chủ và tăng kích thước logo; chưa nâng cấp toàn bộ visual form.
+- [~] Nâng cấp `CustomerRegisterPage.jsx` theo prototype `RegisterScreen` - dùng chung auth shell đã có nút về trang chủ và logo lớn hơn; chưa nâng cấp toàn bộ visual form.
 - [ ] Không phá logic login/register hiện có với `authStore`.
 - [ ] Giữ social login ở trạng thái đang phát triển nếu backend chưa hỗ trợ.
 - [ ] Kiểm tra redirect sau đăng nhập từ protected route.
@@ -171,5 +172,5 @@ Nguồn tham chiếu chính:
 - [ ] Ghi lại component nào được port từ prototype và component nào giữ production.
 - [ ] Ghi lại mọi route mới hoặc API assumption mới.
 - [ ] Ghi lại mọi điểm còn mock/fallback.
-- [~] Backend email: đồng bộ cấu hình SMTP cho OTP/ticket/notification và để ticket email gửi thật khi `EMAIL_ENABLED=true` dù `DEMO_MODE=true`; cần smoke test thanh toán tạo vé với SMTP thật.
+- [~] Backend email: đồng bộ cấu hình SMTP cho OTP/ticket/notification; ticket email/resend nay gửi thật khi có SMTP/Gmail config dù `DEMO_MODE=true`, không mark sent nếu email bị tắt; payment success callback đã dispatch tạo vé + notification idempotent và trang hoàn tất bỏ nút `Gửi email` trùng, chỉ giữ resend; cần smoke test thanh toán tạo vé với SMTP thật.
 - [ ] Ghi lại rủi ro còn lại trước khi bàn giao.

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import {
+  HomeOutlined,
   ThunderboltOutlined,
   StarOutlined,
   QrcodeOutlined,
@@ -10,7 +11,7 @@ import logoMark from '../../assets/brand/logo-icon_background_white.svg';
 // Full VXN logo (icon + wordmark) — light variant for the white form panel.
 const BrandMark = () => (
   <Link to="/" className="flex w-fit items-center" aria-label="Về trang chủ Vé Xe Nhanh">
-    <img src={logoMark} alt="Vé Xe Nhanh" className="h-9 w-auto" />
+    <img src={logoMark} alt="Vé Xe Nhanh" className="h-14 w-auto" />
   </Link>
 );
 
@@ -43,7 +44,17 @@ const AuthShell = ({
     <div className="min-h-screen bg-white lg:grid lg:grid-cols-2">
       {/* Left — brand + form */}
       <div className="relative flex min-h-screen flex-col gap-7 px-6 py-10 sm:px-12 lg:px-16 lg:py-12">
-        <BrandMark />
+        <div className="flex items-center justify-between gap-4">
+          <BrandMark />
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="inline-flex h-10 items-center gap-2 rounded-lg border border-vxn-border bg-white px-3 text-[13px] font-medium text-vxn-fg-2 shadow-sm transition hover:border-vxn-teal-700 hover:text-vxn-teal-700"
+          >
+            <HomeOutlined />
+            Trang chủ
+          </button>
+        </div>
 
         <div
           className="mx-auto flex w-full flex-1 flex-col justify-center"
@@ -84,12 +95,14 @@ const AuthShell = ({
         }}
       >
         <div className="flex h-full flex-col justify-between px-14 py-12 text-white">
-          <span
-            className="inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide text-white"
-            style={{ background: '#E89B26' }}
-          >
-            {eyebrow}
-          </span>
+          <div className="flex h-14 items-center">
+            <span
+              className="inline-flex w-fit items-center rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide text-white"
+              style={{ background: '#E89B26' }}
+            >
+              {eyebrow}
+            </span>
+          </div>
           <div>
             <h2 className="m-0 max-w-[480px] text-[38px] font-semibold leading-[1.15] tracking-tight">
               {headline}

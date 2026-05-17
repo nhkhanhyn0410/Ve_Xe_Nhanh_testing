@@ -240,14 +240,8 @@ export const CustomerSidebarContent = ({ activeKey, signedIn, user, onLogout, on
           </>
         )}
 
-        <div className="flex items-center justify-between px-1 pt-2 text-xs text-white/[0.60]">
+        <div className="px-1 pt-2 text-xs text-white/[0.70]">
           <span>v.2026 · vexenhanh.vn</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white">
-            <span className="grid h-[11px] w-4 place-items-center rounded-[1px] bg-[#DA251D] text-[8px] text-[#FFCD00]">
-              ★
-            </span>
-            VI
-          </span>
         </div>
       </div>
     </div>

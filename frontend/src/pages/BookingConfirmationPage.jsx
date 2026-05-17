@@ -54,15 +54,54 @@ const paymentMethodLabel = (method) => {
   }
 };
 
-// Build a real, functional Google Maps link from coordinates or a street address.
-const gmapsLink = (coords, address) => {
-  if (coords && Number.isFinite(coords.lat) && Number.isFinite(coords.lng)) {
-    return `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`;
+const normalizeMapCoordinates = (coords) => {
+  const lat = Number(coords?.lat);
+  const lng = Number(coords?.lng ?? coords?.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng };
+};
+
+const googleMapsDirectionsLink = (coords, address) => {
+  const point = normalizeMapCoordinates(coords);
+  const destination = point ? `${point.lat},${point.lng}` : address;
+  if (!destination) return null;
+
+  const params = new URLSearchParams({
+    api: '1',
+    destination,
+    travelmode: 'driving',
+  });
+
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+};
+
+const osmPickupMap = (coords, queryText) => {
+  const point = normalizeMapCoordinates(coords);
+  if (!point) {
+    return queryText
+      ? {
+          link: `https://www.openstreetmap.org/search?query=${encodeURIComponent(queryText)}`,
+          embed: null,
+        }
+      : { link: null, embed: null };
   }
-  if (address) {
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-  }
-  return null;
+
+  const delta = 0.006;
+  const bbox = [
+    point.lng - delta,
+    point.lat - delta,
+    point.lng + delta,
+    point.lat + delta,
+  ]
+    .map((value) => value.toFixed(6))
+    .join(',');
+
+  return {
+    link: `https://www.openstreetmap.org/?mlat=${point.lat}&mlon=${point.lng}#map=17/${point.lat}/${point.lng}`,
+    embed: `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
+      bbox
+    )}&layer=mapnik&marker=${point.lat}%2C${point.lng}`,
+  };
 };
 
 const Card = ({ title, icon: Icon, children, className = '' }) => (
@@ -242,8 +281,11 @@ const BookingConfirmationPage = () => {
 
   const pickupCoordinates = booking?.pickupPoint?.coordinates || origin.coordinates;
   const dropoffCoordinates = booking?.dropoffPoint?.coordinates || destination.coordinates;
-  const originLink = gmapsLink(pickupCoordinates, fromAddress || fromStation);
-  const destinationLink = gmapsLink(dropoffCoordinates, toAddress || toStation);
+  const pickupDirectionsLink = googleMapsDirectionsLink(
+    pickupCoordinates,
+    fromAddress || fromStation
+  );
+  const pickupMap = osmPickupMap(pickupCoordinates, fromAddress || fromStation);
   const pickupDropoffMapPoints = [
     {
       key: 'booking-pickup-map',
@@ -547,16 +589,8 @@ const BookingConfirmationPage = () => {
               )}
             </Card>
 
-            <Card title="Điểm đón & điểm trả" icon={EnvironmentOutlined} className="!p-5">
+            <Card title="Điểm đón" icon={EnvironmentOutlined} className="!p-5">
               <div className="space-y-4">
-                <RouteMiniMap
-                  points={pickupDropoffMapPoints}
-                  title="Bản đồ điểm đón/trả"
-                  subtitle={`${fromCity} → ${toCity}`}
-                  className="!rounded-xl"
-                  heightClassName="h-40"
-                  compact
-                />
                 <div>
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-vxn-fg-5">
                     Điểm đón
@@ -567,37 +601,36 @@ const BookingConfirmationPage = () => {
                       {fromAddress}
                     </div>
                   )}
-                  {originLink && (
+                  {pickupDirectionsLink && (
                     <a
-                      href={originLink}
+                      href={pickupDirectionsLink}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="mt-2 inline-flex h-8 items-center gap-2 rounded-lg border border-vxn-border bg-white px-2.5 text-[12.5px] font-medium text-vxn-ink transition hover:border-vxn-teal-700 hover:text-vxn-teal-700"
                     >
-                      <EnvironmentOutlined /> Chỉ đường (Google Maps)
+                      <EnvironmentOutlined /> Chỉ đường
                     </a>
                   )}
                 </div>
-                <div className="h-px bg-vxn-border" />
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wide text-vxn-fg-5">
-                    Điểm trả
-                  </div>
-                  <div className="mt-1 text-[13.5px] font-semibold text-vxn-ink">{toStation}</div>
-                  {toAddress && (
-                    <div className="mt-0.5 text-[12.5px] leading-relaxed text-vxn-fg-3">
-                      {toAddress}
+                  {pickupMap.embed ? (
+                    <div className="aspect-square overflow-hidden rounded-xl border border-vxn-border bg-vxn-bg-soft">
+                      <iframe
+                        title="Bản đồ điểm đón"
+                        src={pickupMap.embed}
+                        className="h-full w-full border-0"
+                        loading="lazy"
+                      />
                     </div>
-                  )}
-                  {destinationLink && (
-                    <a
-                      href={destinationLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-2 inline-flex h-8 items-center gap-2 rounded-lg border border-vxn-border bg-white px-2.5 text-[12.5px] font-medium text-vxn-ink transition hover:border-vxn-teal-700 hover:text-vxn-teal-700"
-                    >
-                      <EnvironmentOutlined /> Chỉ đường (Google Maps)
-                    </a>
+                  ) : (
+                    <RouteMiniMap
+                      points={pickupDropoffMapPoints}
+                      title="Bản đồ lộ trình"
+                      subtitle={`${fromCity} → ${toCity}`}
+                      className="!rounded-xl"
+                      heightClassName="aspect-square"
+                      compact
+                    />
                   )}
                 </div>
               </div>

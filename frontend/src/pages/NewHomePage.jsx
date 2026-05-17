@@ -149,7 +149,8 @@ const homeGuidePosts = [
   {
     title: 'Mẹo chọn ghế trên xe giường nằm',
     category: 'Hành trình',
-    image: 'https://res.anvui.vn/dwi5f2bje/image/upload/v1746516142/news/images/1746515715/zwnhtezvucp2eaahuo8c.jpg',
+    image:
+      'https://res.anvui.vn/dwi5f2bje/image/upload/v1746516142/news/images/1746515715/zwnhtezvucp2eaahuo8c.jpg',
   },
   {
     title: 'Top 8 quán phở bò trứ danh dọc QL1 Bắc — Trung',
@@ -159,7 +160,8 @@ const homeGuidePosts = [
   {
     title: 'Quy định mới về hành lý xe khách 2026',
     category: 'Chính sách',
-    image: 'https://xekhachtuanyen.vn/wp-content/uploads/2023/06/Chuan-bi-hanh-ly-khi-di-xe-khach-duong-dai.jpg',
+    image:
+      'https://xekhachtuanyen.vn/wp-content/uploads/2023/06/Chuan-bi-hanh-ly-khi-di-xe-khach-duong-dai.jpg',
   },
 ];
 
@@ -351,7 +353,7 @@ const RouteCardLarge = ({ route, onFill, onSubmit }) => (
       </div>
 
       <div>
-        <div className="mb-1 text-sm font-medium text-white/[0.85]">
+        <div className="mb-1 text-[13px] font-medium text-white/[0.85]">
           {route.km} km · {route.hours} · giường nằm & limousine
         </div>
         <button
@@ -359,14 +361,14 @@ const RouteCardLarge = ({ route, onFill, onSubmit }) => (
           className="mb-4 flex flex-wrap items-baseline gap-3 border-0 bg-transparent p-0 text-left text-white"
           onClick={() => onFill(route)}
         >
-          <span className="text-[30px] font-bold leading-tight tracking-normal">{route.from}</span>
+          <span className="text-[28px] font-bold leading-tight tracking-normal">{route.from}</span>
           <ArrowRightOutlined className="text-lg text-vxn-saffron-500" />
-          <span className="text-[30px] font-bold leading-tight tracking-normal">{route.to}</span>
+          <span className="text-[28px] font-bold leading-tight tracking-normal">{route.to}</span>
         </button>
 
         <div className="flex items-end justify-between gap-4">
           <div>
-            <div className="text-xs text-white/70">Từ</div>
+            <div className="text-[12px] text-white/70">Từ</div>
             <div className="text-[22px] font-bold text-vxn-saffron-500">
               {formatCurrency(route.fromPrice)}
             </div>
@@ -425,7 +427,7 @@ const RouteCardSmall = ({ route, compact = false, onSubmit }) => {
         ) : null}
         <div className={`flex flex-col gap-2 ${hasImage ? 'mt-auto' : 'flex-1'}`}>
           <div
-            className={`flex items-center gap-2 text-base font-semibold ${
+            className={`flex items-center gap-2 text-[17px] font-semibold leading-snug ${
               hasImage ? 'text-white' : 'text-vxn-ink'
             }`}
           >
@@ -435,15 +437,17 @@ const RouteCardSmall = ({ route, compact = false, onSubmit }) => {
             />
             <span className="truncate">{route.to}</span>
           </div>
-          <div className={`text-xs ${hasImage ? 'text-white/80' : 'text-vxn-fg-5'}`}>
+          <div className={`text-[13px] ${hasImage ? 'text-white/80' : 'text-vxn-fg-5'}`}>
             {route.km} km · {route.hours}
           </div>
-          <div className={`${hasImage ? 'mt-3' : 'mt-auto'} flex items-baseline justify-between gap-3`}>
+          <div
+            className={`${hasImage ? 'mt-3' : 'mt-auto'} flex items-baseline justify-between gap-3`}
+          >
             <div>
-              <span className={`text-[11px] ${hasImage ? 'text-white/70' : 'text-vxn-fg-5'}`}>
+              <span className={`text-[12px] ${hasImage ? 'text-white/70' : 'text-vxn-fg-5'}`}>
                 Từ{' '}
               </span>
-              <span className="text-base font-bold text-vxn-saffron-700">
+              <span className="text-[17px] font-bold text-vxn-saffron-700">
                 {formatCurrency(route.fromPrice)}
               </span>
             </div>
@@ -473,8 +477,8 @@ const ValueProps = () => (
               <Icon className="text-[21px]" />
             </div>
             <div>
-              <div className="mb-1 text-[15px] font-semibold text-vxn-ink">{item.title}</div>
-              <div className="text-[13px] leading-5 text-vxn-fg-3">{item.body}</div>
+              <div className="mb-1 text-[16px] font-semibold text-vxn-ink">{item.title}</div>
+              <div className="text-[14px] leading-5 text-vxn-fg-3">{item.body}</div>
             </div>
           </div>
         );
@@ -486,10 +490,10 @@ const ValueProps = () => (
 const OperatorsSection = ({ navigate }) => (
   <section className="bg-white px-4 py-12 lg:px-14">
     <div className="mb-5 flex items-end justify-between gap-4">
-      <h2 className="m-0 text-2xl font-semibold text-vxn-ink">Nhà xe đối tác</h2>
+      <h2 className="m-0 text-[24px] font-semibold leading-tight text-vxn-ink">Nhà xe đối tác</h2>
       <button
         type="button"
-        className="border-0 bg-transparent text-sm font-medium text-vxn-teal-800"
+        className="border-0 bg-transparent text-[14px] font-medium text-vxn-teal-800"
         onClick={() => navigate('/trips')}
       >
         Xem cả 218 nhà xe →
@@ -510,8 +514,8 @@ const OperatorsSection = ({ navigate }) => (
           >
             {operator.short}
           </span>
-          <span className="text-sm font-semibold text-vxn-ink">{operator.name}</span>
-          <span className="flex items-center gap-1.5 text-xs text-vxn-fg-3">
+          <span className="text-[15px] font-semibold text-vxn-ink">{operator.name}</span>
+          <span className="flex items-center gap-1.5 text-[13px] text-vxn-fg-3">
             <StarFilled className="text-vxn-saffron-600" />
             <strong className="font-semibold text-vxn-ink">{operator.rating}</strong>
             <span>· {operator.reviews.toLocaleString('vi-VN')} đánh giá</span>
@@ -683,16 +687,16 @@ const NewHomePage = () => {
       <section className="bg-white px-4 pb-12 pt-8 lg:px-14 lg:pt-6">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <span className="mb-1.5 inline-block text-xs font-semibold uppercase tracking-[0.12em] text-vxn-saffron-700">
+            <span className="mb-1.5 inline-block text-[14px] font-semibold uppercase tracking-[0.12em] text-vxn-saffron-700">
               Tuyến phổ biến
             </span>
-            <h2 className="m-0 text-[28px] font-semibold tracking-normal text-vxn-ink">
+            <h2 className="m-0 text-[30px] font-semibold leading-tight tracking-normal text-vxn-ink">
               Việt Nam, mọi cung đường
             </h2>
           </div>
           <button
             type="button"
-            className="inline-flex items-center gap-1 border-0 bg-transparent text-sm font-medium text-vxn-teal-800"
+            className="inline-flex items-center gap-1 border-0 bg-transparent text-[14px] font-medium text-vxn-teal-800"
             onClick={() => navigate('/trips')}
           >
             Xem tất cả 320+ tuyến
@@ -733,10 +737,10 @@ const NewHomePage = () => {
               Hạng thành viên
             </span>
             <div className="relative z-10">
-              <h3 className="m-0 max-w-[480px] text-[26px] font-semibold leading-tight text-white">
+              <h3 className="m-0 max-w-[520px] text-[28px] font-semibold leading-tight text-white">
                 Đặt 10 vé, lên Gold. Giảm 10% mọi chuyến trong năm.
               </h3>
-              <p className="my-4 max-w-xl text-sm leading-6 text-white/80">
+              <p className="my-4 max-w-xl text-[14px] leading-6 text-white/82">
                 Tích điểm tự động sau mỗi chuyến đi. Đổi 100 điểm = 100.000đ giảm.
               </p>
               <button
@@ -751,10 +755,10 @@ const NewHomePage = () => {
 
           <div className="rounded-2xl border border-vxn-border bg-white p-6">
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-base font-semibold text-vxn-ink">Cẩm nang xe khách</span>
+              <span className="text-[17px] font-semibold text-vxn-ink">Cẩm nang xe khách</span>
               <button
                 type="button"
-                className="border-0 bg-transparent text-[13px] font-medium text-vxn-teal-800"
+                className="border-0 bg-transparent text-[14px] font-medium text-vxn-teal-800"
                 onClick={() => navigate('/news')}
               >
                 Tin tức →
@@ -771,10 +775,10 @@ const NewHomePage = () => {
                   <img src={image} alt={title} className="h-full w-full object-cover" />
                 </span>
                 <span>
-                  <span className="block text-sm font-medium leading-snug text-vxn-ink">
+                  <span className="block text-[15px] font-medium leading-snug text-vxn-ink">
                     {title}
                   </span>
-                  <span className="mt-1 block text-xs text-vxn-fg-5">{category}</span>
+                  <span className="mt-1 block text-[13px] text-vxn-fg-5">{category}</span>
                 </span>
               </button>
             ))}

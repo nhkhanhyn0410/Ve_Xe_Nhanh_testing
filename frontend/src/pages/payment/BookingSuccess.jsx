@@ -4,7 +4,6 @@ import { Spin, message, Modal, Button } from 'antd';
 import {
   CheckOutlined,
   HomeOutlined,
-  MailOutlined,
   PrinterOutlined,
   QrcodeOutlined,
 } from '@ant-design/icons';
@@ -301,14 +300,6 @@ const BookingSuccess = () => {
                     )}
                     <Button icon={<PrinterOutlined />} onClick={() => window.print()} size="large">
                       In vé
-                    </Button>
-                    <Button
-                      icon={<MailOutlined />}
-                      onClick={handleResendEmail}
-                      size="large"
-                      disabled={!ticket}
-                    >
-                      Gửi email
                     </Button>
                     <Button icon={<HomeOutlined />} onClick={() => navigate('/')} size="large">
                       Về trang chủ

@@ -30,6 +30,21 @@ const getVoucherService = () => {
  * Handles payment operations and integrates with payment gateways
  */
 class PaymentService {
+  static dispatchTicketNotifications(bookingId, bookingCode) {
+    const TicketServiceClass = getTicketService();
+    TicketServiceClass.generateTicket(bookingId)
+      .then((ticket) => {
+        logger.info('Vé được tạo/kiểm tra để gửi thông báo:', bookingCode);
+        return TicketServiceClass.sendTicketNotifications(ticket._id);
+      })
+      .then((notificationResult) => {
+        logger.info('Đã gửi thông báo vé:', notificationResult);
+      })
+      .catch((error) => {
+        logger.error('Tạo vé/thông báo không thành công:', error);
+      });
+  }
+
   /**
    * Create payment for a booking
    *
@@ -176,19 +191,8 @@ class PaymentService {
         }
       }
 
-      // Generate digital ticket in background
-      const TicketServiceClass = getTicketService();
-      TicketServiceClass.generateTicket(booking._id)
-        .then((ticket) => {
-          logger.info('Vé được tạo để đặt vé bằng tiền mặt:', booking.bookingCode);
-          return TicketServiceClass.sendTicketNotifications(ticket._id);
-        })
-        .then((notificationResult) => {
-          logger.info('Đã gửi thông báo vé:', notificationResult);
-        })
-        .catch((error) => {
-          logger.error('Tạo vé không thành công:', error);
-        });
+      // Generate digital ticket and send notifications in background.
+      this.dispatchTicketNotifications(booking._id, booking.bookingCode);
     }
 
     // Populate payment details
@@ -241,6 +245,13 @@ class PaymentService {
 
     // Check if payment already processed
     if (payment.status === 'completed') {
+      const processedBooking = payment.bookingId;
+      if (processedBooking?._id) {
+        // Idempotent safety: generateTicket returns existing ticket and sendTicketNotifications
+        // skips channels already marked sent.
+        this.dispatchTicketNotifications(processedBooking._id, processedBooking.bookingCode);
+      }
+
       return {
         success: true,
         message: 'Thanh toán đã được xử lý trước đó',
@@ -344,22 +355,9 @@ class PaymentService {
         await booking.save();
         logger.info('Đặt chỗ được cập nhật thành công');
 
-        // Generate digital ticket in background (UC-7)
-        const TicketServiceClass = getTicketService();
-        TicketServiceClass.generateTicket(booking._id)
-          .then((ticket) => {
-            logger.info('Vé được tạo để đặt chỗ:', booking.bookingCode);
-            // Send ticket notifications in background
-            return TicketServiceClass.sendTicketNotifications(ticket._id);
-          })
-          .then((notificationResult) => {
-            logger.info('Đã gửi thông báo vé:', notificationResult);
-          })
-          .catch((error) => {
-            logger.error('Tạo vé/thông báo không thành công:', error);
-            // Don't fail the payment if ticket generation fails
-            // Admin can retry ticket generation manually
-          });
+        // Generate digital ticket and send notifications in background (UC-7).
+        // Don't fail the payment if ticket generation/notification fails; resend can retry.
+        this.dispatchTicketNotifications(booking._id, booking.bookingCode);
       }
 
       logger.info('VNPay callback xử lý thành công!');

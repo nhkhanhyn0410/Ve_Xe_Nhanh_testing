@@ -218,9 +218,21 @@ class TicketService {
         sms: { sent: false },
       };
 
-      // In demo mode, only simulate notifications when the channel is not explicitly enabled.
-      // This keeps local demo behavior but allows real ticket email when EMAIL_ENABLED=true.
-      const shouldSimulateEmail = process.env.DEMO_MODE === 'true' && process.env.EMAIL_ENABLED !== 'true';
+      const hasEmailTransportConfig = Boolean(
+        process.env.SENDGRID_API_KEY ||
+        process.env.EMAIL_USER ||
+        process.env.EMAIL_PASSWORD ||
+        process.env.SMTP_USER ||
+        process.env.SMTP_PASSWORD ||
+        process.env.SMTP_PASS
+      );
+
+      // In demo mode, only simulate email when no real email transport is configured.
+      // This lets paid bookings/resend use Gmail/SMTP without requiring EMAIL_ENABLED=true.
+      const shouldSimulateEmail =
+        process.env.DEMO_MODE === 'true' &&
+        process.env.EMAIL_ENABLED !== 'true' &&
+        !hasEmailTransportConfig;
       const shouldSimulateSMS = process.env.DEMO_MODE === 'true' && process.env.SMS_ENABLED !== 'true';
 
       if (shouldSimulateEmail || shouldSimulateSMS) {
@@ -273,16 +285,22 @@ class TicketService {
         try {
           const emailTemplate = emailTemplates.ticketConfirmation(ticketData);
 
-          await sendEmail({
+          const emailInfo = await sendEmail({
             to: contactEmail,
             subject: emailTemplate.subject,
             html: emailTemplate.html,
             qrCodeDataUrl: ticket.qrCode, // Pass QR as data URL for CID conversion
           });
 
-          ticket.markEmailSent();
-          results.email.sent = true;
-          logger.success(`Vé email đã gửi đến: ${contactEmail}`);
+          if (emailInfo?.skipped) {
+            results.email.skipped = true;
+            results.email.reason = 'Email disabled';
+            logger.info(`Email vé bị tắt, chưa đánh dấu đã gửi: ${contactEmail}`);
+          } else {
+            ticket.markEmailSent();
+            results.email.sent = true;
+            logger.success(`Vé email đã gửi đến: ${contactEmail}`);
+          }
         } catch (error) {
           logger.error(`Email gửi thất bại: ${error.message}`);
           results.email.error = error.message;

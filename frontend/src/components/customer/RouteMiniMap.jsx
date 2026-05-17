@@ -1,7 +1,8 @@
 import { EnvironmentOutlined, NodeIndexOutlined } from '@ant-design/icons';
-import { useMemo } from 'react';
-
-const googleMapsEmbedKey = import.meta.env.VITE_GOOGLE_MAPS_EMBED_API_KEY;
+import { useEffect, useMemo } from 'react';
+import { MapContainer, Marker, Polyline, TileLayer, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const pointStyles = {
   start: {
@@ -80,29 +81,6 @@ const buildGoogleMapsDirectionsUrl = (points = []) => {
   }
 
   return `https://www.google.com/maps/dir/?${params.toString()}`;
-};
-
-const buildGoogleMapsEmbedUrl = (points = []) => {
-  if (!googleMapsEmbedKey) return null;
-
-  const normalized = normalizePoints(points);
-  if (normalized.length < 2) return null;
-
-  const origin = normalized[0];
-  const destination = normalized[normalized.length - 1];
-  const waypoints = normalized.slice(1, -1).slice(0, 20);
-  const params = new URLSearchParams({
-    key: googleMapsEmbedKey,
-    origin: origin.query,
-    destination: destination.query,
-    mode: 'driving',
-  });
-
-  if (waypoints.length > 0) {
-    params.set('waypoints', waypoints.map((point) => point.query).join('|'));
-  }
-
-  return `https://www.google.com/maps/embed/v1/directions?${params.toString()}`;
 };
 
 const projectPoints = (points) => {
@@ -189,9 +167,79 @@ const RouteSketch = ({ points }) => {
         })}
       </svg>
       <div className="pointer-events-none absolute inset-x-3 bottom-3 rounded-xl bg-white/90 px-3 py-2 text-[11px] font-medium text-vxn-fg-3 shadow-sm backdrop-blur">
-        Hiển thị theo dữ liệu tọa độ tuyến. Bấm mở Google Maps để xem chỉ đường chi tiết.
+        Sơ đồ tương đối theo dữ liệu tọa độ. Bấm mở Google Maps để xem chỉ đường chi tiết.
       </div>
     </div>
+  );
+};
+
+// Custom Leaflet marker matching the VXN design tokens (colored circle + label).
+// Using a divIcon avoids the bundler default-marker-asset problem entirely.
+const createMarkerIcon = (point, index) => {
+  const style = pointStyles[point.type] || pointStyles.stop;
+  const label = style.label || String(index);
+  return L.divIcon({
+    className: 'vxn-route-marker',
+    html:
+      `<div style="width:28px;height:28px;border-radius:9999px;` +
+      `background:${style.stroke};color:#fff;border:3px solid #fff;` +
+      `box-shadow:0 1px 4px rgba(15,23,42,.35);display:flex;` +
+      `align-items:center;justify-content:center;font-weight:700;` +
+      `font-size:11px;line-height:1;">${label}</div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  });
+};
+
+// Re-measure (handles aspect-ratio / animated containers) then frame the route.
+const MapViewController = ({ positions }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    map.invalidateSize();
+    if (positions.length === 1) {
+      map.setView(positions[0], 12);
+    } else if (positions.length >= 2) {
+      map.fitBounds(positions, { padding: [28, 28], maxZoom: 14 });
+    }
+  }, [map, positions]);
+
+  return null;
+};
+
+const RouteLeafletMap = ({ points }) => {
+  const positions = useMemo(
+    () => points.map((point) => [point.coordinates.lat, point.coordinates.lng]),
+    [points]
+  );
+
+  return (
+    <MapContainer
+      center={positions[0] || [16.0, 107.9]}
+      zoom={6}
+      scrollWheelZoom={false}
+      style={{ position: 'absolute', inset: 0, height: '100%', width: '100%' }}
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        maxZoom={19}
+      />
+      {positions.length >= 2 && (
+        <>
+          <Polyline positions={positions} pathOptions={{ color: '#00506A', weight: 6, opacity: 0.85 }} />
+          <Polyline positions={positions} pathOptions={{ color: '#E89B26', weight: 2, opacity: 0.9 }} />
+        </>
+      )}
+      {points.map((point, index) => (
+        <Marker
+          key={point.key}
+          position={[point.coordinates.lat, point.coordinates.lng]}
+          icon={createMarkerIcon(point, index)}
+        />
+      ))}
+      <MapViewController positions={positions} />
+    </MapContainer>
   );
 };
 
@@ -205,7 +253,15 @@ const RouteMiniMap = ({
 }) => {
   const normalizedPoints = useMemo(() => normalizePoints(points), [points]);
   const directionsUrl = useMemo(() => buildGoogleMapsDirectionsUrl(points), [points]);
-  const embedUrl = useMemo(() => buildGoogleMapsEmbedUrl(points), [points]);
+
+  // Leaflet needs lat/lng. Only use the real map when every point is geocoded
+  // (consistent with the sketch's geo logic) so no stop is silently dropped.
+  const geoPoints = useMemo(
+    () => (normalizedPoints.length >= 2 && normalizedPoints.every((point) => point.coordinates)
+      ? normalizedPoints
+      : null),
+    [normalizedPoints]
+  );
 
   if (normalizedPoints.length === 0) return null;
 
@@ -242,17 +298,8 @@ const RouteMiniMap = ({
       </div>
 
       <div className={`relative ${heightClassName}`}>
-        {embedUrl ? (
-          <iframe
-            title={title}
-            src={embedUrl}
-            width="100%"
-            height="100%"
-            className="absolute inset-0 h-full w-full border-0"
-            loading="lazy"
-            allowFullScreen
-            referrerPolicy="no-referrer-when-downgrade"
-          />
+        {geoPoints ? (
+          <RouteLeafletMap points={geoPoints} />
         ) : (
           <RouteSketch points={normalizedPoints} />
         )}
