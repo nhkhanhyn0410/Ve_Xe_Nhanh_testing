@@ -11,6 +11,7 @@ import {
 import useAdminAuthStore from '../../store/adminAuthStore';
 import { adminAuth } from '../../services/adminApi';
 import heroLandscape from '../../assets/brand/hero-landscape.jpg';
+import logoMark from '../../assets/brand/logo-icon_background_white.svg';
 
 const iconStyle = { fontSize: 16, color: '#5E6165', opacity: 0.7 };
 
@@ -19,7 +20,6 @@ const AdminLoginPage = () => {
   const [reveal, setReveal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const { login } = useAdminAuthStore();
@@ -45,7 +45,9 @@ const AdminLoginPage = () => {
         navigate('/admin/dashboard');
       }
     } catch (error) {
-      message.error(error?.message || error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      message.error(
+        error?.message || error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+      );
     } finally {
       setLoading(false);
     }
@@ -84,7 +86,7 @@ const AdminLoginPage = () => {
           className="flex items-center gap-4 text-[13px] font-medium"
           style={{ color: 'rgba(255,255,255,.8)' }}
         >
-          <span>v2.4.1</span>
+          <span>v1.1</span>
           <span style={{ color: 'rgba(255,255,255,.35)' }}>·</span>
           <span className="cursor-default">Tài liệu</span>
         </div>
@@ -101,21 +103,18 @@ const AdminLoginPage = () => {
             Internal · Admin
           </span>
           <h1 className="m-0 text-[38px] font-bold leading-[1.2] tracking-[-0.01em]">
-            BusConnect
+            Vé Xe Nhanh
             <br />
-            Enterprise Portal
+            Admin Portal
           </h1>
           <p
-            className="m-0 max-w-[360px] text-[14px] leading-[1.6]"
+            className="m-0 max-w-[400px] text-[14px] leading-[1.6]"
             style={{ color: 'rgba(255,255,255,.78)' }}
           >
-            Bảng điều khiển dành riêng cho quản trị viên Vé Xe Nhanh. Truy cập được
-            giám sát và lưu vết.
+            Bảng điều khiển dành riêng cho quản trị viên Vé Xe Nhanh. Truy cập được giám sát và lưu
+            vết.
           </p>
-          <div
-            className="mt-2 text-[12px]"
-            style={{ color: 'rgba(255,255,255,.55)' }}
-          >
+          <div className="mt-2 text-[12px]" style={{ color: 'rgba(255,255,255,.55)' }}>
             © 2026 Vé Xe Nhanh JSC · Tất cả hoạt động đăng nhập được ghi nhận.
           </div>
         </div>
@@ -133,10 +132,7 @@ const AdminLoginPage = () => {
           >
             Admin Sign-in
           </div>
-          <h2
-            className="m-0 mb-6 mt-1.5 text-[22px] font-bold"
-            style={{ color: '#181C22' }}
-          >
+          <h2 className="m-0 mb-6 mt-1.5 text-[22px] font-bold" style={{ color: '#181C22' }}>
             Đăng nhập quản trị
           </h2>
 
@@ -179,41 +175,12 @@ const AdminLoginPage = () => {
               />
             </Field>
 
-            <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setRemember((r) => !r)}
-                className="inline-flex cursor-pointer items-center gap-2 border-0 bg-transparent p-0 text-[13px]"
-                style={{ color: '#404753' }}
-              >
-                <span
-                  className="grid h-4 w-4 place-items-center rounded-[4px] transition-colors"
-                  style={{
-                    background: remember ? '#00476B' : '#fff',
-                    border: `1px solid ${remember ? '#00476B' : '#CBD5E1'}`,
-                  }}
-                >
-                  {remember && (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
-                      <path
-                        d="M5 13l4 4L19 7"
-                        stroke="#fff"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
-                </span>
-                Ghi nhớ máy này
-              </button>
-              <Link
-                to="/forgot-password"
-                className="text-[13px] font-medium hover:opacity-80"
-                style={{ color: '#00476B', textDecoration: 'none' }}
-              >
-                Quên mật khẩu?
-              </Link>
+            <div
+              className="flex items-center justify-center gap-1.5 rounded-[8px] border px-3 py-2 text-center text-[12px]"
+              style={{ borderColor: '#DFE2EC', color: '#64748B', background: '#F9F9FF' }}
+            >
+              <SafetyOutlined style={{ fontSize: 14, opacity: 0.7 }} />
+              Kết nối được mã hóa · TLS 1.3
             </div>
 
             <button
@@ -229,14 +196,6 @@ const AdminLoginPage = () => {
               {loading ? 'Đang đăng nhập…' : 'Đăng nhập'}
             </button>
           </div>
-
-          <div
-            className="mt-6 flex items-center gap-1.5 border-t pt-4 text-[12px]"
-            style={{ borderColor: '#DFE2EC', color: '#64748B' }}
-          >
-            <SafetyOutlined style={{ fontSize: 14, opacity: 0.6 }} />
-            Kết nối được mã hóa · TLS 1.3
-          </div>
         </div>
       </div>
     </div>
@@ -247,33 +206,13 @@ const AdminLoginPage = () => {
 
 const AdminBrand = () => (
   <Link to="/" className="flex items-center gap-3" style={{ textDecoration: 'none' }}>
-    <div
-      className="grid h-[38px] w-[38px] place-items-center rounded-[8px] text-[16px] font-bold text-white"
-      style={{
-        background: '#00476B',
-        boxShadow: '0 0 0 1px rgba(255,255,255,.1)',
-      }}
-    >
-      B
-    </div>
-    <div>
-      <div className="text-[15px] font-bold text-white">BusConnect</div>
-      <div
-        className="-mt-0.5 text-[11px]"
-        style={{ color: 'rgba(255,255,255,.65)' }}
-      >
-        Enterprise Portal
-      </div>
-    </div>
+    <img src={logoMark} alt="Vé Xe Nhanh" className="h-14 w-auto" />
   </Link>
 );
 
 const Field = ({ label, required, error, children }) => (
   <label className="flex flex-col gap-1.5">
-    <span
-      className="flex items-center gap-1 text-[13px] font-medium"
-      style={{ color: '#404753' }}
-    >
+    <span className="flex items-center gap-1 text-[13px] font-medium" style={{ color: '#404753' }}>
       {label}
       {required && <span style={{ color: '#DC2626' }}>*</span>}
     </span>

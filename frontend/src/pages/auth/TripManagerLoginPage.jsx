@@ -53,7 +53,9 @@ const TripManagerLoginPage = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      message.error(error?.message || error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      message.error(
+        error?.message || error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+      );
     } finally {
       setLoading(false);
     }
@@ -87,24 +89,9 @@ const TripManagerLoginPage = () => {
 
       {/* Top bar */}
       <div className="relative z-10 flex items-center justify-between px-8 py-6 lg:px-16">
-        <Link
-          to="/"
-          className="flex items-center gap-2.5"
-          style={{ textDecoration: 'none' }}
-        >
-          <img src={logoMark} alt="Vé Xe Nhanh" className="h-9 w-auto" />
+        <Link to="/" className="flex items-center gap-2.5" style={{ textDecoration: 'none' }}>
+          <img src={logoMark} alt="Vé Xe Nhanh" className="h-14 w-auto" />
         </Link>
-        <div
-          className="inline-flex h-8 items-center gap-2 rounded-full border px-3 text-[12px] font-medium backdrop-blur"
-          style={{
-            background: 'rgba(255,255,255,.14)',
-            borderColor: 'rgba(255,255,255,.22)',
-            color: '#fff',
-          }}
-        >
-          <EnvironmentOutlined style={{ fontSize: 12, opacity: 0.85 }} />
-          Bến xe Miền Đông · Quầy 04
-        </div>
       </div>
 
       <div className="relative z-10 mx-auto grid min-h-[calc(100vh-104px)] max-w-[1280px] grid-cols-1 items-center gap-10 px-8 pb-16 lg:grid-cols-[1fr_400px] lg:gap-12 lg:px-16">
@@ -125,13 +112,6 @@ const TripManagerLoginPage = () => {
             <br />
             chúc một ngày suôn&nbsp;sẻ.
           </h1>
-          <p
-            className="m-0 max-w-[360px] text-[14px] leading-[1.55]"
-            style={{ color: 'rgba(255,255,255,.8)' }}
-          >
-            Đăng nhập bằng mã nhân viên do nhà xe cấp để bắt đầu bán vé, điểm danh
-            chuyến và in vé tại quầy.
-          </p>
         </div>
 
         {/* Compact corner card */}
@@ -142,15 +122,12 @@ const TripManagerLoginPage = () => {
           }}
         >
           <div
-            className="text-[11px] font-semibold uppercase tracking-[0.1em]"
+            className="text-[16px] font-semibold uppercase tracking-[0.1em]"
             style={{ color: '#2B7EAD' }}
           >
-            Phòng vé · Đăng nhập
+            Đăng nhập
           </div>
-          <h2
-            className="m-0 mb-5 mt-1.5 text-[22px] font-bold"
-            style={{ color: '#181C22' }}
-          >
+          <h2 className="m-0 mb-5 mt-1.5 text-[22px] font-bold" style={{ color: '#181C22' }}>
             Bắt đầu ca làm
           </h2>
 
@@ -242,7 +219,7 @@ const TripManagerLoginPage = () => {
           </div>
 
           <div
-            className="mt-5 flex items-center justify-between border-t pt-4 text-[12px]"
+            className="mt-5 flex items-center justify-center border-t pt-4 text-[12px]"
             style={{ borderColor: '#DFE2EC', color: '#64748B' }}
           >
             <span>Quên mã/mật khẩu? Liên hệ quản lý ca.</span>
@@ -257,19 +234,13 @@ const TripManagerLoginPage = () => {
 
 const Field = ({ label, required, error, hint, children }) => (
   <label className="flex flex-col gap-1.5">
-    <span
-      className="flex items-center gap-1 text-[13px] font-medium"
-      style={{ color: '#404753' }}
-    >
+    <span className="flex items-center gap-1 text-[13px] font-medium" style={{ color: '#404753' }}>
       {label}
       {required && <span style={{ color: '#DC2626' }}>*</span>}
     </span>
     {children}
     {(error || hint) && (
-      <span
-        className="text-[12px]"
-        style={{ color: error ? '#DC2626' : '#64748B' }}
-      >
+      <span className="text-[12px]" style={{ color: error ? '#DC2626' : '#64748B' }}>
         {error || hint}
       </span>
     )}

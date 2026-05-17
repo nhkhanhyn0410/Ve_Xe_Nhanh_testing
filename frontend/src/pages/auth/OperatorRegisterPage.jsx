@@ -57,14 +57,11 @@ const OperatorRegisterPage = () => {
     else if (!/^[0-9]{10,11}$/.test(form.phone.replace(/\s/g, '')))
       e.phone = 'Số điện thoại phải có 10-11 chữ số';
     if (!form.email.trim()) e.email = 'Vui lòng nhập email';
-    else if (!/^\S+@\S+\.\S+$/.test(form.email.trim()))
-      e.email = 'Email không hợp lệ';
+    else if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) e.email = 'Email không hợp lệ';
     if (!form.address.trim()) e.address = 'Vui lòng nhập địa chỉ trụ sở';
     if (!form.password) e.password = 'Vui lòng nhập mật khẩu';
-    else if (form.password.length < 8)
-      e.password = 'Mật khẩu phải có ít nhất 8 ký tự';
-    if (form.confirmPassword !== form.password)
-      e.confirmPassword = 'Mật khẩu không khớp';
+    else if (form.password.length < 8) e.password = 'Mật khẩu phải có ít nhất 8 ký tự';
+    if (form.confirmPassword !== form.password) e.confirmPassword = 'Mật khẩu không khớp';
     if (!agree) e.agree = 'Vui lòng đồng ý điều khoản đối tác';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -133,13 +130,10 @@ const OperatorRegisterPage = () => {
       {/* Top bar */}
       <div className="relative z-10 flex items-center justify-between px-8 py-6 lg:px-16">
         <Link to="/" className="flex items-center gap-2.5">
-          <img src={logoMark} alt="Vé Xe Nhanh" className="h-9 w-auto" />
+          <img src={logoMark} alt="Vé Xe Nhanh" className="h-14 w-auto" />
         </Link>
         <div className="flex items-center gap-5">
-          <span
-            className="hidden text-[13px] sm:inline"
-            style={{ color: 'rgba(255,255,255,.8)' }}
-          >
+          <span className="hidden text-[13px] sm:inline" style={{ color: 'rgba(255,255,255,.8)' }}>
             Đã có tài khoản?
           </span>
           <Link
@@ -222,8 +216,7 @@ const OperatorRegisterPage = () => {
               Đăng ký tài khoản nhà xe
             </h2>
             <p className="m-0 mt-1.5 text-[14px]" style={{ color: '#475569' }}>
-              Cung cấp thông tin doanh nghiệp để chúng tôi xác minh và kích hoạt cổng
-              bán vé.
+              Cung cấp thông tin doanh nghiệp để chúng tôi xác minh và kích hoạt cổng bán vé.
             </p>
           </div>
 
@@ -427,19 +420,13 @@ const Field = ({ label, required, error, hint, children, colSpan = 1 }) => (
     className="flex flex-col gap-1.5"
     style={{ gridColumn: `span ${colSpan} / span ${colSpan}` }}
   >
-    <span
-      className="flex items-center gap-1 text-[13px] font-medium"
-      style={{ color: '#404753' }}
-    >
+    <span className="flex items-center gap-1 text-[13px] font-medium" style={{ color: '#404753' }}>
       {label}
       {required && <span style={{ color: '#DC2626' }}>*</span>}
     </span>
     {children}
     {(error || hint) && (
-      <span
-        className="text-[12px]"
-        style={{ color: error ? '#DC2626' : '#64748B' }}
-      >
+      <span className="text-[12px]" style={{ color: error ? '#DC2626' : '#64748B' }}>
         {error || hint}
       </span>
     )}
@@ -501,16 +488,11 @@ const FileDrop = ({ file, onPick, onClear }) => {
         <UploadOutlined style={{ fontSize: 18, color: '#475569' }} />
       </div>
       <div className="flex-1 overflow-hidden">
-        <div
-          className="truncate text-[14px] font-medium"
-          style={{ color: '#181C22' }}
-        >
+        <div className="truncate text-[14px] font-medium" style={{ color: '#181C22' }}>
           {file ? file.name : 'Kéo & thả tệp vào đây hoặc bấm chọn'}
         </div>
         <div className="mt-0.5 text-[12px]" style={{ color: '#64748B' }}>
-          {file
-            ? `${sizeKB} KB · Đã chọn`
-            : 'PDF hoặc JPG · tối đa 5MB'}
+          {file ? `${sizeKB} KB · Đã chọn` : 'PDF hoặc JPG · tối đa 5MB'}
         </div>
       </div>
       <label

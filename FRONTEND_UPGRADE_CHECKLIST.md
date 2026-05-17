@@ -143,6 +143,7 @@ Nguồn tham chiếu chính:
 - [~] Nâng cấp `CustomerLoginPage.jsx` theo prototype `LoginScreen` - auth shell đã thêm nút về trang chủ và tăng kích thước logo; chưa nâng cấp toàn bộ visual form.
 - [~] Nâng cấp `CustomerRegisterPage.jsx` theo prototype `RegisterScreen` - dùng chung auth shell đã có nút về trang chủ và logo lớn hơn; chưa nâng cấp toàn bộ visual form.
 - [ ] Không phá logic login/register hiện có với `authStore`.
+- [~] Cân lại `AdminLoginPage.jsx`: dùng logo VXN chính thức, bỏ ghi nhớ máy/quên mật khẩu khỏi form và đưa trạng thái TLS vào giữa form; cần smoke test đăng nhập admin.
 - [ ] Giữ social login ở trạng thái đang phát triển nếu backend chưa hỗ trợ.
 - [ ] Kiểm tra redirect sau đăng nhập từ protected route.
 

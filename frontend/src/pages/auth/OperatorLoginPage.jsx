@@ -39,7 +39,9 @@ const OperatorLoginPage = () => {
         navigate('/operator/dashboard');
       }
     } catch (error) {
-      message.error(error?.message || error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      message.error(
+        error?.message || error || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.'
+      );
     } finally {
       setLoading(false);
     }
@@ -66,19 +68,16 @@ const OperatorLoginPage = () => {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            'linear-gradient(180deg, rgba(0,40,55,.3) 0%, rgba(0,40,55,.6) 100%)',
+          background: 'linear-gradient(180deg, rgba(0,40,55,.3) 0%, rgba(0,40,55,.6) 100%)',
         }}
       />
 
       {/* Top bar */}
       <div className="relative z-10 flex items-center justify-between px-8 py-6 lg:px-16">
         <Link to="/" className="flex items-center gap-2.5">
-          <img src={logoMark} alt="Vé Xe Nhanh" className="h-9 w-auto" />
+          <img src={logoMark} alt="Vé Xe Nhanh" className="h-14 w-auto" />
         </Link>
-        <div
-          className="inline-flex h-8 items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 text-[13px] font-medium text-white backdrop-blur"
-        >
+        <div className="inline-flex h-8 items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 text-[13px] font-medium text-white backdrop-blur">
           <span
             className="grid h-3.5 w-[22px] place-items-center rounded-sm"
             style={{ background: '#DA251D' }}
@@ -86,8 +85,6 @@ const OperatorLoginPage = () => {
             <span style={{ color: '#FFCD00', fontSize: 9, lineHeight: 1 }}>★</span>
           </span>
           VI
-          <span className="opacity-50">·</span>
-          <span className="opacity-60">EN</span>
         </div>
       </div>
 
@@ -115,8 +112,8 @@ const OperatorLoginPage = () => {
             đáng được&nbsp;quản lý&nbsp;tốt.
           </h1>
           <p className="m-0 mt-5 max-w-[460px] text-[17px] leading-[1.5] text-white/85">
-            Đăng nhập để theo dõi lịch trình, lấp đầy ghế trống và đối soát doanh
-            thu trong một bảng điều khiển duy nhất.
+            Đăng nhập để theo dõi lịch trình, lấp đầy ghế trống và đối soát doanh thu trong một bảng
+            điều khiển duy nhất.
           </p>
           <div
             className="mt-7 flex gap-7 border-t pt-5"
@@ -143,10 +140,7 @@ const OperatorLoginPage = () => {
             boxShadow: '0 25px 50px -12px rgba(0,0,0,.45)',
           }}
         >
-          <h2
-            className="m-0 text-[26px] font-bold tracking-[-0.01em]"
-            style={{ color: '#181C22' }}
-          >
+          <h2 className="m-0 text-[26px] font-bold tracking-[-0.01em]" style={{ color: '#181C22' }}>
             Đăng nhập nhà xe
           </h2>
           <p className="m-0 mb-6 mt-1.5 text-[14px]" style={{ color: '#475569' }}>
@@ -154,32 +148,28 @@ const OperatorLoginPage = () => {
           </p>
 
           <div className="flex flex-col gap-4">
-            <Field
-              label="Email doanh nghiệp"
-              required
-              error={errors.email}
-            >
+            <Field label="Email doanh nghiệp" required error={errors.email}>
               <InputBox
                 value={email}
                 onChange={setEmail}
                 placeholder="lienhe@phuongtrang.vn"
-                leadingIcon={<MailOutlined style={{ fontSize: 16, color: '#5E6165', opacity: 0.7 }} />}
+                leadingIcon={
+                  <MailOutlined style={{ fontSize: 16, color: '#5E6165', opacity: 0.7 }} />
+                }
                 onKeyDown={onEnter}
                 autoFocus
                 error={!!errors.email}
               />
             </Field>
-            <Field
-              label="Mật khẩu"
-              required
-              error={errors.password}
-            >
+            <Field label="Mật khẩu" required error={errors.password}>
               <InputBox
                 type={reveal ? 'text' : 'password'}
                 value={password}
                 onChange={setPassword}
                 placeholder="••••••••••"
-                leadingIcon={<LockOutlined style={{ fontSize: 16, color: '#5E6165', opacity: 0.7 }} />}
+                leadingIcon={
+                  <LockOutlined style={{ fontSize: 16, color: '#5E6165', opacity: 0.7 }} />
+                }
                 trailing={
                   <button
                     type="button"
@@ -189,7 +179,9 @@ const OperatorLoginPage = () => {
                     tabIndex={-1}
                   >
                     {reveal ? (
-                      <EyeInvisibleOutlined style={{ fontSize: 16, color: '#5E6165', opacity: 0.7 }} />
+                      <EyeInvisibleOutlined
+                        style={{ fontSize: 16, color: '#5E6165', opacity: 0.7 }}
+                      />
                     ) : (
                       <EyeOutlined style={{ fontSize: 16, color: '#5E6165', opacity: 0.7 }} />
                     )}
@@ -290,10 +282,7 @@ const OperatorLoginPage = () => {
 // ─── Local primitives ──────────────────────────────────────────────────
 const Field = ({ label, required, error, children }) => (
   <label className="flex flex-col gap-1.5">
-    <span
-      className="flex items-center gap-1 text-[13px] font-medium"
-      style={{ color: '#404753' }}
-    >
+    <span className="flex items-center gap-1 text-[13px] font-medium" style={{ color: '#404753' }}>
       {label}
       {required && <span style={{ color: '#DC2626' }}>*</span>}
     </span>
