@@ -18,6 +18,8 @@ import CustomerShell from '../../components/customer/CustomerShell';
 import CustomerBreadcrumb from '../../components/customer/CustomerBreadcrumb';
 import { accountBreadcrumbItem } from '../../components/customer/accountMenu';
 import { getCustomerTickets, cancelTicket, resendTicket } from '../../services/ticketApi';
+import { formatBusType } from '../../utils/busType';
+import { getOperatorDisplayName } from '../../utils/operatorDisplay';
 
 const TABS = [
   { key: 'upcoming', label: 'Sắp tới' },
@@ -157,7 +159,7 @@ const FeaturedBanner = ({ ticket, onView }) => {
   const diffDays = dayjs(dep).diff(dayjs(), 'day');
   const eyebrow = `CHUYẾN GẦN NHẤT · ${diffDays >= 1 ? `${diffDays} NGÀY NỮA` : 'HÔM NAY'}`;
   const route = `${ticket.tripInfo?.origin?.city || ''} → ${ticket.tripInfo?.destination?.city || ''}`;
-  const operatorName = ticket.operatorId?.companyName || 'Nhà xe';
+  const operatorName = getOperatorDisplayName(ticket.operatorId, 'Nhà xe');
   const seats =
     ticket.passengers
       ?.map((p) => p.seatNumber)
@@ -246,10 +248,10 @@ const TicketRow = ({
     }
   };
 
-  const operatorName = ticket.operatorId?.companyName || 'Nhà xe';
+  const operatorName = getOperatorDisplayName(ticket.operatorId, 'Nhà xe');
   const opColor = operatorColor(operatorName);
   const opInitials = operatorInitials(operatorName);
-  const busType = ticket.tripInfo?.busType || '';
+  const busType = formatBusType(ticket.tripInfo?.busType, '');
   const plate = ticket.tripInfo?.busNumber || '';
 
   const fromCity = ticket.tripInfo?.origin?.city || '—';

@@ -20,6 +20,7 @@ class OperatorService {
   static async register(operatorData) {
     const {
       companyName,
+      operatorName,
       email,
       phone,
       password,
@@ -46,6 +47,7 @@ class OperatorService {
     // Tạo operator mới
     const operator = await BusOperator.create({
       companyName,
+      operatorName: operatorName || companyName,
       email: email.toLowerCase(),
       phone,
       password,
@@ -223,12 +225,14 @@ class OperatorService {
     const rating = ratingSummary[0] || {};
     const averageRating = Number((rating.averageRating || operator.averageRating || 0).toFixed(1));
     const totalReviews = rating.totalReviews || operator.totalReviews || 0;
+    const displayName = operator.operatorName || operator.companyName;
 
     return {
       operator: {
         id: operator._id,
         companyName: operator.companyName,
-        shortName: OperatorService.getInitials(operator.companyName),
+        operatorName: displayName,
+        shortName: OperatorService.getInitials(displayName),
         color: OperatorService.getBrandColor(operator._id),
         logo: operator.logo,
         description: operator.description,
@@ -330,6 +334,13 @@ class OperatorService {
     restrictedFields.forEach((field) => {
       delete updateData[field];
     });
+
+    if (Object.prototype.hasOwnProperty.call(updateData, 'operatorName')) {
+      updateData.operatorName = String(updateData.operatorName || '').trim();
+      if (!updateData.operatorName) {
+        throw new Error('Tên hiển thị nhà xe không được để trống');
+      }
+    }
 
     // Cập nhật operator
     Object.assign(operator, updateData);
@@ -468,6 +479,7 @@ class OperatorService {
 
     if (search) {
       query.$or = [
+        { operatorName: { $regex: search, $options: 'i' } },
         { companyName: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
         { phone: { $regex: search, $options: 'i' } },

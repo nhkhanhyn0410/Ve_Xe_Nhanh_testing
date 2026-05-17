@@ -25,6 +25,7 @@ import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import useBookingStore from '../store/bookingStore';
 import useAuthStore from '../store/authStore';
 import { holdSeats, validateVoucher, createPayment } from '../services/bookingApi';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
@@ -313,8 +314,8 @@ const PassengerInfoPage = () => {
       arrivalTime: selectedTrip.arrivalTime,
       fromCity,
       toCity,
-      operatorName: operator.companyName || 'Nhà xe',
-      operatorShort: (operator.companyName || 'VXN').slice(0, 3).toUpperCase(),
+      operatorName: getOperatorDisplayName(operator, 'Nhà xe'),
+      operatorShort: getOperatorDisplayName(operator, 'VXN').slice(0, 3).toUpperCase(),
       finalPrice,
     };
   }, [selectedTrip]);

@@ -10,6 +10,7 @@ import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import { accountBreadcrumbItem } from '../components/customer/accountMenu';
 import { getMyReviews, getPendingReviews } from '../services/reviewApi';
 import CreateReviewModal from '../components/CreateReviewModal';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
@@ -42,7 +43,7 @@ const fmtDate = (d) => (d ? dayjs(d).format('DD/MM/YYYY') : '');
 const operatorName = (entity) => {
   const op = entity?.operatorId;
   if (op && typeof op === 'object') {
-    return op.companyName || op.name || null;
+    return getOperatorDisplayName(op, null);
   }
   return null;
 };

@@ -432,7 +432,7 @@ class TripService {
       .populate('busId')
       .populate('driverId')
       .populate('tripManagerId')
-      .populate('operatorId', 'companyName phone email');
+      .populate('operatorId', 'operatorName companyName phone email');
 
     if (!trip) {
       throw new Error('Không tìm thấy chuyến xe');
@@ -792,7 +792,7 @@ class TripService {
     let trips = await Trip.find(query)
       .populate('routeId')
       .populate('busId', 'busNumber busType seatLayout amenities')
-      .populate('operatorId', 'companyName averageRating totalReviews')
+      .populate('operatorId', 'operatorName companyName averageRating totalReviews')
       .sort(sortCriteria)
       .lean();
 
@@ -898,7 +898,7 @@ class TripService {
     })
       .populate('routeId')
       .populate('busId')
-      .populate('operatorId', 'companyName phone email averageRating totalReviews')
+      .populate('operatorId', 'operatorName companyName phone email averageRating totalReviews')
       .lean();
 
     if (!trip) {
@@ -984,6 +984,7 @@ class TripService {
       // Operator information
       operator: trip.operatorId ? {
         id: trip.operatorId._id,
+        operatorName: trip.operatorId.operatorName || trip.operatorId.companyName,
         companyName: trip.operatorId.companyName,
         phone: trip.operatorId.phone,
         email: trip.operatorId.email,

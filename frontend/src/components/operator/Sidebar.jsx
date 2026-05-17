@@ -17,6 +17,7 @@ const OP_NAV = [
   { key: 'transactions', label: 'Quản lý giao dịch',   icon: 'wallet',        path: '/operator/transactions' },
   { key: 'vouchers',     label: 'Quản lý mã giảm',     icon: 'badge-percent', path: '/operator/vouchers' },
   { key: 'reports',      label: 'Báo cáo',             icon: 'chart-column',  path: '/operator/reports' },
+  { key: 'profile',      label: 'Hồ sơ nhà xe',        icon: 'settings',      path: '/operator/profile' },
 ];
 
 function VxnLogo() {

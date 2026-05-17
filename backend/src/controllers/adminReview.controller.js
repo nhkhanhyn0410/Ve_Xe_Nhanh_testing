@@ -98,7 +98,7 @@ exports.getAllReviews = async (req, res) => {
       Review.countDocuments(query),
       Review.find(query)
         .populate('userId', 'fullName avatar loyaltyTier')
-        .populate('operatorId', 'companyName')
+        .populate('operatorId', 'operatorName companyName')
         .populate({
           path: 'tripId',
           select: 'departureTime routeId',

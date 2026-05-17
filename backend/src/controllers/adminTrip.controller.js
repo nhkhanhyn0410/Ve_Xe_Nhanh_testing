@@ -71,7 +71,7 @@ exports.getAllTrips = async (req, res) => {
       Trip.find(query)
         .populate('routeId', 'routeName routeCode origin destination')
         .populate('busId', 'busNumber busType')
-        .populate('operatorId', 'companyName')
+        .populate('operatorId', 'operatorName companyName')
         .sort({ departureTime: sortDir })
         .skip(skip)
         .limit(limit)

@@ -90,8 +90,7 @@ const resolveActiveKey = (pathname, activeKey) => {
     pathname.startsWith('/tin-tuc')
   )
     return 'explore';
-  if (pathname.startsWith('/faq') || pathname.startsWith('/cau-hoi-thuong-gap'))
-    return 'faq';
+  if (pathname.startsWith('/faq') || pathname.startsWith('/cau-hoi-thuong-gap')) return 'faq';
   if (pathname.startsWith('/complaints') || pathname.startsWith('/khieu-nai')) return 'complaints';
   if (pathname.startsWith('/dich-vu-bo-tro')) return 'addons';
   if (
@@ -241,7 +240,7 @@ export const CustomerSidebarContent = ({ activeKey, signedIn, user, onLogout, on
         )}
 
         <div className="px-1 pt-2 text-xs text-white/[0.70]">
-          <span>v.2026 · vexenhanh.vn</span>
+          <span>v.1.1 · vexenhanh.vn</span>
         </div>
       </div>
     </div>

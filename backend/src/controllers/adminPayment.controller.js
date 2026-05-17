@@ -84,7 +84,7 @@ exports.getAllPayments = async (req, res) => {
       Payment.countDocuments(query),
       Payment.find(query)
         .populate('customerId', 'fullName email phone')
-        .populate('operatorId', 'companyName')
+        .populate('operatorId', 'operatorName companyName')
         .populate('bookingId', 'bookingCode')
         .sort({ createdAt: -1 })
         .skip(skip)

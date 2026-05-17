@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { ArrowRightOutlined, TagOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { getOperatorDisplayName } from '../../utils/operatorDisplay';
 
 const formatTime = (value) => (value ? dayjs(value).format('HH:mm') : '--:--');
 const formatDate = (value) => {
@@ -45,8 +46,8 @@ const SaffronTicketCard = ({ booking = {}, ticket = null, className = '' }) => {
   }, [booking, ticket]);
 
   const operatorName =
-    booking?.operatorId?.companyName ||
-    trip?.operatorId?.companyName ||
+    getOperatorDisplayName(booking?.operatorId, '') ||
+    getOperatorDisplayName(trip?.operatorId, '') ||
     booking?.tripInfo?.operatorName ||
     'Nhà xe';
 

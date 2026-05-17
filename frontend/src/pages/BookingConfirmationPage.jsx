@@ -19,6 +19,7 @@ import CustomerShell from '../components/customer/CustomerShell';
 import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import RouteMiniMap from '../components/customer/RouteMiniMap';
 import SaffronTicketCard from '../components/customer/SaffronTicketCard';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 const formatTime = (value) => (value ? dayjs(value).format('HH:mm') : '--:--');
@@ -249,7 +250,9 @@ const BookingConfirmationPage = () => {
   const durationText = formatDuration(durationMin);
 
   const operator = booking?.operatorId || {};
-  const operatorName = operator.companyName || trip?.operatorId?.companyName || 'Nhà xe';
+  const operatorName =
+    getOperatorDisplayName(operator, '') ||
+    getOperatorDisplayName(trip?.operatorId, 'Nhà xe');
   const operatorPhone = operator.phone || '';
   const operatorEmail = operator.email || '';
 

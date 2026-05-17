@@ -26,6 +26,8 @@ import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import heroImage from '../assets/brand/hero-landscape.jpg';
 import { requestTicketLookupOTP, verifyTicketLookupOTP } from '../services/ticketApi';
 import { cancelBookingGuest } from '../services/bookingApi';
+import { formatBusType } from '../utils/busType';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 
 const OTP_LENGTH = 6;
 const OTP_TTL_SECONDS = 5 * 60; // 5 minutes
@@ -195,7 +197,7 @@ const StepIndicator = ({ current, total }) => (
 );
 
 const ContactPicker = ({ method, onChange }) => (
-  <div className="inline-flex rounded-xl bg-vxn-bg-mist p-1">
+  <div className="inline-grid grid-cols-2 rounded-xl bg-vxn-bg-mist p-1">
     {[
       { key: 'phone', label: 'Số điện thoại', icon: PhoneOutlined },
       { key: 'email', label: 'Email', icon: MailOutlined },
@@ -206,7 +208,7 @@ const ContactPicker = ({ method, onChange }) => (
           key={key}
           type="button"
           onClick={() => onChange(key)}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-lg border-0 px-4 text-[13px] font-medium transition ${
+          className={`inline-flex h-9 min-w-[132px] items-center justify-center gap-1.5 rounded-lg border-0 px-4 text-[13px] font-medium transition ${
             on
               ? 'bg-white text-vxn-ink shadow-[0_2px_6px_rgba(15,23,42,.07)]'
               : 'bg-transparent text-vxn-fg-3 hover:text-vxn-ink'
@@ -395,7 +397,7 @@ const FeaturedBanner = ({ ticket, onView }) => {
   const diffDays = dayjs(dep).diff(dayjs(), 'day');
   const eyebrow = `CHUYẾN GẦN NHẤT · ${diffDays >= 1 ? `${diffDays} NGÀY NỮA` : 'HÔM NAY'}`;
   const route = `${ticket.tripInfo?.origin?.city || ''} → ${ticket.tripInfo?.destination?.city || ''}`;
-  const operatorName = ticket.operatorId?.companyName || 'Nhà xe';
+  const operatorName = getOperatorDisplayName(ticket.operatorId, 'Nhà xe');
   const seats =
     ticket.passengers
       ?.map((p) => p.seatNumber)
@@ -474,10 +476,10 @@ const TicketRow = ({ ticket, onShowQR, onCancel, onRebook, onOpenDetail, canCanc
     }
   };
 
-  const operatorName = ticket.operatorId?.companyName || 'Nhà xe';
+  const operatorName = getOperatorDisplayName(ticket.operatorId, 'Nhà xe');
   const opColor = operatorColor(operatorName);
   const opInitials = operatorInitials(operatorName);
-  const busType = ticket.tripInfo?.busType || '';
+  const busType = formatBusType(ticket.tripInfo?.busType, '');
   const plate = ticket.tripInfo?.busNumber || '';
 
   const fromCity = ticket.tripInfo?.origin?.city || '—';
@@ -760,7 +762,7 @@ const GuestTicketLookupPage = () => {
       const code = (t.ticketCode || '').toLowerCase();
       const from = (t.tripInfo?.origin?.city || '').toLowerCase();
       const to = (t.tripInfo?.destination?.city || '').toLowerCase();
-      const op = (t.operatorId?.companyName || '').toLowerCase();
+      const op = getOperatorDisplayName(t.operatorId, '').toLowerCase();
       return (
         code.includes(q) ||
         from.includes(q) ||
@@ -1341,7 +1343,7 @@ const GuestTicketLookupPage = () => {
               cancelTicket.totalPrice || 0,
               cancelTicket.tripInfo?.departureTime
             );
-            const operatorName = cancelTicket.operatorId?.companyName || 'Nhà xe';
+            const operatorName = getOperatorDisplayName(cancelTicket.operatorId, 'Nhà xe');
             const fromCity = cancelTicket.tripInfo?.origin?.city || '—';
             const toCity = cancelTicket.tripInfo?.destination?.city || '—';
             const dep = cancelTicket.tripInfo?.departureTime;
@@ -1413,7 +1415,9 @@ const GuestTicketLookupPage = () => {
                     {cancelTicket.tripInfo?.busType && (
                       <>
                         <span className="text-vxn-fg-5">·</span>
-                        <span className="text-vxn-fg-3">{cancelTicket.tripInfo.busType}</span>
+                        <span className="text-vxn-fg-3">
+                          {formatBusType(cancelTicket.tripInfo.busType, '')}
+                        </span>
                       </>
                     )}
                     <span className="ml-auto font-mono text-[12px] text-vxn-fg-4">

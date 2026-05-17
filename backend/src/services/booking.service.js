@@ -138,7 +138,7 @@ class BookingService {
     return {
       booking: await Booking.findById(booking._id)
         .populate('tripId')
-        .populate('operatorId', 'companyName phone email'),
+        .populate('operatorId', 'operatorName companyName phone email'),
       lockInfo: {
         sessionId,
         lockedSeats: lockResult.locked,
@@ -207,7 +207,7 @@ class BookingService {
 
     return Booking.findById(booking._id)
       .populate('tripId')
-      .populate('operatorId', 'companyName phone email')
+      .populate('operatorId', 'operatorName companyName phone email')
       .populate('voucherId');
   }
 
@@ -428,7 +428,7 @@ class BookingService {
   static async getBookingById(bookingId, customerId = null) {
     const booking = await Booking.findById(bookingId)
       .populate('tripId')
-      .populate('operatorId', 'companyName phone email');
+      .populate('operatorId', 'operatorName companyName phone email');
 
     if (!booking) {
       throw new Error('Không tìm thấy booking');
@@ -470,7 +470,7 @@ class BookingService {
           select: 'fromCity toCity origin destination',
         },
       })
-      .populate('operatorId', 'companyName phone email')
+      .populate('operatorId', 'operatorName companyName phone email')
       .populate('customerId', 'email phone');
 
     if (!booking) {

@@ -20,6 +20,8 @@ import RouteMiniMap from '../components/customer/RouteMiniMap';
 import ReviewsSection from '../components/ReviewsSection';
 import { getAvailableSeats, getTripDetails } from '../services/bookingApi';
 import useBookingStore from '../store/bookingStore';
+import { formatBusType } from '../utils/busType';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 import { extractSeatAvailability, mergeSeatAvailabilityIntoTrip } from '../utils/seatAvailability';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
@@ -128,11 +130,13 @@ const normalizeTrip = (trip) => {
     },
     bus: {
       ...bus,
+      busType: formatBusType(bus.busType || trip.busType, ''),
       amenities: bus.amenities || [],
     },
     operator: {
       ...operator,
       id: getEntityId(operator),
+      operatorName: getOperatorDisplayName(operator, 'Nhà xe'),
       companyName: operator.companyName || 'Nhà xe',
       ratingAverage: operator.rating?.average || operator.averageRating || 0,
       ratingTotal: operator.rating?.total || operator.totalReviews || 0,
@@ -394,13 +398,13 @@ const TripDetailPage = () => {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex items-center gap-4">
                   <span className="grid h-16 w-16 place-items-center rounded-2xl bg-vxn-teal-700 text-xl font-bold text-white">
-                    {getInitials(view.operator.companyName)}
+                    {getInitials(view.operator.operatorName)}
                   </span>
                   <div>
                     <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-vxn-teal-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-vxn-teal-800">
                       <CheckCircleOutlined /> Nhà xe đối tác
                     </div>
-                    <h2 className="m-0 text-xl font-bold text-vxn-ink">{view.operator.companyName}</h2>
+                    <h2 className="m-0 text-xl font-bold text-vxn-ink">{view.operator.operatorName}</h2>
                     <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-vxn-fg-3">
                       <span className="inline-flex items-center gap-1.5">
                         <StarFilled className="text-vxn-saffron-600" />

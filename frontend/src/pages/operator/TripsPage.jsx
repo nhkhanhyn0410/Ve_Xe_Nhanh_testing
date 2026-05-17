@@ -11,6 +11,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import operatorApi from '../../services/operatorApi';
+import { formatBusType } from '../../utils/busType';
 import {
   PageHeader,
   Btn,
@@ -835,7 +836,7 @@ const TripsPage = () => {
             <AntSelect placeholder="Chọn xe" showSearch optionFilterProp="children">
               {buses.map((bus) => (
                 <Option key={bus._id} value={bus._id}>
-                  {bus.busNumber} - {bus.busType} ({bus.seatLayout?.totalSeats} ghế)
+                  {bus.busNumber} - {formatBusType(bus.busType, 'Xe khách')} ({bus.seatLayout?.totalSeats} ghế)
                 </Option>
               ))}
             </AntSelect>

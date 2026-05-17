@@ -45,6 +45,7 @@ exports.register = async (req, res, next) => {
   try {
     const {
       companyName,
+      operatorName,
       email,
       phone,
       password,
@@ -67,6 +68,7 @@ exports.register = async (req, res, next) => {
     // Register operator
     const result = await OperatorService.register({
       companyName,
+      operatorName,
       email,
       phone,
       password,

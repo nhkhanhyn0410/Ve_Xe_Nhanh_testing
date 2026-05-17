@@ -276,7 +276,7 @@ class RouteService {
    * @returns {Object} Route
    */
   static async getById(routeId, operatorId = null) {
-    const route = await Route.findById(routeId).populate('operatorId', 'companyName email phone');
+    const route = await Route.findById(routeId).populate('operatorId', 'operatorName companyName email phone');
 
     if (!route) {
       throw new Error('Tuyến đường không tồn tại');
@@ -419,7 +419,7 @@ class RouteService {
 
     // Execute query
     const routes = await Route.find(query)
-      .populate('operatorId', 'companyName averageRating logo')
+      .populate('operatorId', 'operatorName companyName averageRating logo')
       .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
       .skip(skip)
       .limit(limit);

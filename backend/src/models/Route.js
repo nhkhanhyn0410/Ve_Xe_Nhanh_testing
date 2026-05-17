@@ -313,7 +313,7 @@ RouteSchema.statics.searchByCities = function (originCity, destinationCity) {
     query['destination.city'] = new RegExp(destinationCity, 'i');
   }
 
-  return this.find(query).populate('operatorId', 'companyName averageRating');
+  return this.find(query).populate('operatorId', 'operatorName companyName averageRating');
 };
 
 // Pre-save middleware to auto-generate route name if not provided

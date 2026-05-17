@@ -3,12 +3,14 @@
  * design package chrome.jsx TopBar, wired to the operator auth store.
  * 73px, dashed underline, search field, icon buttons, profile block.
  */
+import { useNavigate } from 'react-router-dom';
 import useOperatorAuthStore from '../../store/operatorAuthStore';
+import { getOperatorDisplayName } from '../../utils/operatorDisplay';
 import { VxnIcon } from './vxn';
 
-function IconBtn({ icon }) {
+function IconBtn({ icon, onClick, title }) {
   return (
-    <button style={{
+    <button title={title} onClick={onClick} style={{
       width: 38, height: 38, borderRadius: 8, border: 0, background: 'transparent',
       display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--vxn-fg-5)',
     }}>
@@ -18,7 +20,9 @@ function IconBtn({ icon }) {
 }
 
 const Header = () => {
+  const navigate = useNavigate();
   const { operator: user } = useOperatorAuthStore();
+  const displayName = getOperatorDisplayName(user, 'Nhà xe đối tác');
 
   return (
     <header style={{
@@ -42,7 +46,7 @@ const Header = () => {
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
         <IconBtn icon="inbox" />
         <IconBtn icon="circle-help" />
-        <IconBtn icon="settings" />
+        <IconBtn icon="settings" title="Hồ sơ nhà xe" onClick={() => navigate('/operator/profile')} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '0 12px 0 16px' }}>
           <div style={{
             width: 38, height: 38, borderRadius: '50%',
@@ -53,7 +57,7 @@ const Header = () => {
           </div>
           <div style={{ lineHeight: 1.2 }}>
             <div style={{ font: '600 14px var(--font-display)', color: 'var(--vxn-ink)' }}>
-              {user?.companyName || 'Nhà xe đối tác'}
+              {displayName}
             </div>
             <div style={{ font: '400 12px var(--font-display)', color: 'var(--vxn-fg-5)', marginTop: 2 }}>
               {user?.email || ''}

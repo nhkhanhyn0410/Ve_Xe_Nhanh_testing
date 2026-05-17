@@ -168,7 +168,7 @@ class TripManagerController {
       const trips = await Trip.find(query)
         .populate('routeId', 'routeName origin destination')
         .populate('busId', 'busNumber busType licensePlate')
-        .populate('operatorId', 'companyName phone')
+        .populate('operatorId', 'operatorName companyName phone')
         .sort({ departureTime: 1 })
         .limit(50);
 
@@ -187,6 +187,7 @@ class TripManagerController {
           licensePlate: trip.busId.licensePlate,
         },
         operator: {
+          operatorName: trip.operatorId.operatorName || trip.operatorId.companyName,
           companyName: trip.operatorId.companyName,
           phone: trip.operatorId.phone,
         },
@@ -225,7 +226,7 @@ class TripManagerController {
       const trip = await Trip.findById(tripId)
         .populate('routeId')
         .populate('busId')
-        .populate('operatorId', 'companyName phone email');
+        .populate('operatorId', 'operatorName companyName phone email');
 
       if (!trip) {
         return res.status(404).json({

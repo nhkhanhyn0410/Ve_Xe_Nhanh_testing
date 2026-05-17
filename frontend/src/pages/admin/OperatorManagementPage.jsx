@@ -33,6 +33,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Modal, Form, Input, message } from 'antd';
 import dayjs from 'dayjs';
 import { adminOperators } from '../../services/adminApi';
+import { getOperatorDisplayName } from '../../utils/operatorDisplay';
 import {
   PageHeader,
   Btn,
@@ -123,7 +124,7 @@ function OperatorCell({ op }) {
       {op.logo ? (
         <img
           src={op.logo}
-          alt={op.companyName}
+          alt={getOperatorDisplayName(op, 'Nhà xe')}
           style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
         />
       ) : (
@@ -140,12 +141,12 @@ function OperatorCell({ op }) {
             flexShrink: 0,
           }}
         >
-          {initials(op.companyName)}
+          {initials(getOperatorDisplayName(op, 'NX'))}
         </div>
       )}
       <div style={{ minWidth: 0 }}>
         <div style={{ font: '600 14px var(--font-display)', color: 'var(--vxn-ink)' }}>
-          {op.companyName}
+          {getOperatorDisplayName(op, '—')}
         </div>
         <div
           style={{
@@ -315,7 +316,7 @@ const OperatorManagementPage = () => {
   const doApprove = (op) => {
     Modal.confirm({
       title: 'Duyệt hồ sơ nhà xe',
-      content: `Xác nhận duyệt nhà xe "${op.companyName}"? Nhà xe sẽ có thể vận hành ngay sau khi duyệt.`,
+      content: `Xác nhận duyệt nhà xe "${getOperatorDisplayName(op, 'nhà xe')}"? Nhà xe sẽ có thể vận hành ngay sau khi duyệt.`,
       okText: 'Duyệt',
       cancelText: 'Hủy',
       okButtonProps: { type: 'primary' },
@@ -336,7 +337,7 @@ const OperatorManagementPage = () => {
   const doResume = (op) => {
     Modal.confirm({
       title: 'Khôi phục hoạt động',
-      content: `Xác nhận khôi phục hoạt động cho nhà xe "${op.companyName}"?`,
+      content: `Xác nhận khôi phục hoạt động cho nhà xe "${getOperatorDisplayName(op, 'nhà xe')}"?`,
       okText: 'Khôi phục',
       cancelText: 'Hủy',
       onOk: async () => {
@@ -647,8 +648,8 @@ const OperatorManagementPage = () => {
       >
         <p style={{ color: 'var(--vxn-fg-3)', marginTop: 0 }}>
           {reasonModal?.type === 'reject'
-            ? `Bạn đang từ chối hồ sơ đăng ký của "${reasonModal?.op?.companyName}".`
-            : `Bạn đang tạm ngưng hoạt động của "${reasonModal?.op?.companyName}".`}
+            ? `Bạn đang từ chối hồ sơ đăng ký của "${getOperatorDisplayName(reasonModal?.op, 'nhà xe')}".`
+            : `Bạn đang tạm ngưng hoạt động của "${getOperatorDisplayName(reasonModal?.op, 'nhà xe')}".`}
         </p>
         <Form form={reasonForm} layout="vertical" onFinish={submitReason}>
           <Form.Item
@@ -696,7 +697,7 @@ function DetailBody({ op }) {
         {op.logo ? (
           <img
             src={op.logo}
-            alt={op.companyName}
+            alt={getOperatorDisplayName(op, 'Nhà xe')}
             style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover' }}
           />
         ) : (
@@ -712,12 +713,12 @@ function DetailBody({ op }) {
               font: '600 18px var(--font-display)',
             }}
           >
-            {initials(op.companyName)}
+            {initials(getOperatorDisplayName(op, 'NX'))}
           </div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ font: '600 18px var(--font-display)', color: 'var(--vxn-ink)' }}>
-            {op.companyName}
+            {getOperatorDisplayName(op, '—')}
           </div>
           <div style={{ font: '400 13px var(--font-display)', color: 'var(--vxn-fg-4)', marginTop: 2 }}>
             {op.email} · {op.phone}

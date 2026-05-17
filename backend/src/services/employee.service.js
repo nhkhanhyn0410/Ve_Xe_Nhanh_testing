@@ -408,7 +408,7 @@ class EmployeeService {
       .populate('busId', 'busNumber plateNumber seatCapacity seatLayout')
       .populate('driverId', 'fullName phone employeeCode')
       .populate('tripManagerId', 'fullName phone employeeCode')
-      .populate('operatorId', 'companyName')
+      .populate('operatorId', 'operatorName companyName')
       .sort({ departureTime: -1 })
       .lean();
 

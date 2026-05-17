@@ -21,6 +21,8 @@ import CustomerShell from '../components/customer/CustomerShell';
 import ContentBanners from '../components/customer/ContentBanners';
 import useBookingStore from '../store/bookingStore';
 import { getAvailableSeats, searchTrips } from '../services/bookingApi';
+import { formatBusType } from '../utils/busType';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 import { extractSeatAvailability } from '../utils/seatAvailability';
 
 const cityOptions = [
@@ -214,10 +216,10 @@ const normalizeTrip = (trip) => {
         ? trip.duration
         : trip.duration?.formatted || formatDuration(trip.departureTime, trip.arrivalTime),
     operatorId: getEntityId(operator),
-    operatorName: operator.companyName || trip.operatorName || 'Nhà xe',
+    operatorName: getOperatorDisplayName(operator, trip.operatorName || 'Nhà xe'),
     operatorRating: operator.averageRating || operator.rating?.average || trip.operatorRating || 0,
     operatorReviews: operator.totalReviews || operator.rating?.total || 0,
-    busType: bus.busType || trip.busType || 'Xe khách',
+    busType: formatBusType(bus.busType || trip.busType, 'Xe khách'),
     busNumber: bus.busNumber || trip.busNumber || 'Đang cập nhật',
     amenities: (bus.amenities || trip.amenities || []).map(normalizeAmenity),
     basePrice,

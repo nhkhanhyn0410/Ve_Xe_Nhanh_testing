@@ -3,6 +3,7 @@ import { Modal, Form, Input, Rate, Upload, Button, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { createReview } from '../services/reviewApi';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 
 const { TextArea } = Input;
 
@@ -26,7 +27,7 @@ const resolveRoute = (booking) => {
 
 const resolveOperator = (booking) => {
   const op = booking?.operatorId;
-  if (op && typeof op === 'object') return op.companyName || op.name || null;
+  if (op && typeof op === 'object') return getOperatorDisplayName(op, null);
   return null;
 };
 

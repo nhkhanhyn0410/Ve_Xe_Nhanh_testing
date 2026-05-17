@@ -15,6 +15,7 @@ import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import SeatMapComponent from '../components/SeatMapComponent';
 import { getAvailableSeats, getTripDetails } from '../services/bookingApi';
 import useBookingStore from '../store/bookingStore';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 import { extractSeatAvailability, mergeSeatAvailabilityIntoTrip } from '../utils/seatAvailability';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
@@ -57,6 +58,7 @@ const normalizeTrip = (trip) => {
     bus,
     operator: {
       ...operator,
+      operatorName: getOperatorDisplayName(operator, 'Nhà xe'),
       companyName: operator.companyName || 'Nhà xe',
     },
     duration: typeof trip.duration === 'string'

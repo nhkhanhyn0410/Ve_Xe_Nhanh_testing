@@ -56,7 +56,7 @@ exports.getAllRoutes = async (req, res) => {
     const [total, routes] = await Promise.all([
       Route.countDocuments(query),
       Route.find(query)
-        .populate('operatorId', 'companyName status')
+        .populate('operatorId', 'operatorName companyName status')
         .sort(sort)
         .skip(skip)
         .limit(limit)

@@ -28,6 +28,7 @@ import EmployeesPage from './pages/operator/EmployeesPage';
 import TransactionsPage from './pages/operator/TransactionsPage';
 import ReportsPage from './pages/operator/ReportsPage';
 import VouchersPage from './pages/operator/VouchersPage';
+import OperatorProfilePage from './pages/operator/ProfilePage';
 import OperatorReviewsPage from './pages/OperatorReviewsPage';
 
 // Customer Pages
@@ -258,6 +259,7 @@ function App() {
           <Route path="reports" element={<ReportsPage />} />
           <Route path="vouchers" element={<VouchersPage />} />
           <Route path="reviews" element={<OperatorReviewsPage />} />
+          <Route path="profile" element={<OperatorProfilePage />} />
         </Route>
 
         {/* Trip Manager Auth Routes */}

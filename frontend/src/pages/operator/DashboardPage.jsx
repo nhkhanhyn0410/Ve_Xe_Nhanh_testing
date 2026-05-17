@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import useOperatorAuthStore from '../../store/operatorAuthStore';
 import { dashboardApi, busesApi, paymentsApi } from '../../services/operatorApi';
+import { getOperatorDisplayName } from '../../utils/operatorDisplay';
 import {
   PageHeader, Btn, Select, Chip, Panel, TextLink, Donut, BarChart, Sparkline, KpiCard, VxnIcon,
 } from '../../components/operator/vxn';
@@ -108,6 +109,7 @@ const DashboardPage = () => {
 
   const today = dayjs();
   const dateLabel = `${WEEKDAYS[today.day()]}, ${today.format('DD/MM/YYYY')}`;
+  const operatorDisplayName = getOperatorDisplayName(user, 'nhà xe');
 
   const trend = stats?.trends?.bookings || [];
   const revSpark = trend.map((t) => Math.round((t.revenue || 0) / 1e6));
@@ -167,7 +169,7 @@ const DashboardPage = () => {
     <>
       <PageHeader
         title="Dashboard"
-        description={`Tổng quan hoạt động ${user?.companyName || 'nhà xe'} — ${dateLabel}.`}
+        description={`Tổng quan hoạt động ${operatorDisplayName} — ${dateLabel}.`}
         cta={
           <div style={{ display: 'flex', gap: 10 }}>
             <Select value={period} onChange={setPeriod} options={PERIOD_OPTS} />

@@ -275,7 +275,7 @@ class TicketService {
         totalPrice: `${ticket.totalPrice.toLocaleString('vi-VN')} VNĐ`,
         qrCodeImage: ticket.qrCode, // Base64 data URL
         ticketUrl: `${process.env.FRONTEND_URL}/tickets/${ticket.ticketCode}`,
-        operatorName: ticket.operatorId.companyName,
+        operatorName: ticket.operatorId.operatorName || ticket.operatorId.companyName,
         operatorPhone: ticket.operatorId.phone,
         operatorEmail: ticket.operatorId.email,
       };
@@ -365,7 +365,7 @@ class TicketService {
   static async getTicketById(ticketId, customerId = null) {
     const ticket = await Ticket.findById(ticketId)
       .populate('tripId')
-      .populate('operatorId', 'companyName phone email logo')
+      .populate('operatorId', 'operatorName companyName phone email logo')
       .populate('bookingId');
 
     if (!ticket) {
@@ -388,7 +388,7 @@ class TicketService {
   static async getTicketByBooking(bookingId) {
     const ticket = await Ticket.findOne({ bookingId })
       .populate('tripId')
-      .populate('operatorId', 'companyName phone email logo')
+      .populate('operatorId', 'operatorName companyName phone email logo')
       .populate('bookingId');
 
     if (!ticket) {
@@ -687,7 +687,7 @@ class TicketService {
     logger.debug(`Ftrtrêngal truy vấn: ${JSON.stringify(query, null, 2)}`);
     const tickets = await Ticket.find(query)
       .populate('tripId')
-      .populate('operatorId', 'companyName phone email logo')
+      .populate('operatorId', 'operatorName companyName phone email logo')
       .populate('bookingId', 'bookingCode contactInfo')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -888,7 +888,7 @@ class TicketService {
     // Get ticket with populated references
     const ticket = await Ticket.findById(ticketId)
       .populate('bookingId')
-      .populate('operatorId', 'companyName phone email');
+      .populate('operatorId', 'operatorName companyName phone email');
 
     if (!ticket) {
       throw new Error('Không tìm thấy vé');
@@ -985,7 +985,7 @@ class TicketService {
     const oldTicket = await Ticket.findById(ticketId)
       .populate('bookingId')
       .populate('tripId')
-      .populate('operatorId', 'companyName phone email');
+      .populate('operatorId', 'operatorName companyName phone email');
 
     if (!oldTicket) {
       throw new Error('Không tìm thấy vé');

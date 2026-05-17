@@ -203,12 +203,6 @@ const OperatorRegisterPage = () => {
           }}
         >
           <div>
-            <div
-              className="text-[12px] font-semibold uppercase tracking-[0.08em]"
-              style={{ color: '#D18A1E' }}
-            >
-              Bước 1 / 1 · Hồ sơ đăng ký
-            </div>
             <h2
               className="m-0 mt-1.5 text-[26px] font-bold tracking-[-0.01em]"
               style={{ color: '#181C22' }}

@@ -107,8 +107,10 @@ async function seed() {
     
     for (let i = 1; i <= 30; i++) {
       const province = provinces[i % provinces.length];
+      const operatorName = `Nhà xe ${i < 10 ? '0' + i : i} - ${['Kim Chi', 'Phương Trang', 'Thành Bưởi', 'Hải Vân', 'Hoàng Long', 'Mai Linh'][i % 6]}`;
       operatorData.push({
-        companyName: `Nhà xe ${i < 10 ? '0' + i : i} - ${['Kim Chi', 'Phương Trang', 'Thành Bưởi', 'Hải Vân', 'Hoàng Long', 'Mai Linh'][i % 6]}`,
+        companyName: operatorName,
+        operatorName,
         email: `operator${i}@vexenhanh.vn`,
         phone: `09123456${i < 10 ? '0' + i : i}`,
         password: 'operator123',

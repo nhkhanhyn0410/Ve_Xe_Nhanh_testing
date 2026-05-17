@@ -18,6 +18,7 @@ import {
   getPriorityLabel,
 } from '../services/complaintApi';
 import CreateComplaintModal from '../components/CreateComplaintModal';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 
 dayjs.extend(relativeTime);
 dayjs.locale('vi');
@@ -49,11 +50,11 @@ const fmtShort = (d) => (d ? dayjs(d).format('DD/MM') : '');
 const resolveOperator = (c) => {
   const op = c?.operatorId;
   if (op && typeof op === 'object') {
-    return op.name || op.companyName || op.fullName || null;
+    return getOperatorDisplayName(op, op.fullName || null);
   }
   const fromBooking = c?.bookingId?.operatorId;
   if (fromBooking && typeof fromBooking === 'object') {
-    return fromBooking.name || fromBooking.companyName || null;
+    return getOperatorDisplayName(fromBooking, null);
   }
   return null;
 };

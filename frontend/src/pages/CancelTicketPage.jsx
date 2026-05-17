@@ -20,6 +20,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import CustomerShell from '../components/customer/CustomerShell';
 import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import { cancelBookingGuest, getBookingByCode } from '../services/bookingApi';
+import { formatBusType } from '../utils/busType';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 
 const REASONS = [
   'Tôi đổi kế hoạch',
@@ -200,17 +202,14 @@ const BookingFoundCard = ({ booking, refund }) => {
     tripInfo.destination?.city || route.toCity || trip.toCity || '—';
   const dep = tripInfo.departureTime || trip.departureTime;
   const arr = tripInfo.arrivalTime || trip.arrivalTime;
-  const operatorName =
-    booking?.operatorId?.companyName ||
-    tripInfo.operatorName ||
-    'Nhà xe';
+  const operatorName = getOperatorDisplayName(booking?.operatorId, tripInfo.operatorName || 'Nhà xe');
   const seats = (booking?.seats || booking?.passengers || [])
     .map((s) => s.seatNumber)
     .filter(Boolean)
     .join(', ');
   const passengerCount =
     booking?.passengers?.length || booking?.seats?.length || 0;
-  const busType = tripInfo.busType || trip.busType || '';
+  const busType = formatBusType(tripInfo.busType || trip.busType, '');
   const plate = tripInfo.busNumber || trip.busNumber || '';
   const accent =
     refund?.policyTone === 'success'

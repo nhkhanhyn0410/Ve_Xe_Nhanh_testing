@@ -200,7 +200,7 @@ class PaymentService {
 
     // Populate payment details
     await payment.populate('bookingId');
-    await payment.populate('operatorId', 'companyName email phone');
+    await payment.populate('operatorId', 'operatorName companyName email phone');
 
     return {
       payment,
@@ -389,7 +389,7 @@ class PaymentService {
     const payment = await Payment.findById(paymentId)
       .populate('bookingId')
       .populate('customerId', 'fullName email phone')
-      .populate('operatorId', 'companyName email phone');
+      .populate('operatorId', 'operatorName companyName email phone');
 
     if (!payment) {
       throw new Error('Không tìm thấy thanh toán');
@@ -408,7 +408,7 @@ class PaymentService {
     const payment = await Payment.findOne({ paymentCode })
       .populate('bookingId')
       .populate('customerId', 'fullName email phone')
-      .populate('operatorId', 'companyName email phone');
+      .populate('operatorId', 'operatorName companyName email phone');
 
     if (!payment) {
       throw new Error('Không tìm thấy thanh toán');

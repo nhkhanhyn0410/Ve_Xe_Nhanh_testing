@@ -18,6 +18,7 @@ import toast from 'react-hot-toast';
 import CustomerShell from '../components/customer/CustomerShell';
 import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
 import { publicOperatorsApi } from '../services/operatorApi';
+import { getOperatorDisplayName } from '../utils/operatorDisplay';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
@@ -116,6 +117,8 @@ const OperatorPage = () => {
     );
   }
 
+  const operatorDisplayName = getOperatorDisplayName(operator, 'Nhà xe');
+
   return (
     <CustomerShell activeKey="explore" mainClassName="bg-vxn-bg-soft">
       <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
@@ -123,7 +126,7 @@ const OperatorPage = () => {
           <CustomerBreadcrumb
             items={[
               { label: 'Nhà xe' },
-              { label: operator.companyName },
+              { label: operatorDisplayName },
             ]}
           />
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
@@ -141,13 +144,13 @@ const OperatorPage = () => {
         <div className="relative z-10 mx-auto flex max-w-[1280px] flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
             <div className="grid h-24 w-24 place-items-center rounded-[24px] bg-white text-3xl font-bold shadow-xl" style={{ color: operator.color || '#006481' }}>
-              {operator.logo ? <img src={operator.logo} alt={operator.companyName} className="h-full w-full rounded-[24px] object-cover" /> : operator.shortName}
+              {operator.logo ? <img src={operator.logo} alt={operatorDisplayName} className="h-full w-full rounded-[24px] object-cover" /> : operator.shortName}
             </div>
             <div>
               <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/12 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-white/85">
                 <CheckCircleOutlined /> Nhà xe đối tác {operator.verificationStatus === 'approved' ? '· Đã xác thực' : ''}
               </div>
-              <h1 className="m-0 text-3xl font-bold tracking-[-0.03em] lg:text-5xl">{operator.companyName}</h1>
+              <h1 className="m-0 text-3xl font-bold tracking-[-0.03em] lg:text-5xl">{operatorDisplayName}</h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-white/78">
                 {operator.description || 'Nhà xe đối tác trên Vé Xe Nhanh, cung cấp lịch trình, giá vé và đánh giá minh bạch cho hành khách.'}
               </p>
@@ -177,7 +180,7 @@ const OperatorPage = () => {
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <span className="text-xs font-semibold uppercase tracking-[0.08em] text-vxn-teal-700">Tổng quan</span>
-                  <h2 className="m-0 mt-1 text-2xl font-bold text-vxn-ink">Về {operator.companyName}</h2>
+                  <h2 className="m-0 mt-1 text-2xl font-bold text-vxn-ink">Về {operatorDisplayName}</h2>
                   <p className="m-0 mt-3 max-w-3xl text-sm leading-6 text-vxn-fg-3">
                     {operator.description || 'Thông tin giới thiệu nhà xe đang được cập nhật.'}
                   </p>

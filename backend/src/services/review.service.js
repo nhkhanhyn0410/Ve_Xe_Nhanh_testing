@@ -185,7 +185,7 @@ class ReviewService {
 
       const reviews = await Review.find({ userId })
         .populate('tripId', 'departureTime')
-        .populate('operatorId', 'companyName logo')
+        .populate('operatorId', 'operatorName companyName logo')
         .sort('-createdAt')
         .skip((page - 1) * limit)
         .limit(limit)
@@ -229,7 +229,7 @@ class ReviewService {
             select: 'routeName origin destination',
           },
         })
-        .populate('operatorId', 'companyName logo')
+        .populate('operatorId', 'operatorName companyName logo')
         .sort('-createdAt')
         .lean();
 
@@ -360,7 +360,7 @@ class ReviewService {
     try {
       const booking = await Booking.findById(bookingId)
         .populate('tripId')
-        .populate('operatorId', 'companyName');
+        .populate('operatorId', 'operatorName companyName');
 
       if (!booking) {
         throw new Error('Booking không tồn tại');
