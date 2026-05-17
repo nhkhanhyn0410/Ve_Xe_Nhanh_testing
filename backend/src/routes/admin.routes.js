@@ -4,6 +4,10 @@ const router = express.Router();
 const adminController = require('../controllers/admin.controller');
 const complaintController = require('../controllers/complaint.controller');
 const adminContentController = require('../controllers/adminContent.controller');
+const adminRouteController = require('../controllers/adminRoute.controller');
+const adminTripController = require('../controllers/adminTrip.controller');
+const adminPaymentController = require('../controllers/adminPayment.controller');
+const adminReviewController = require('../controllers/adminReview.controller');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 const {
   validateLogin,
@@ -74,5 +78,24 @@ router.get('/faqs', adminContentController.getAllFAQs);
 router.post('/faqs', adminContentController.createFAQ);
 router.put('/faqs/:id', adminContentController.updateFAQ);
 router.delete('/faqs/:id', adminContentController.deleteFAQ);
+
+// System route oversight (read-only, cross-operator)
+router.get('/routes/statistics', adminRouteController.getRouteStatistics);
+router.get('/routes', adminRouteController.getAllRoutes);
+
+// System trip oversight (read-only, cross-operator)
+router.get('/trips/statistics', adminTripController.getTripStatistics);
+router.get('/trips', adminTripController.getAllTrips);
+
+// System payment oversight (read-only, cross-operator)
+router.get('/payments/statistics', adminPaymentController.getPaymentStatistics);
+router.get('/payments', adminPaymentController.getAllPayments);
+
+// System review moderation (cross-operator)
+router.get('/reviews/statistics', adminReviewController.getReviewStatistics);
+router.get('/reviews', adminReviewController.getAllReviews);
+router.put('/reviews/:id/publish', adminReviewController.publishReview);
+router.put('/reviews/:id/unpublish', adminReviewController.unpublishReview);
+router.put('/reviews/:id/clear-report', adminReviewController.clearReport);
 
 module.exports = router;
