@@ -31,8 +31,7 @@ const OperatorRegisterSuccessPage = () => {
     const hh = String(target.getHours()).padStart(2, '0');
     const mm = String(target.getMinutes()).padStart(2, '0');
     const today = new Date();
-    const sameDay =
-      target.toDateString() === today.toDateString();
+    const sameDay = target.toDateString() === today.toDateString();
     return sameDay ? `${hh}:${mm} hôm nay` : `${hh}:${mm} ngày mai`;
   }, [submittedAt]);
 
@@ -64,19 +63,14 @@ const OperatorRegisterSuccessPage = () => {
       <div
         className="absolute inset-0"
         style={{
-          background:
-            'linear-gradient(180deg, rgba(0,40,55,.7) 0%, rgba(0,40,55,.78) 100%)',
+          background: 'linear-gradient(180deg, rgba(0,40,55,.7) 0%, rgba(0,40,55,.78) 100%)',
         }}
       />
 
       {/* Top bar */}
       <div className="relative z-10 flex items-center justify-between px-8 py-6 lg:px-16">
-        <Link
-          to="/"
-          className="flex items-center gap-2.5"
-          style={{ textDecoration: 'none' }}
-        >
-          <img src={logoMark} alt="Vé Xe Nhanh" className="h-10 w-auto" />
+        <Link to="/" className="flex items-center gap-2.5" style={{ textDecoration: 'none' }}>
+          <img src={logoMark} alt="Vé Xe Nhanh" className="h-14 w-auto" />
         </Link>
         <div
           className="hidden items-center gap-4 text-[13px] font-medium sm:flex"
@@ -91,7 +85,7 @@ const OperatorRegisterSuccessPage = () => {
       {/* Centered card */}
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-120px)] items-center justify-center px-4 pb-10 sm:px-8 lg:px-16">
         <div
-          className="w-full max-w-[640px] rounded-[14px] bg-white px-7 py-9 text-center sm:px-12 sm:py-10"
+          className="w-full max-w-[820px] rounded-[14px] bg-white px-7 py-9 text-center sm:px-12 sm:py-10 lg:px-14"
           style={{ boxShadow: '0 32px 80px -16px rgba(0,0,0,.5)' }}
         >
           {/* Success badge */}
@@ -107,20 +101,19 @@ const OperatorRegisterSuccessPage = () => {
             className="m-0 mt-5 text-[28px] font-bold leading-[1.2] tracking-[-0.015em] sm:text-[36px]"
             style={{ color: '#181C22' }}
           >
-            Cảm ơn{' '}
-            <span style={{ color: '#00476B' }}>{companyName}</span>!
+            Cảm ơn <span style={{ color: '#00476B' }}>{companyName}</span>!
           </h1>
           <p
-            className="m-0 mx-auto mt-2 max-w-[460px] text-[14px] leading-[1.55] sm:text-[15px]"
+            className="m-0 mx-auto mt-2 max-w-[560px] text-[14px] leading-[1.55] sm:text-[15px]"
             style={{ color: '#475569' }}
           >
-            Hồ sơ của bạn đã đến tay đội duyệt. Trong lúc chờ, hãy thử một vài thứ
-            để chuẩn bị sẵn cho ngày mở bán vé đầu tiên.
+            Hồ sơ của bạn đã đến tay đội duyệt. Hãy chuẩn bị sẵn sàng để cung cấp thêm thông tin nếu
+            cần thiết và chờ email phản hồi từ chúng tôi.
           </p>
 
           {/* SLA countdown card */}
           <div
-            className="mx-auto mt-7 flex max-w-[480px] items-center gap-4 rounded-[12px] border p-4 text-left sm:gap-[18px] sm:p-[18px]"
+            className="mx-auto mt-7 flex max-w-[600px] items-center gap-4 rounded-[12px] border p-4 text-left sm:gap-[18px] sm:p-[18px]"
             style={{
               background: 'linear-gradient(135deg, #FFF7E6 0%, #FFEAC7 100%)',
               borderColor: '#F3D9A4',
@@ -197,8 +190,7 @@ const OperatorRegisterSuccessPage = () => {
               <strong
                 style={{
                   color: '#181C22',
-                  fontFamily:
-                    'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
                 }}
               >
                 {receiptCode}
@@ -232,10 +224,7 @@ const NextStep = ({ Icon, title, body }) => (
     <div className="text-[13px] font-semibold" style={{ color: '#181C22' }}>
       {title}
     </div>
-    <div
-      className="mt-1 text-[12px] leading-[1.5]"
-      style={{ color: '#475569' }}
-    >
+    <div className="mt-1 text-[12px] leading-[1.5]" style={{ color: '#475569' }}>
       {body}
     </div>
   </div>
