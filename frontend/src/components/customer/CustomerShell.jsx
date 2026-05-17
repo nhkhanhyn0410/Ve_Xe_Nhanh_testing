@@ -16,6 +16,7 @@ import {
 import { toast } from 'react-hot-toast';
 import logoText from '../../assets/brand/Logo_text.svg';
 import useAuthStore from '../../store/authStore';
+import CustomerFooter from './CustomerFooter';
 
 const sidebarNav = [
   {
@@ -311,6 +312,7 @@ const CustomerShell = ({
   children,
   activeKey,
   className = '',
+  hideFooter = false,
   mainClassName = 'bg-vxn-bg-soft',
 }) => {
   const { user, isAuthenticated, logout } = useAuthStore();
@@ -340,7 +342,10 @@ const CustomerShell = ({
         onLogout={handleLogout}
       />
 
-      <main className={`min-w-0 flex-1 ${mainClassName}`}>{children}</main>
+      <main className={`flex min-w-0 flex-1 flex-col ${mainClassName}`}>
+        <div className="min-w-0 flex-1">{children}</div>
+        {!hideFooter && <CustomerFooter />}
+      </main>
     </div>
   );
 };

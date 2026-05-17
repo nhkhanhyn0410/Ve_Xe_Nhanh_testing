@@ -1,13 +1,9 @@
-import CustomerFooter from './CustomerFooter';
 import CustomerShell from './CustomerShell';
 
-const CustomerLayout = ({ children, className = '', hideFooter = true }) => {
-  return (
-    <CustomerShell mainClassName={`bg-vxn-bg-soft ${className}`}>
-      {children}
-      {!hideFooter && <CustomerFooter />}
-    </CustomerShell>
-  );
-};
+const CustomerLayout = ({ children, className = '', hideFooter = false }) => (
+  <CustomerShell hideFooter={hideFooter} mainClassName={`bg-vxn-bg-soft ${className}`}>
+    {children}
+  </CustomerShell>
+);
 
 export default CustomerLayout;

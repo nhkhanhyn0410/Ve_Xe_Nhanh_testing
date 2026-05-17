@@ -6,7 +6,6 @@ import {
   ClockCircleOutlined,
   EnvironmentOutlined,
   HomeOutlined,
-  MailOutlined,
   PhoneOutlined,
   PrinterOutlined,
   ShareAltOutlined,
@@ -18,12 +17,18 @@ import useBookingStore from '../store/bookingStore';
 import useAuthStore from '../store/authStore';
 import CustomerShell from '../components/customer/CustomerShell';
 import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
+import RouteMiniMap from '../components/customer/RouteMiniMap';
 import SaffronTicketCard from '../components/customer/SaffronTicketCard';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 const formatTime = (value) => (value ? dayjs(value).format('HH:mm') : '--:--');
 const formatDateLong = (value) => (value ? dayjs(value).format('dddd · DD/MM/YYYY') : '—');
 const formatDateTime = (value) => (value ? dayjs(value).format('HH:mm · DD/MM/YYYY') : '—');
+
+const getEntityId = (entity) => {
+  if (!entity || typeof entity !== 'object') return entity;
+  return entity.id || Reflect.get(entity, '_id');
+};
 
 const formatDuration = (minutes) => {
   if (!minutes || minutes <= 0) return '';
@@ -133,9 +138,10 @@ const BookingConfirmationPage = () => {
 
   useEffect(() => {
     const fetchTicket = async () => {
-      if (!booking?._id) return;
+      const bookingId = getEntityId(booking);
+      if (!bookingId) return;
       try {
-        const response = await api.get(`/tickets/booking/${booking._id}`);
+        const response = await api.get(`/tickets/booking/${bookingId}`);
         if (response.success && response.data?.ticket) {
           setTicket(response.data.ticket);
         }
@@ -231,12 +237,31 @@ const BookingConfirmationPage = () => {
 
   const payStatusText = isPaid
     ? 'Đã thanh toán'
-    : isCash
-      ? 'Thanh toán tiền mặt khi lên xe'
-      : 'Chưa thanh toán';
+    : 'Chưa thanh toán';
+  const paymentStatusText = isCash && !isPaid ? 'Thanh toán tiền mặt khi lên xe' : payStatusText;
 
-  const originLink = gmapsLink(origin.coordinates, fromAddress);
-  const destinationLink = gmapsLink(destination.coordinates, toAddress);
+  const pickupCoordinates = booking?.pickupPoint?.coordinates || origin.coordinates;
+  const dropoffCoordinates = booking?.dropoffPoint?.coordinates || destination.coordinates;
+  const originLink = gmapsLink(pickupCoordinates, fromAddress || fromStation);
+  const destinationLink = gmapsLink(dropoffCoordinates, toAddress || toStation);
+  const pickupDropoffMapPoints = [
+    {
+      key: 'booking-pickup-map',
+      type: 'start',
+      label: fromStation,
+      address: fromAddress || fromCity,
+      city: fromCity,
+      coordinates: pickupCoordinates,
+    },
+    {
+      key: 'booking-dropoff-map',
+      type: 'end',
+      label: toStation,
+      address: toAddress || toCity,
+      city: toCity,
+      coordinates: dropoffCoordinates,
+    },
+  ];
 
   const handleShare = async () => {
     const shareData = {
@@ -257,20 +282,21 @@ const BookingConfirmationPage = () => {
   };
 
   const handleCancel = async () => {
-    if (!booking?._id) return;
+    const bookingId = getEntityId(booking);
+    if (!bookingId) return;
     setCancelling(true);
     try {
       const contactEmail = booking?.contactInfo?.email;
       const contactPhone = booking?.contactInfo?.phone || phoneParam;
       if (!isAuthenticated && contactEmail && contactPhone) {
         await cancelBookingGuest({
-          bookingId: booking._id,
+          bookingId,
           email: contactEmail,
           phone: contactPhone,
           reason: cancelReason,
         });
       } else {
-        await cancelBooking(booking._id, cancelReason);
+        await cancelBooking(bookingId, cancelReason);
       }
       message.success('Đã gửi yêu cầu huỷ vé. Tiền hoàn (nếu có) xử lý theo chính sách nhà xe.');
       setCancelOpen(false);
@@ -432,7 +458,7 @@ const BookingConfirmationPage = () => {
                         isPaid ? 'text-emerald-600' : 'text-amber-600'
                       }`}
                     >
-                      {payStatusText}
+                      {paymentStatusText}
                     </dd>
                   </div>
                   <Row label="Thời điểm đặt">{formatDateTime(booking?.createdAt)}</Row>
@@ -523,6 +549,13 @@ const BookingConfirmationPage = () => {
 
             <Card title="Điểm đón & điểm trả" icon={EnvironmentOutlined}>
               <div className="space-y-4">
+                <RouteMiniMap
+                  points={pickupDropoffMapPoints}
+                  title="Bản đồ điểm đón/trả"
+                  subtitle={`${fromCity} → ${toCity}`}
+                  className="!rounded-xl"
+                  heightClassName="h-44"
+                />
                 <div>
                   <div className="text-[11px] font-semibold uppercase tracking-wide text-vxn-fg-5">
                     Điểm đón
@@ -620,10 +653,12 @@ const BookingConfirmationPage = () => {
             </div>
           </div>
           <div>
-            <label className="mb-2 block text-[13px] font-medium text-vxn-ink">
+            <div id="cancel-reason-label" className="mb-2 block text-[13px] font-medium text-vxn-ink">
               Lý do huỷ vé (không bắt buộc)
-            </label>
+            </div>
             <Input.TextArea
+              id="cancel-reason"
+              aria-labelledby="cancel-reason-label"
               rows={3}
               placeholder="Ví dụ: thay đổi lịch trình..."
               value={cancelReason}

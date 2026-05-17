@@ -42,7 +42,7 @@ Nguồn tham chiếu chính:
 
 - [x] Hợp nhất hai `CustomerLayout` trùng vai trò trong `frontend/src/components/customer/` và `frontend/src/components/layouts/` - `components/layouts/CustomerLayout.jsx` re-export layout canonical từ `components/customer/CustomerLayout.jsx`.
 - [x] Thiết kế lại customer chrome theo brand VXN: sidebar trái 256px, logo, nav, auth state, mobile drawer - thêm `components/customer/CustomerShell.jsx`; `npm run build` trong `frontend/` thành công.
-- [x] Giữ `CustomerFooter` cho trường hợp cần hiển thị, nhưng customer layout mặc định dùng sidebar shell theo `Vé Xe Nhanh.html` thay vì header/footer ngang.
+- [x] Hiển thị `CustomerFooter` qua `CustomerShell` cho mọi trang customer mặc định; `NewHomePage.jsx` không còn footer cục bộ và page đặc biệt có thể ẩn bằng `hideFooter` - lint riêng footer/layout pass, `npm.cmd run build` trong `frontend/` thành công.
 - [x] Tạo primitives dùng chung: `VxnButton`, `VxnCard`, `VxnChip`, `VxnPageHeader`, `VxnFieldShell` nếu thật sự giảm lặp - chưa tạo abstraction mới vì layout/home hiện tại chưa đủ lặp để đáng tách.
 - [x] Dùng icon library hiện có thay vì nhúng global SVG từ prototype khi phù hợp - dùng Ant Design Icons trong header, footer và home.
 - [~] Bảo đảm header/footer không che nội dung ở mobile - đã dùng responsive classes và drawer, cần kiểm tra trực quan trên Chrome/mobile viewport.
@@ -82,7 +82,7 @@ Nguồn tham chiếu chính:
 
 ## 5. Chi tiết chuyến và chọn ghế
 
-- [~] Nâng cấp `TripDetailPage.jsx` theo prototype `TripDetailScreen` - đã bổ sung timeline start → stops → destination và cập nhật public trip detail API trả `route.stops`; còn cần smoke test trực quan với dữ liệu thật nhiều điểm dừng.
+- [~] Nâng cấp `TripDetailPage.jsx` theo prototype `TripDetailScreen` - đã bổ sung timeline start → stops → destination, thêm `RouteMiniMap` cho bản đồ lộ trình có Google Maps Embed optional qua `VITE_GOOGLE_MAPS_EMBED_API_KEY` và fallback sơ đồ tuyến nội bộ; còn cần smoke test trực quan với dữ liệu thật nhiều điểm dừng.
 - [ ] Giữ API `getTripDetails` và `getAvailableSeats`.
 - [ ] Giữ store booking: `selectedTrip`, `selectedSeats`, pickup, dropoff.
 - [~] Làm sticky breadcrumb/booking stepper cho `TripDetailPage.jsx`, `SeatSelectionPage.jsx` và `PassengerInfoPage.jsx`; đã chỉnh offset desktop/mobile, sticky summary bên phải và căn giữa riêng hàng stepper không bao gồm breadcrumb.
@@ -99,7 +99,7 @@ Nguồn tham chiếu chính:
 - [ ] Nâng cấp `PassengerInfoPage.jsx` theo prototype `PassengerInfoScreen`.
 - [~] Giữ validation passenger, phone, email, id card nếu đang có - đã sửa `PassengerInfoPage.jsx` để checkbox "Người liên hệ là hành khách 1" tự sync contact sang hành khách 1 và không bắt required riêng cho hành khách 1.
 - [ ] Tích hợp saved passengers nếu API/store đã có.
-- [ ] Nâng cấp `BookingConfirmationPage.jsx` theo payment/summary style mới.
+- [~] Nâng cấp `BookingConfirmationPage.jsx` theo payment/summary style mới - đã thêm bản đồ nhỏ cho điểm đón/trả bằng `RouteMiniMap`, giữ link chỉ đường Google Maps hiện có; chưa nâng cấp toàn bộ visual payment summary.
 - [~] Giữ luồng tạo booking và payment hiện có - đã thiết kế lại bước chọn phương thức thanh toán trong `PassengerInfoPage.jsx` theo layout phương thức/ngân hàng/tóm tắt đơn; vẫn gọi `createPayment` endpoint hiện có và map online methods qua VNPay.
 - [ ] Nâng cấp các trang `VNPayReturn`, `BookingSuccess`, `BookingFailure`.
 - [ ] Bảo đảm callback payment không bị đổi route ngoài `App.jsx`.

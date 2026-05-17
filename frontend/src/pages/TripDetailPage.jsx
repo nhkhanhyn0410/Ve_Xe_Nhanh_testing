@@ -16,6 +16,7 @@ import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import CustomerShell from '../components/customer/CustomerShell';
 import CustomerBreadcrumb from '../components/customer/CustomerBreadcrumb';
+import RouteMiniMap from '../components/customer/RouteMiniMap';
 import ReviewsSection from '../components/ReviewsSection';
 import { getAvailableSeats, getTripDetails } from '../services/bookingApi';
 import useBookingStore from '../store/bookingStore';
@@ -299,6 +300,31 @@ const TripDetailPage = () => {
       meta: 'Đến nơi dự kiến',
     },
   ];
+  const routeMapPoints = [
+    {
+      key: 'origin-map',
+      type: 'start',
+      label: view.route.origin?.station || view.route.fromCity,
+      address: view.route.fromAddress,
+      city: view.route.fromCity,
+      coordinates: view.route.origin?.coordinates,
+    },
+    ...view.route.stops.map((stop, index) => ({
+      key: getEntityId(stop) || `stop-map-${index + 1}`,
+      type: 'stop',
+      label: getStopTitle(stop, `Điểm dừng ${index + 1}`),
+      address: getStopAddress(stop) || stop?.address,
+      coordinates: stop?.coordinates,
+    })),
+    {
+      key: 'destination-map',
+      type: 'end',
+      label: view.route.destination?.station || view.route.toCity,
+      address: view.route.toAddress,
+      city: view.route.toCity,
+      coordinates: view.route.destination?.coordinates,
+    },
+  ];
 
   return (
     <CustomerShell activeKey="buy" mainClassName="bg-vxn-bg-soft">
@@ -400,18 +426,26 @@ const TripDetailPage = () => {
                   ? `Theo dõi đầy đủ ${view.route.stops.length} điểm dừng trung gian của chuyến xe.`
                   : 'Theo dõi mốc khởi hành, điểm đến và thời lượng dự kiến của chuyến xe.'}
               </SectionTitle>
-              <div className="rounded-2xl bg-vxn-bg-soft p-5">
-                {timelineItems.map((item, index) => (
-                  <TimelinePoint
-                    key={item.key}
-                    type={item.type}
-                    time={item.time}
-                    city={item.city}
-                    address={item.address}
-                    meta={item.meta}
-                    isLast={index === timelineItems.length - 1}
-                  />
-                ))}
+              <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
+                <RouteMiniMap
+                  points={routeMapPoints}
+                  title="Bản đồ lộ trình"
+                  subtitle={`${view.route.fromCity} → ${view.route.toCity}`}
+                  heightClassName="h-[280px]"
+                />
+                <div className="rounded-2xl bg-vxn-bg-soft p-5">
+                  {timelineItems.map((item, index) => (
+                    <TimelinePoint
+                      key={item.key}
+                      type={item.type}
+                      time={item.time}
+                      city={item.city}
+                      address={item.address}
+                      meta={item.meta}
+                      isLast={index === timelineItems.length - 1}
+                    />
+                  ))}
+                </div>
               </div>
             </InfoCard>
 

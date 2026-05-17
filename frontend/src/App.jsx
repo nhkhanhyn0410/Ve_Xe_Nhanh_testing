@@ -70,6 +70,10 @@ import OperatorManagementPage from './pages/admin/OperatorManagementPage';
 import ComplaintManagementPage from './pages/admin/ComplaintManagementPage';
 import ContentManagementPage from './pages/admin/ContentManagementPage';
 import AdminReportsPage from './pages/admin/ReportsPage';
+import AdminSystemRoutesPage from './pages/admin/SystemRoutesPage';
+import AdminSystemTripsPage from './pages/admin/SystemTripsPage';
+import AdminTransactionsPage from './pages/admin/TransactionsPage';
+import AdminReviewsPage from './pages/admin/ReviewsPage';
 
 function App() {
   return (
@@ -309,7 +313,11 @@ function App() {
           <Route path="dashboard" element={<AdminDashboardPage />} />
           <Route path="users" element={<UserManagementPage />} />
           <Route path="operators" element={<OperatorManagementPage />} />
+          <Route path="routes" element={<AdminSystemRoutesPage />} />
+          <Route path="trips" element={<AdminSystemTripsPage />} />
+          <Route path="transactions" element={<AdminTransactionsPage />} />
           <Route path="complaints" element={<ComplaintManagementPage />} />
+          <Route path="reviews" element={<AdminReviewsPage />} />
           <Route path="content" element={<ContentManagementPage />} />
           <Route path="reports" element={<AdminReportsPage />} />
         </Route>

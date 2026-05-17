@@ -504,39 +504,6 @@ const OperatorsSection = ({ navigate }) => (
   </section>
 );
 
-const HomeFooter = () => (
-  <footer className="bg-vxn-teal-900 text-white/75">
-    <div className="mx-auto grid w-full max-w-[1440px] gap-8 px-4 py-10 lg:grid-cols-[2fr_1fr_1fr_1fr] lg:px-14">
-      <div>
-        <div className="mb-2 text-lg font-bold text-vxn-saffron-500">VÉ XE NHANH</div>
-        <p className="m-0 max-w-sm text-[13px] leading-5">
-          Nền tảng đặt vé xe khách toàn quốc. Vận hành bởi Công ty CP VXN, Quận 3, TP.HCM.
-        </p>
-      </div>
-      {[
-        ['Hỗ trợ', ['Tra cứu vé', 'Đổi & hủy vé', 'Khiếu nại', 'FAQ']],
-        ['Về VXN', ['Giới thiệu', 'Tuyển dụng', 'Tin tức', 'Liên hệ']],
-        ['Đối tác', ['Đăng ký nhà xe', 'Doanh nghiệp', 'API', 'Affiliate']],
-      ].map(([heading, items]) => (
-        <div key={heading}>
-          <div className="mb-3 text-[13px] font-semibold tracking-wide text-white">{heading}</div>
-          {items.map((item) => (
-            <div key={item} className="mb-2 text-[13px]">
-              {item}
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-    <div className="border-t border-white/10">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start justify-between gap-2 px-4 py-4 text-xs text-white/60 sm:flex-row sm:items-center lg:px-14">
-        <span>© 2026 Vé Xe Nhanh · MST 0312345678</span>
-        <span>Điều khoản · Chính sách bảo mật · Giải quyết tranh chấp</span>
-      </div>
-    </div>
-  </footer>
-);
-
 const NewHomePage = () => {
   const navigate = useNavigate();
   const searchCardRef = useRef(null);
@@ -798,8 +765,6 @@ const NewHomePage = () => {
           </div>
         </div>
       </section>
-
-      <HomeFooter />
     </CustomerShell>
   );
 };

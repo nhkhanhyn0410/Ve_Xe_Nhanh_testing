@@ -94,6 +94,14 @@ export const adminOperators = {
   },
 
   /**
+   * Get operator statistics (system-wide)
+   * GET /api/v1/admin/operators/statistics
+   */
+  getStatistics: async () => {
+    return await api.get('/admin/operators/statistics');
+  },
+
+  /**
    * Get operator by ID
    * GET /api/v1/admin/operators/:id
    */

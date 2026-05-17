@@ -25,6 +25,7 @@ router.use(authenticate);
 router.use(authorize('admin'));
 
 // Operator management routes
+router.get('/operators/statistics', adminController.getOperatorStatistics);
 router.get('/operators', adminController.getAllOperators);
 router.get('/operators/:id', adminController.getOperatorById);
 router.put('/operators/:id/approve', adminController.approveOperator);
