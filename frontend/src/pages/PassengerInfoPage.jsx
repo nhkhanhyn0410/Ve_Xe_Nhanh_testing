@@ -26,6 +26,24 @@ import useBookingStore from '../store/bookingStore';
 import useAuthStore from '../store/authStore';
 import { holdSeats, validateVoucher, createPayment } from '../services/bookingApi';
 import { getOperatorDisplayName } from '../utils/operatorDisplay';
+import atmLogo from '../assets/payment-logos/ATM.png';
+import cashLogo from '../assets/payment-logos/CASH.jpg';
+import momoLogo from '../assets/payment-logos/MOMO.png';
+import visaMastercardLogo from '../assets/payment-logos/VISA-MASTERCARD.png';
+import vnpayLogo from '../assets/payment-logos/VNPAY.png';
+import zalopayLogo from '../assets/payment-logos/ZALOPAY.png';
+import acbLogo from '../assets/payment-logos/banks/ACB.svg.png';
+import bidvLogo from '../assets/payment-logos/banks/BIDV.png';
+import hdbankLogo from '../assets/payment-logos/banks/HDBANK.png';
+import mbbankLogo from '../assets/payment-logos/banks/MBBANK.png';
+import msbLogo from '../assets/payment-logos/banks/MSB.svg.png';
+import ocbLogo from '../assets/payment-logos/banks/OCB.png';
+import sacombankLogo from '../assets/payment-logos/banks/SACOMBANK.png';
+import techcombankLogo from '../assets/payment-logos/banks/TECHCOMBANK.png';
+import tpbankLogo from '../assets/payment-logos/banks/TPBANK.png';
+import vibLogo from '../assets/payment-logos/banks/VIB.png';
+import vietcombankLogo from '../assets/payment-logos/banks/VIETCOMBANK.png';
+import vpbankLogo from '../assets/payment-logos/banks/VPBANK.svg.png';
 
 const formatCurrency = (value = 0) => `${Number(value || 0).toLocaleString('vi-VN')}đ`;
 
@@ -76,6 +94,7 @@ const PAYMENT_METHODS = [
     name: 'Ví MoMo',
     description: 'Thanh toán qua app MoMo',
     logo: 'MoMo',
+    logoSrc: momoLogo,
     color: '#A50064',
     enabled: false,
     comingSoon: true,
@@ -86,6 +105,7 @@ const PAYMENT_METHODS = [
     name: 'VNPay',
     description: 'QR / Thẻ ATM nội địa',
     logo: 'VNPay',
+    logoSrc: vnpayLogo,
     color: '#0B62B4',
     enabled: true,
   },
@@ -95,6 +115,7 @@ const PAYMENT_METHODS = [
     name: 'ZaloPay',
     description: 'Quét QR Zalo',
     logo: 'Zalo',
+    logoSrc: zalopayLogo,
     color: '#008EE8',
     enabled: false,
     comingSoon: true,
@@ -105,6 +126,7 @@ const PAYMENT_METHODS = [
     name: 'Thẻ Visa/Master',
     description: 'Quốc tế',
     logo: 'VISA',
+    logoSrc: visaMastercardLogo,
     color: '#29246A',
     enabled: true,
   },
@@ -114,6 +136,7 @@ const PAYMENT_METHODS = [
     name: 'Thẻ ATM',
     description: 'Internet Banking 30+ ngân hàng',
     logo: 'ATM',
+    logoSrc: atmLogo,
     color: '#E39A22',
     enabled: true,
   },
@@ -123,25 +146,53 @@ const PAYMENT_METHODS = [
     name: 'Tiền mặt',
     description: 'Trả tại văn phòng (giữ ghế 24h)',
     logo: '₫',
+    logoSrc: cashLogo,
+    logoImageClassName: 'h-[92%] w-[92%] scale-[1.35]',
     color: '#047857',
     enabled: true,
   },
 ];
 
 const BANK_OPTIONS = [
-  { code: 'VCB', name: 'Vietcombank', color: '#068844' },
-  { code: 'TCB', name: 'Techcombank', color: '#D71920' },
-  { code: 'BIDV', name: 'BIDV', color: '#1775BC' },
-  { code: 'MBBANK', name: 'MBBank', color: '#1F56A7' },
-  { code: 'VIB', name: 'VIB', color: '#263B80' },
-  { code: 'ACB', name: 'ACB', color: '#115FAE' },
-  { code: 'TPB', name: 'TPBank', color: '#F6A800' },
-  { code: 'VPB', name: 'VPBank', color: '#00A651' },
-  { code: 'OCB', name: 'OCB', color: '#F59E0B' },
-  { code: 'HDB', name: 'HDBank', color: '#C1121F' },
-  { code: 'MSB', name: 'MSB', color: '#2454A6' },
-  { code: 'STB', name: 'Sacombank', color: '#0A65AD' },
+  { code: 'VCB', name: 'Vietcombank', color: '#068844', logoSrc: vietcombankLogo },
+  { code: 'TCB', name: 'Techcombank', color: '#D71920', logoSrc: techcombankLogo },
+  { code: 'BIDV', name: 'BIDV', color: '#1775BC', logoSrc: bidvLogo },
+  { code: 'MBBANK', name: 'MBBank', color: '#1F56A7', logoSrc: mbbankLogo },
+  {
+    code: 'VIB',
+    name: 'VIB',
+    color: '#263B80',
+    logoSrc: vibLogo,
+    logoFrameClassName: 'h-10 w-full max-w-[108px] px-2 py-1',
+    logoImageClassName: 'h-[82%] w-[94%]',
+  },
+  { code: 'ACB', name: 'ACB', color: '#115FAE', logoSrc: acbLogo },
+  { code: 'TPB', name: 'TPBank', color: '#F6A800', logoSrc: tpbankLogo },
+  { code: 'VPB', name: 'VPBank', color: '#00A651', logoSrc: vpbankLogo },
+  { code: 'OCB', name: 'OCB', color: '#F59E0B', logoSrc: ocbLogo },
+  { code: 'HDB', name: 'HDBank', color: '#C1121F', logoSrc: hdbankLogo },
+  { code: 'MSB', name: 'MSB', color: '#2454A6', logoSrc: msbLogo },
+  { code: 'STB', name: 'Sacombank', color: '#0A65AD', logoSrc: sacombankLogo },
 ];
+
+const PaymentLogo = ({ item, className = '', imageClassName = '' }) => (
+  <span
+    className={`grid shrink-0 place-items-center rounded-[10px] border border-vxn-border bg-white ${className}`}
+    style={!item.logoSrc ? { backgroundColor: item.color } : undefined}
+  >
+    {item.logoSrc ? (
+      <img
+        src={item.logoSrc}
+        alt=""
+        aria-hidden="true"
+        className={`${imageClassName || 'h-full w-full'} object-contain`}
+        loading="lazy"
+      />
+    ) : (
+      <span className="px-1 text-[11px] font-bold text-white">{item.logo}</span>
+    )}
+  </span>
+);
 
 const BookingStepper = ({ current = 2 }) => (
   <div className="border-b border-vxn-border bg-white px-4 py-4 lg:px-8">
@@ -893,12 +944,11 @@ const PassengerInfoPage = () => {
                               : 'border-vxn-border bg-white hover:border-vxn-teal-300'
                           } ${!method.enabled ? 'cursor-not-allowed opacity-55' : ''}`}
                         >
-                          <span
-                            className="grid h-11 w-11 shrink-0 place-items-center rounded-[10px] text-[12px] font-bold text-white"
-                            style={{ backgroundColor: method.color }}
-                          >
-                            {method.logo}
-                          </span>
+                          <PaymentLogo
+                            item={method}
+                            className={method.logoFrameClassName || 'h-12 w-14 p-1.5'}
+                            imageClassName={method.logoImageClassName}
+                          />
                           <span className="min-w-0 flex-1">
                             <span className="flex items-center gap-2">
                               <span className="text-[14px] font-semibold text-vxn-ink">
@@ -964,12 +1014,11 @@ const PassengerInfoPage = () => {
                             }`}
                             onClick={() => setSelectedBank(active ? '' : bank.code)}
                           >
-                            <span
-                              className="grid min-w-[44px] place-items-center rounded-[5px] px-2 py-1 text-[10px] font-bold text-white"
-                              style={{ backgroundColor: bank.color }}
-                            >
-                              {bank.code === 'MBBANK' ? 'MB' : bank.code}
-                            </span>
+                            <PaymentLogo
+                              item={bank}
+                              className={bank.logoFrameClassName || 'h-9 w-full max-w-[92px] p-1'}
+                              imageClassName={bank.logoImageClassName}
+                            />
                             <span className="text-[11px] font-medium text-vxn-fg-2">
                               {bank.name}
                             </span>
